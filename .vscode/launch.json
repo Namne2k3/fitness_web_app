@@ -1,0 +1,59 @@
+{
+    "version": "0.2.0",
+    "compounds": [
+        {
+            "name": "Chạy Cả 2 (Server kèm debug)",
+            "configurations": [
+                "Debug Server",
+                "Chạy Client"
+            ]
+        }
+    ],
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Server",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run",
+                "dev"
+            ],
+            "cwd": "${workspaceFolder}/Server",
+            "console": "integratedTerminal",
+            "env": {
+                "NODE_ENV": "development"
+            }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Chạy Client",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run",
+                "dev"
+            ],
+            "cwd": "${workspaceFolder}/Client",
+            "console": "integratedTerminal",
+            "env": {
+                "NODE_ENV": "development"
+            }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Chạy Server (không debug)",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run",
+                "dev"
+            ],
+            "cwd": "${workspaceFolder}/Server",
+            "console": "integratedTerminal",
+            "env": {
+                "NODE_ENV": "development"
+            }
+        }
+    ]
+}
