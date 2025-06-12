@@ -6,6 +6,7 @@
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { ApiResponse } from '../types';
+import { TokenService } from './tokenService';
 
 /**
  * Base API configuration
@@ -23,14 +24,21 @@ const createApiInstance = (): AxiosInstance => {
         headers: {
             'Content-Type': 'application/json',
         },
-    });
-
-    // Request interceptor để thêm auth token
+    });    // Request interceptor để thêm auth token
     instance.interceptors.request.use(
         (config) => {
-            const token = localStorage.getItem('accessToken');
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
+            // Sử dụng TokenService thay vì localStorage trực tiếp
+            const authHeader = TokenService.getAuthHeader();
+            if (authHeader.Authorization) {
+                config.headers.Authorization = authHeader.Authorization;
+
+                if (import.meta.env.DEV) {
+                    console.log('🔗 API Request with auth:', {
+                        url: config.url,
+                        method: config.method,
+                        hasAuth: !!authHeader.Authorization
+                    });
+                }
             }
             return config;
         },
@@ -43,33 +51,39 @@ const createApiInstance = (): AxiosInstance => {
     instance.interceptors.response.use(
         (response: AxiosResponse) => {
             return response;
-        },
-        async (error) => {
+        }, async (error) => {
             const originalRequest = error.config;
 
-            // Handle 401 Unauthorized
+            // Handle 401 Unauthorized - Refresh token nếu cần
             if (error.response?.status === 401 && !originalRequest._retry) {
                 originalRequest._retry = true;
 
                 try {
-                    const refreshToken = localStorage.getItem('refreshToken');
+                    const refreshToken = TokenService.getRefreshToken();
                     if (refreshToken) {
                         const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
                             refreshToken,
                         });
 
-                        const { accessToken } = response.data.data;
-                        localStorage.setItem('accessToken', accessToken);
+                        // Handle both flat and nested response structures
+                        const tokens = response.data.tokens || response.data.data?.tokens || response.data.data;
+                        const newAccessToken = tokens.accessToken || tokens.accessToken;
 
-                        // Retry original request với token mới
-                        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-                        return instance(originalRequest);
+                        if (newAccessToken) {
+                            // Update tokens trong TokenService
+                            TokenService.saveTokens(newAccessToken, refreshToken);
+
+                            // Retry original request với token mới
+                            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+                            return instance(originalRequest);
+                        } else {
+                            throw new Error('No access token in refresh response');
+                        }
                     }
                 } catch (refreshError) {
-                    console.error('Refresh token failed:', refreshError);
-                    // Refresh failed, redirect to login
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('refreshToken');
+                    console.error('❌ Refresh token failed:', refreshError);
+                    // Refresh failed, clear tokens và redirect to login
+                    TokenService.clearTokens();
                     window.location.href = '/login';
                 }
             }

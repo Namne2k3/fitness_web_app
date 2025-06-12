@@ -9,6 +9,8 @@
     "start": "node dist/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:auth-mapper": "npx ts-node src/tests/authMapper.test.ts",
+    "auth-mapper": "npx ts-node src/scripts/authMapperRunner.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write src/**/*.ts"

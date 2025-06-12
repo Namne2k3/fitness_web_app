@@ -354,7 +354,7 @@ export interface PrivacySettings {
 // API Response types
 export interface ApiResponse<T> {
     success: boolean;
-    data: T;
+    data: T | undefined | null;
     message?: string;
     error?: string;
     metadata?: {

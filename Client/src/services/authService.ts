@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Authentication Service
- * Xử lý các chức năng authentication và authorization
+ * Xử lý các chức năng authentication và authorization với React 19 patterns
  */
 
 import { api } from './api';
+import { TokenService } from './tokenService';
 import {
     User,
     LoginFormData,
@@ -13,37 +14,16 @@ import {
 } from '../types';
 
 /**
- * Interface cho auth response
+ * Interface cho server auth response (nested structure)
+ */
+
+/**
+ * Interface cho client auth response (flat structure)
  */
 interface AuthResponse {
     user: User;
     accessToken: string;
     refreshToken: string;
-}
-
-/**
- * Interface cho forgot password request
- */
-interface ForgotPasswordData {
-    email: string;
-}
-
-/**
- * Interface cho reset password request
- */
-interface ResetPasswordData {
-    token: string;
-    password: string;
-    confirmPassword: string;
-}
-
-/**
- * Interface cho change password request
- */
-interface ChangePasswordData {
-    currentPassword: string;
-    newPassword: string;
-    confirmPassword: string;
 }
 
 /**
@@ -59,11 +39,28 @@ export class AuthService {
         const response = await api.post<AuthResponse>('/auth/register', data);
 
         if (response.success && response.data) {
-            // Lưu tokens vào localStorage
-            this.saveTokens(response.data.accessToken, response.data.refreshToken);
+            // Lưu tokens vào localStorage thông qua TokenService
+            TokenService.saveTokens(
+                response.data.accessToken,
+                response.data.refreshToken
+            );
+
+            // Trả về flat structure cho client
+            return {
+                success: true,
+                data: {
+                    user: response.data.user,
+                    accessToken: response.data.accessToken,
+                    refreshToken: response.data.refreshToken
+                }
+            };
         }
 
-        return response;
+        return {
+            success: false,
+            error: response.error || 'Registration failed',
+            data: undefined
+        };
     }
 
     /**
@@ -75,16 +72,33 @@ export class AuthService {
         const response = await api.post<AuthResponse>('/auth/login', data);
 
         if (response.success && response.data) {
-            // Lưu tokens vào localStorage
-            this.saveTokens(response.data.accessToken, response.data.refreshToken);
+            // Lưu tokens vào localStorage thông qua TokenService
+            TokenService.saveTokens(
+                response.data.accessToken,
+                response.data.refreshToken
+            );
 
             // Lưu remember me preference
             if (data.rememberMe) {
                 localStorage.setItem('rememberMe', 'true');
             }
+
+            // Trả về flat structure cho client
+            return {
+                success: true,
+                data: {
+                    user: response.data.user,
+                    accessToken: response.data.accessToken,
+                    refreshToken: response.data.refreshToken
+                }
+            };
         }
 
-        return response;
+        return {
+            success: false,
+            error: response.error || 'Login failed',
+            data: undefined
+        };
     }
 
     /**
@@ -98,8 +112,9 @@ export class AuthService {
             // Log error nhưng vẫn clear local storage
             console.error('Logout error:', error);
         } finally {
-            // Xóa tokens khỏi localStorage
-            this.clearTokens();
+            // Xóa tokens khỏi localStorage thông qua TokenService
+            TokenService.clearTokens();
+            localStorage.removeItem('rememberMe');
         }
     }
 
@@ -108,7 +123,7 @@ export class AuthService {
      * @returns Promise với access token mới
      */
     static async refreshToken(): Promise<ApiResponse<{ accessToken: string }>> {
-        const refreshToken = localStorage.getItem('refreshToken');
+        const refreshToken = TokenService.getRefreshToken();
 
         if (!refreshToken) {
             throw new Error('No refresh token available');
@@ -119,7 +134,8 @@ export class AuthService {
         });
 
         if (response.success && response.data) {
-            localStorage.setItem('accessToken', response.data.accessToken);
+            // Update access token
+            TokenService.saveTokens(response.data.accessToken, refreshToken);
         }
 
         return response;
@@ -134,156 +150,89 @@ export class AuthService {
     }
 
     /**
-     * Cập nhật profile user
-     * @param data - Dữ liệu profile mới
-     * @returns Promise với thông tin user đã cập nhật
-     */
-    static async updateProfile(data: Partial<User>): Promise<ApiResponse<User>> {
-        return api.patch<User>('/auth/profile', data);
-    }
-
-    /**
-     * Đổi mật khẩu
-     * @param data - Mật khẩu hiện tại và mật khẩu mới
-     * @returns Promise
-     */
-    static async changePassword(data: ChangePasswordData): Promise<ApiResponse<void>> {
-        return api.post<void>('/auth/change-password', data);
-    }
-
-    /**
-     * Quên mật khẩu - gửi email reset
-     * @param data - Email để reset password
-     * @returns Promise
-     */
-    static async forgotPassword(data: ForgotPasswordData): Promise<ApiResponse<void>> {
-        return api.post<void>('/auth/forgot-password', data);
-    }
-
-    /**
-     * Reset mật khẩu với token
-     * @param data - Token và mật khẩu mới
-     * @returns Promise
-     */
-    static async resetPassword(data: ResetPasswordData): Promise<ApiResponse<void>> {
-        return api.post<void>('/auth/reset-password', data);
-    }
-
-    /**
-     * Verify email với token
-     * @param token - Verification token
-     * @returns Promise
-     */
-    static async verifyEmail(token: string): Promise<ApiResponse<void>> {
-        return api.post<void>('/auth/verify-email', { token });
-    }
-
-    /**
-     * Gửi lại email verification
-     * @returns Promise
-     */
-    static async resendVerification(): Promise<ApiResponse<void>> {
-        return api.post<void>('/auth/resend-verification');
-    }
-
-    /**
      * Google OAuth login
      * @param token - Google access token
      * @returns Promise với thông tin user và tokens
      */
-    static async googleLogin(token: string): Promise<ApiResponse<AuthResponse>> {
-        const response = await api.post<AuthResponse>('/auth/google', { token });
+    // static async googleLogin(token: string): Promise<ApiResponse<AuthResponse>> {
+    //     const response = await api.post<ServerAuthResponse>('/auth/google', { token });
 
-        if (response.success && response.data) {
-            this.saveTokens(response.data.accessToken, response.data.refreshToken);
-        }
+    //     if (response.success && response.data) {
+    //         // Lưu tokens
+    //         TokenService.saveTokens(
+    //             response.data.tokens.accessToken,
+    //             response.data.tokens.refreshToken
+    //         );
 
-        return response;
-    }
+    //         // Trả về flat structure
+    //         return {
+    //             success: true,
+    //             data: {
+    //                 user: response.data.user,
+    //                 accessToken: response.data.tokens.accessToken,
+    //                 refreshToken: response.data.tokens.refreshToken
+    //             }
+    //         };
+    //     }
+
+    //     return response as ApiResponse<AuthResponse>;
+    // }
 
     /**
      * Facebook OAuth login
      * @param token - Facebook access token
      * @returns Promise với thông tin user và tokens
      */
-    static async facebookLogin(token: string): Promise<ApiResponse<AuthResponse>> {
-        const response = await api.post<AuthResponse>('/auth/facebook', { token });
+    // static async facebookLogin(token: string): Promise<ApiResponse<AuthResponse>> {
+    //     const response = await api.post<ServerAuthResponse>('/auth/facebook', { token });
 
-        if (response.success && response.data) {
-            this.saveTokens(response.data.accessToken, response.data.refreshToken);
-        }
+    //     if (response.success && response.data) {
+    //         // Lưu tokens
+    //         TokenService.setTokens(
+    //             response.data.tokens.accessToken,
+    //             response.data.tokens.refreshToken
+    //         );
 
-        return response;
-    }
+    //         // Trả về flat structure
+    //         return {
+    //             success: true,
+    //             data: {
+    //                 user: response.data.user,
+    //                 accessToken: response.data.tokens.accessToken,
+    //                 refreshToken: response.data.tokens.refreshToken
+    //             }
+    //         };
+    //     }
+
+    //     return response as ApiResponse<AuthResponse>;
+    // }
 
     /**
      * Kiểm tra xem user có đăng nhập không
      * @returns boolean
      */
     static isAuthenticated(): boolean {
-        const token = localStorage.getItem('accessToken');
+        const token = TokenService.getAccessToken();
         if (!token) return false;
 
-        try {
-            // Decode JWT để kiểm tra expiry
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            const currentTime = Date.now() / 1000;
-
-            return payload.exp > currentTime;
-        } catch (error) {
-            console.error('Error decoding token:', error);
-            return false;
-        }
+        // Kiểm tra token còn hạn không
+        return TokenService.isTokenValid(token);
     }
 
     /**
-     * Lấy access token từ localStorage
+     * Lấy access token
      * @returns string | null
      */
     static getAccessToken(): string | null {
-        return localStorage.getItem('accessToken');
+        return TokenService.getAccessToken();
     }
 
     /**
-     * Lấy refresh token từ localStorage
+     * Lấy refresh token
      * @returns string | null
      */
     static getRefreshToken(): string | null {
-        return localStorage.getItem('refreshToken');
-    }
-
-    /**
-     * Lưu tokens vào localStorage
-     * @param accessToken - Access token
-     * @param refreshToken - Refresh token
-     */
-    private static saveTokens(accessToken: string, refreshToken: string): void {
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
-    }
-
-    /**
-     * Xóa tokens khỏi localStorage
-     */
-    private static clearTokens(): void {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('rememberMe');
-    }
-
-    /**
-     * Decode JWT token để lấy payload
-     * @param token - JWT token
-     * @returns Decoded payload hoặc null
-     */
-    static decodeToken(token: string): any | null {
-        try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            return payload;
-        } catch (error) {
-            console.error('Error decoding token:', error);
-            return null;
-        }
+        return TokenService.getRefreshToken();
     }
 
     /**
@@ -294,8 +243,12 @@ export class AuthService {
         const token = this.getAccessToken();
         if (!token) return null;
 
-        const payload = this.decodeToken(token);
-        return payload?.userId || null;
+        const payload = TokenService.decodeToken(token);
+        if (!payload) return null;
+
+        // Type assertion to access custom JWT claims
+        const customPayload = payload as any;
+        return customPayload.sub || customPayload.userId || null;
     }
 
     /**
@@ -306,8 +259,12 @@ export class AuthService {
         const token = this.getAccessToken();
         if (!token) return null;
 
-        const payload = this.decodeToken(token);
-        return payload?.role || null;
+        const payload = TokenService.decodeToken(token);
+        if (!payload) return null;
+
+        // Type assertion to access custom JWT claims
+        const customPayload = payload as any;
+        return customPayload.role || null;
     }
 }
 

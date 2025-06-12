@@ -6,6 +6,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthService, RegisterRequest, LoginRequest, ChangePasswordRequest } from '../services/AuthService';
 import { ApiResponse, RequestWithUser } from '../types';
+import { AuthMapper } from '../mappers/authMapper';
 
 /**
  * Authentication Controller Class
@@ -14,18 +15,20 @@ export class AuthController {
     /**
      * Đăng ký user mới
      * @route POST /api/v1/auth/register
-     */
-    static async register(
-        req: Request<{}, ApiResponse, RegisterRequest>,
-        res: Response<ApiResponse>,
-        next: NextFunction
-    ): Promise<void> {
+     */    static async register(
+    req: Request<{}, ApiResponse, RegisterRequest>,
+    res: Response<ApiResponse>,
+    next: NextFunction
+): Promise<void> {
         try {
             const result = await AuthService.register(req.body);
 
+            // 🔹 Transform data với AuthMapper để loại bỏ sensitive info
+            const safeResponse = AuthMapper.toRegisterResponse(result);
+
             res.status(201).json({
                 success: true,
-                data: result,
+                data: safeResponse,
                 message: 'User registered successfully'
             });
         } catch (error) {
@@ -45,9 +48,12 @@ export class AuthController {
         try {
             const result = await AuthService.login(req.body);
 
+            // 🔹 Transform data với AuthMapper để loại bỏ sensitive info
+            const safeResponse = AuthMapper.toLoginResponse(result);
+
             res.status(200).json({
                 success: true,
-                data: result,
+                data: safeResponse,
                 message: 'Login successful'
             });
         } catch (error) {
@@ -58,8 +64,7 @@ export class AuthController {
     /**
      * Lấy thông tin user hiện tại
      * @route GET /api/v1/auth/me
-     */
-    static async getMe(
+     */    static async getMe(
         req: RequestWithUser,
         res: Response<ApiResponse>,
         next: NextFunction
@@ -76,9 +81,21 @@ export class AuthController {
 
             const user = await AuthService.getUserById(req.user._id);
 
+            if (!user) {
+                res.status(404).json({
+                    success: false,
+                    error: 'User not found',
+                    data: null
+                });
+                return;
+            }
+
+            // 🔹 Transform user data để loại bỏ sensitive info
+            const safeResponse = AuthMapper.toCurrentUserResponse(user);
+
             res.status(200).json({
                 success: true,
-                data: { user },
+                data: safeResponse,
                 message: 'User profile retrieved successfully'
             });
         } catch (error) {
