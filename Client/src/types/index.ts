@@ -377,7 +377,7 @@ export interface PaginatedResult<T> {
 export interface LoginFormData {
     email: string;
     password: string;
-    rememberMe: boolean;
+    rememberMe?: boolean;
 }
 
 export interface RegisterFormData {

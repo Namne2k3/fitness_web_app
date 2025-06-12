@@ -64,7 +64,7 @@ export const useAuthStore = create<AuthState>()(
                         const response = await AuthService.login({
                             email,
                             password,
-                            rememberMe,
+                            // rememberMe,
                         });
 
                         if (response.success && response.data) {
