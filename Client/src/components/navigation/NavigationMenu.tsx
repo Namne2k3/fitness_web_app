@@ -41,6 +41,7 @@ type NavMenu = {
     key: string;
     icon: React.ReactNode;
     label: string;
+    path?: string; // Optional path for main menu items
     subItems: (NavSubItem | 'divider')[];
 };
 
@@ -128,7 +129,7 @@ const NavigationMenu: React.FC = () => {
     };
 
     return (
-        <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'center', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'center', alignItems: 'center', gap: 2.5 }}>
             {NAV_MENUS.map(menu => (
                 <Box key={menu.key} sx={{ position: 'relative' }}>
                     <Button
@@ -148,20 +149,36 @@ const NavigationMenu: React.FC = () => {
                                 ? 'rgba(255,255,255,0.13)' : 'transparent',
                             transition: 'background 0.2s',
                             '& .menu-main-label': {
-                                opacity: openMenu === menu.key ? 1 : 0,
-                                maxWidth: openMenu === menu.key ? 200 : 0,
-                                marginLeft: openMenu === menu.key ? 1 : 0,
+                                opacity: (openMenu === menu.key || (menu.key === 'home' ? location.pathname === '/' : location.pathname.startsWith(`/${menu.key}`))) ? 1 : 0,
+                                maxWidth: (openMenu === menu.key || (menu.key === 'home' ? location.pathname === '/' : location.pathname.startsWith(`/${menu.key}`))) ? 200 : 0,
+                                marginLeft: (openMenu === menu.key || (menu.key === 'home' ? location.pathname === '/' : location.pathname.startsWith(`/${menu.key}`))) ? 1 : 0,
                                 overflow: 'hidden',
                                 whiteSpace: 'nowrap',
-                                transition: 'opacity 0.2s, max-width 0.2s, margin-left 0.2s',
+                                transition: 'opacity 0.35s cubic-bezier(0.4,0,0.2,1), max-width 0.35s cubic-bezier(0.4,0,0.2,1), margin-left 0.25s cubic-bezier(0.4,0,0.2,1)',
                                 color: 'white',
                                 fontWeight: 500,
                             },
-                            '&:hover': {
-                                backgroundColor: 'rgba(255,255,255,0.18)',
+                            '&:hover .menu-main-label': {
+                                opacity: 1,
+                                maxWidth: 200,
+                                marginLeft: 1,
                             },
                         }}
-                        onClick={menu.key === 'home' ? () => handleNavigate('/') : e => e.preventDefault()}
+                        onClick={() => {
+                            if (menu.subItems.length > 0) {
+                                // Tìm subItem đầu tiên có path
+                                const firstSubItem = menu.subItems.find(
+                                    (item): item is NavSubItem => typeof item !== 'string' && !!item.path
+                                );
+                                if (firstSubItem) {
+                                    handleNavigate(firstSubItem.path);
+                                    return;
+                                }
+                            }
+                            if (menu.key === 'home') {
+                                handleNavigate('/');
+                            }
+                        }}
                     >
                         {menu.icon}
                         <span className="menu-main-label">{menu.label}</span>
