@@ -9,37 +9,54 @@ interface AuthButtonsProps {
 }
 
 /**
- * Authentication buttons component for login and registration
+ * Authentication buttons với modern design
  */
 const AuthButtons: React.FC<AuthButtonsProps> = ({ location, navigate }) => {
     return (
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            {/* Sign In Button */}
             <Button
-                color="inherit"
+                variant="text"
                 startIcon={<Login />}
-                onClick={() => navigate('/login')}
-                variant={location.pathname === '/login' ? 'outlined' : 'text'}
+                onClick={() => navigate('/login', { state: { from: location } })}
                 sx={{
-                    borderColor: 'rgba(255,255,255,0.5)',
+                    color: 'text.secondary',
+                    fontWeight: 500,
+                    px: 2,
+                    py: 1,
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    transition: 'all 0.2s ease',
                     '&:hover': {
-                        borderColor: 'rgba(255,255,255,0.8)',
-                        backgroundColor: 'rgba(255,255,255,0.1)'
-                    }
+                        backgroundColor: 'rgba(103, 126, 234, 0.08)',
+                        color: 'primary.main',
+                        transform: 'translateY(-1px)',
+                    },
                 }}
             >
                 Đăng nhập
             </Button>
+
+            {/* Sign Up Button */}
             <Button
-                color="inherit"
+                variant="contained"
                 startIcon={<PersonAdd />}
-                onClick={() => navigate('/register')}
-                variant={location.pathname === '/register' ? 'outlined' : 'text'}
+                onClick={() => navigate('/register', { state: { from: location } })}
                 sx={{
-                    borderColor: 'rgba(255,255,255,0.5)',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    fontWeight: 600,
+                    px: 3,
+                    py: 1,
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    boxShadow: '0 4px 12px rgba(103, 126, 234, 0.3)',
+                    transition: 'all 0.2s ease',
                     '&:hover': {
-                        borderColor: 'rgba(255,255,255,0.8)',
-                        backgroundColor: 'rgba(255,255,255,0.1)'
-                    }
+                        background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 6px 20px rgba(103, 126, 234, 0.4)',
+                    },
                 }}
             >
                 Đăng ký
