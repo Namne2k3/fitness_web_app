@@ -139,9 +139,6 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
                 anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
                 <MenuItem onClick={handleProfile}>
-                    <Avatar /> Hồ sơ cá nhân
-                </MenuItem>
-                <MenuItem onClick={handleProfile}>
                     <Avatar /> Tài khoản của tôi
                 </MenuItem>
                 <Divider />

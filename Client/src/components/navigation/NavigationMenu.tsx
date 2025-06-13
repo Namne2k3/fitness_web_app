@@ -27,7 +27,16 @@ import {
     Person,
     BarChart,
     EmojiEvents,
-    Home
+    Home,
+    FitnessCenterOutlined,
+    DirectionsRun,
+    AddCircleOutline,
+    MonitorHeart,
+    Favorite,
+    Reviews,
+    Inventory,
+    ShoppingBasket,
+    SportsHandball
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -55,61 +64,61 @@ const NAV_MENUS: NavMenu[] = [
         key: 'workouts',
         icon: <FitnessCenter />, label: 'Workouts',
         subItems: [
-            { icon: <MenuBook fontSize="small" />, label: 'Browse Workouts', path: '/workouts/browse' },
-            { icon: <FitnessCenter fontSize="small" />, label: 'My Workouts', path: '/workouts/my-workouts' },
-            { icon: <SportsGymnastics fontSize="small" />, label: 'Create Workout', path: '/workouts/create' },
+            { icon: <MenuBook fontSize="small" />, label: 'Khám phá Workouts', path: '/workouts/browse' },
+            { icon: <DirectionsRun fontSize="small" />, label: 'Workouts của tôi', path: '/workouts/my-workouts' },
+            { icon: <AddCircleOutline fontSize="small" />, label: 'Tạo Workout', path: '/workouts/create' },
             'divider',
-            { icon: <BarChart fontSize="small" />, label: 'Progress Tracking', path: '/workouts/progress' },
+            { icon: <BarChart fontSize="small" />, label: 'Theo dõi tiến độ', path: '/workouts/progress' },
         ]
     },
     {
         key: 'exercises',
         icon: <SportsGymnastics />, label: 'Exercises',
         subItems: [
-            { icon: <MenuBook fontSize="small" />, label: 'Exercise Library', path: '/exercises/library' },
-            { icon: <Videocam fontSize="small" />, label: 'Video Tutorials', path: '/exercises/videos' },
+            { icon: <MenuBook fontSize="small" />, label: 'Thư viện bài tập', path: '/exercises/library' },
+            { icon: <Videocam fontSize="small" />, label: 'Hướng dẫn video', path: '/exercises/videos' },
             'divider',
-            { icon: <Star fontSize="small" />, label: 'My Favorites', path: '/exercises/favorites' },
+            { icon: <Favorite fontSize="small" />, label: 'Yêu thích của tôi', path: '/exercises/favorites' },
         ]
     },
     {
         key: 'nutrition',
         icon: <Restaurant />, label: 'Nutrition',
         subItems: [
-            { icon: <MenuBook fontSize="small" />, label: 'Nutrition Guides', path: '/nutrition/guides' },
-            { icon: <LocalCafe fontSize="small" />, label: 'Supplements', path: '/nutrition/supplements' },
-            { icon: <Restaurant fontSize="small" />, label: 'Meal Plans', path: '/nutrition/meal-plans' },
+            { icon: <MenuBook fontSize="small" />, label: 'Hướng dẫn dinh dưỡng', path: '/nutrition/guides' },
+            { icon: <LocalCafe fontSize="small" />, label: 'Thực phẩm bổ sung', path: '/nutrition/supplements' },
+            { icon: <Restaurant fontSize="small" />, label: 'Kế hoạch ăn uống', path: '/nutrition/meal-plans' },
         ]
     },
     {
         key: 'reviews',
         icon: <Star />, label: 'Reviews',
         subItems: [
-            { icon: <FitnessCenter fontSize="small" />, label: 'Gym Reviews', path: '/reviews/gyms' },
-            { icon: <SportsGymnastics fontSize="small" />, label: 'Equipment Reviews', path: '/reviews/equipment' },
-            { icon: <LocalCafe fontSize="small" />, label: 'Supplement Reviews', path: '/reviews/supplements' },
-            { icon: <Person fontSize="small" />, label: 'Trainer Reviews', path: '/reviews/trainers' },
+            { icon: <FitnessCenterOutlined fontSize="small" />, label: 'Đánh giá phòng gym', path: '/reviews/gyms' },
+            { icon: <Inventory fontSize="small" />, label: 'Đánh giá thiết bị', path: '/reviews/equipment' },
+            { icon: <LocalCafe fontSize="small" />, label: 'Đánh giá thực phẩm bổ sung', path: '/reviews/supplements' },
+            { icon: <Person fontSize="small" />, label: 'Đánh giá huấn luyện viên', path: '/reviews/trainers' },
             'divider',
-            { icon: <RateReview fontSize="small" />, label: 'Write a Review', path: '/reviews/write' },
+            { icon: <RateReview fontSize="small" />, label: 'Viết đánh giá', path: '/reviews/write' },
         ]
     },
     {
         key: 'community',
         icon: <Group />, label: 'Community',
         subItems: [
-            { icon: <Group fontSize="small" />, label: 'Forums', path: '/community/forum' },
-            { icon: <EmojiEvents fontSize="small" />, label: 'Challenges', path: '/community/challenges' },
-            { icon: <BarChart fontSize="small" />, label: 'Leaderboard', path: '/community/leaderboard' },
+            { icon: <Group fontSize="small" />, label: 'Diễn đàn', path: '/community/forum' },
+            { icon: <EmojiEvents fontSize="small" />, label: 'Thử thách', path: '/community/challenges' },
+            { icon: <BarChart fontSize="small" />, label: 'Bảng xếp hạng', path: '/community/leaderboard' },
         ]
     },
     {
         key: 'marketplace',
         icon: <ShoppingCart />, label: 'Marketplace',
         subItems: [
-            { icon: <Person fontSize="small" />, label: 'Find a Trainer', path: '/marketplace/trainers' },
-            { icon: <SportsGymnastics fontSize="small" />, label: 'Equipment Shop', path: '/marketplace/equipment' },
-            { icon: <LocalCafe fontSize="small" />, label: 'Supplements', path: '/marketplace/supplements' },
-            { icon: <BarChart fontSize="small" />, label: 'Special Deals', path: '/marketplace/deals' },
+            { icon: <Person fontSize="small" />, label: 'Tìm huấn luyện viên', path: '/marketplace/trainers' },
+            { icon: <ShoppingBasket fontSize="small" />, label: 'Cửa hàng thiết bị', path: '/marketplace/equipment' },
+            { icon: <LocalCafe fontSize="small" />, label: 'Thực phẩm bổ sung', path: '/marketplace/supplements' },
+            { icon: <BarChart fontSize="small" />, label: 'Ưu đãi đặc biệt', path: '/marketplace/deals' },
         ]
     },
 ];

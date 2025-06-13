@@ -32,6 +32,7 @@ import {
     UserRole,
     UserProfile
 } from '../types';
+import { EmailService } from './EmailService';
 
 /**
  * Registration request interface
@@ -562,7 +563,7 @@ export class AuthService {
 
         // Generate reset token (expires in 1 hour)
         const resetToken = generateSecureToken();
-        const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+        const resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 phút
 
         // Save reset token to user
         user.passwordResetToken = resetToken;
@@ -570,9 +571,9 @@ export class AuthService {
         await user.save();
 
         // TODO: Send email với reset link
-        // await EmailService.sendPasswordResetEmail(user.email, resetToken);
-        console.log(`🔗 Password reset token for ${email}: ${resetToken}`);
-        console.log(`🔗 Reset link: ${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`);
+        await EmailService.sendPasswordResetEmail(user.email, resetToken, user.username);
+        // console.log(`🔗 Password reset token for ${email}: ${resetToken}`);
+        // console.log(`🔗 Reset link: ${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`);
 
         return {
             message: 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link reset password trong vài phút.'
