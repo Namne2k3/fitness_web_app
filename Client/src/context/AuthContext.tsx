@@ -58,15 +58,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         async (_prevState: ActionHookState, formData: FormData): Promise<ActionHookState> => {
             const email = formData.get('email') as string;
             const password = formData.get('password') as string;
-            const rememberMe = formData.get('rememberMe') === 'true';
+            const rememberMe = formData.get('rememberMe') == 'on' ? true : false; // Assuming rememberMe is a boolean string
 
             try {
                 const resultLogin = await login(email, password, rememberMe);
+
+                // trả về new state cho loginState với success và error
                 return { success: resultLogin.success };
             } catch (err) {
                 return { success: false, error: err instanceof Error ? err.message : 'Login failed' };
             }
         },
+
+        // Initial state mặc định ban đầu cho loginState
         { success: false, error: null }
     );
 

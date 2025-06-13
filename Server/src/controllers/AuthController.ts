@@ -47,8 +47,8 @@ export class AuthController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { email, password, rememberMe } = req.body;
-            const result = await AuthService.login({ email, password });
+            // const { email, password, rememberMe } = req.body;
+            const result = await AuthService.login(req.body);
 
             // 🔹 Transform data với AuthMapper để loại bỏ sensitive info
             const safeResponse = AuthMapper.toLoginResponse(result);
@@ -56,7 +56,7 @@ export class AuthController {
             res.status(200).json({
                 success: true,
                 data: safeResponse,
-                message: 'Login successful'
+                message: 'Đăng nhập thành công'
             });
         } catch (error) {
             next(error);

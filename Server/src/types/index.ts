@@ -213,7 +213,7 @@ export interface ReviewRating {
 export interface AuthTokens {
     accessToken: string;
     refreshToken: string;
-    expiresIn: number;
+    expiresIn?: number;
 }
 
 export interface JWTPayload {

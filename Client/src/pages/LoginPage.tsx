@@ -1,28 +1,45 @@
 /**
  * Trang đăng nhập cho ứng dụng Fitness Web App - Modern UI với React 19 & Material UI
  * Features: Hero section, beautiful form design, responsive layout
+ * Updated to be consistent with RegisterPage layout
  */
-import { FitnessCenter, SecurityOutlined } from '@mui/icons-material';
+import {
+    FitnessCenter,
+    SecurityOutlined,
+    Login as LoginIcon,
+    Group
+} from '@mui/icons-material';
 import {
     alpha,
     Box,
     Chip,
     Container,
-    Divider,
     Paper,
     Stack,
     Typography,
     useTheme
 } from '@mui/material';
 import { Link } from 'react-router-dom';
-import LoginForm from "../components/auth/LoginForm";
+import LoginForm from '../components/auth/LoginForm';
 
 /**
  * LoginPage component với modern Material UI design
  * Bao gồm hero section và form đăng nhập đẹp mắt
+ * Layout đồng nhất với RegisterPage để cải thiện UX
  */
 export default function LoginPage() {
     const theme = useTheme();
+
+    const benefits = [
+        {
+            icon: <Group />,
+            text: 'Cộng đồng hỗ trợ 24/7',
+        },
+        {
+            icon: <SecurityOutlined />,
+            text: 'Bảo mật dữ liệu tuyệt đối',
+        },
+    ];
 
     return (
         <Box
@@ -31,7 +48,6 @@ export default function LoginPage() {
                 background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
                 display: 'flex',
                 alignItems: 'center',
-                py: 4,
             }}
         >
             <Container maxWidth="lg">
@@ -40,7 +56,7 @@ export default function LoginPage() {
                         display: 'flex',
                         flexDirection: { xs: 'column', md: 'row' },
                         alignItems: 'center',
-                        gap: 4,
+                        gap: 6,
                     }}
                 >
                     {/* Left Side - Hero Content */}
@@ -49,7 +65,7 @@ export default function LoginPage() {
                             flex: 1,
                             textAlign: { xs: 'center', md: 'left' },
                             color: 'white',
-                            order: { xs: 1, md: 1 },
+                            order: { xs: 2, md: 1 },
                         }}
                     >
                         <Stack direction="row" alignItems="center" justifyContent={{ xs: 'center', md: 'flex-start' }} sx={{ mb: 3 }}>
@@ -60,7 +76,7 @@ export default function LoginPage() {
                         </Stack>
 
                         <Typography
-                            variant="h4"
+                            variant="h3"
                             component="h2"
                             sx={{
                                 fontWeight: 700,
@@ -81,13 +97,37 @@ export default function LoginPage() {
                                 opacity: 0.9,
                                 fontWeight: 300,
                                 lineHeight: 1.6,
-                                maxWidth: 400,
+                                maxWidth: 500,
                                 mx: { xs: 'auto', md: 0 },
                             }}
                         >
                             Tiếp tục hành trình fitness của bạn. Đăng nhập để truy cập
                             vào kế hoạch tập luyện cá nhân và theo dõi tiến độ.
                         </Typography>
+
+                        <Stack spacing={2} sx={{ mb: 4 }}>
+                            {benefits.map((benefit, index) => (
+                                <Stack key={index} direction="row" alignItems="center" spacing={2}>
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            width: 40,
+                                            height: 40,
+                                            borderRadius: '50%',
+                                            bgcolor: alpha(theme.palette.common.white, 0.2),
+                                            color: 'white',
+                                        }}
+                                    >
+                                        {benefit.icon}
+                                    </Box>
+                                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                        {benefit.text}
+                                    </Typography>
+                                </Stack>
+                            ))}
+                        </Stack>
 
                         <Stack direction="row" spacing={2} justifyContent={{ xs: 'center', md: 'flex-start' }}>
                             <Chip
@@ -120,42 +160,64 @@ export default function LoginPage() {
                         sx={{
                             flex: 1,
                             width: '100%',
-                            maxWidth: 450,
-                            order: { xs: 2, md: 2 },
+                            maxWidth: 500,
+                            order: { xs: 1, md: 2 },
                         }}
                     >
-                        <LoginForm />
-
-                        {/* Registration Link - Moved from LoginForm */}
                         <Paper
-                            elevation={3}
+                            elevation={20}
                             sx={{
-                                p: 3,
-                                mt: 3,
-                                maxWidth: 400,
-                                mx: 'auto',
-                                textAlign: 'center',
-                                borderRadius: 2
+                                p: { xs: 3, sm: 4 },
+                                borderRadius: 4,
+                                background: 'rgba(255, 255, 255, 0.95)',
+                                backdropFilter: 'blur(10px)',
+                                border: `1px solid ${alpha(theme.palette.common.white, 0.2)}`,
+                                boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
                             }}
                         >
-                            <Divider sx={{ mb: 2 }}>Hoặc</Divider>
+                            <Box sx={{ textAlign: 'center', mb: 4 }}>
+                                <LoginIcon
+                                    sx={{
+                                        fontSize: '3rem',
+                                        color: 'primary.main',
+                                        mb: 2,
+                                    }}
+                                />
+                                <Typography
+                                    variant="h4"
+                                    component="h3"
+                                    gutterBottom
+                                    sx={{
+                                        fontWeight: 700,
+                                        color: 'text.primary',
+                                    }}
+                                >
+                                    Đăng nhập
+                                </Typography>
+                            </Box>
 
-                            <Typography variant="body1">
-                                Chưa có tài khoản?
-                            </Typography>
+                            <LoginForm />
 
-                            <Link
-                                to="/register"
-                                style={{
-                                    display: 'block',
-                                    marginTop: 8,
-                                    textDecoration: 'none',
-                                    fontWeight: 600,
-                                    color: theme.palette.primary.main
-                                }}
-                            >
-                                Đăng ký ngay
-                            </Link>
+                            <Box sx={{ mt: 4, pt: 3, borderTop: `1px solid ${theme.palette.divider}` }}>
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    textAlign="center"
+                                    sx={{ lineHeight: 1.6 }}
+                                >
+                                    Chưa có tài khoản?{' '}
+                                    <Link
+                                        to="/register"
+                                        style={{
+                                            color: theme.palette.primary.main,
+                                            textDecoration: 'none',
+                                            fontWeight: 600
+                                        }}
+                                    >
+                                        Đăng ký
+                                    </Link>
+                                </Typography>
+                            </Box>
                         </Paper>
                     </Box>
                 </Box>

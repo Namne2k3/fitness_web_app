@@ -143,10 +143,10 @@ export class AuthService {
         // Validate input data
         const validation = validateLogin(data);
         if (!validation.isValid) {
-            throw new Error(validation.message || 'Validation failed');
+            throw new Error(validation.message || 'Sai định dạng email hoặc mật khẩu');
         }
 
-        const { email, password } = validation.data;
+        const { email, password, rememberMe } = validation.data;
 
         // Find user by email (include password for comparison)
         const user = await UserModel.findOne({
@@ -155,13 +155,13 @@ export class AuthService {
         }).select('+password');
 
         if (!user) {
-            throw new Error('Invalid email or password');
+            throw new Error('Email không tồn tại hoặc tài khoản đã bị vô hiệu hóa');
         }
 
         // Compare password
         const isPasswordValid = await comparePassword(password, user.password ?? '');
         if (!isPasswordValid) {
-            throw new Error('Invalid email or password');
+            throw new Error('Sai mật khẩu');
         }
 
         // Generate JWT tokens

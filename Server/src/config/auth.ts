@@ -38,23 +38,45 @@ export const generateRefreshToken = (userId: string): string => {
 /**
  * Generate both access and refresh tokens
  */
+
+// export const generateTokens = (
+//     userId: string,
+//     email: string,
+//     role: UserRole = UserRole.USER
+// ): AuthTokens => {
+//     const accessToken = generateAccessToken({ userId, email, role });
+//     const refreshToken = generateRefreshToken(userId);
+
+//     // Extract expiration time from token
+//     const decoded = jwt.decode(accessToken) as any;
+//     const expiresIn = decoded.exp - decoded.iat;
+
+//     return {
+//         accessToken,
+//         refreshToken,
+//         expiresIn
+//     };
+// };
+
 export const generateTokens = (
     userId: string,
     email: string,
-    role: UserRole = UserRole.USER
+    role: string,
+    rememberMe = false
 ): AuthTokens => {
-    const accessToken = generateAccessToken({ userId, email, role });
-    const refreshToken = generateRefreshToken(userId);
+    const accessToken = jwt.sign(
+        { userId, email, role },
+        process.env.JWT_SECRET as string,
+        { expiresIn: '15m' } // Access token luôn có thời hạn ngắn
+    );
 
-    // Extract expiration time from token
-    const decoded = jwt.decode(accessToken) as any;
-    const expiresIn = decoded.exp - decoded.iat;
+    const refreshToken = jwt.sign(
+        { userId, email, tokenType: 'refresh' },
+        process.env.JWT_REFRESH_SECRET as string,
+        { expiresIn: rememberMe ? '30d' : '1d' } // Refresh token có thời hạn dài hơn nếu rememberMe=true
+    );
 
-    return {
-        accessToken,
-        refreshToken,
-        expiresIn
-    };
+    return { accessToken, refreshToken };
 };
 
 /**

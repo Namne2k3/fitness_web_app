@@ -35,7 +35,7 @@ interface LayoutProps {
  * Updated: Conditional navigation cho full-screen pages
  */
 export default function Layout({ children }: LayoutProps) {
-    const { user, isAuthenticated, logoutAction } = useAuth();
+    const { user, isAuthenticated, logoutAction, isLoading } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -63,7 +63,9 @@ export default function Layout({ children }: LayoutProps) {
         logoutAction();
         handleClose();
         navigate('/');
-    }; return (
+    };
+
+    return (
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             {/* Hide AppBar cho full-screen pages */}
             {!isFullScreenPage && (

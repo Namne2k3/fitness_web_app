@@ -163,27 +163,27 @@ const UserSchema = new Schema<IUser>({
             validator: function (v: string) {
                 return /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v);
             },
-            message: 'Please enter a valid email address'
+            message: 'Vui lòng nhập địa chỉ email hợp lệ'
         }
     },
     username: {
         type: String,
-        required: [true, 'Username is required'],
+        required: [true, 'Username là bắt buộc'],
         unique: true,
         trim: true,
-        minlength: [3, 'Username must be at least 3 characters'],
-        maxlength: [30, 'Username cannot exceed 30 characters'],
+        minlength: [3, 'Username phải có ít nhất 3 ký tự'],
+        maxlength: [30, 'Username không được vượt quá 30 ký tự'],
         validate: {
             validator: function (v: string) {
                 return /^[a-zA-Z0-9_]+$/.test(v);
             },
-            message: 'Username can only contain letters, numbers, and underscores'
+            message: 'Username chỉ có thể chứa chữ cái, số và dấu gạch dưới'
         }
     },
     password: {
         type: String,
-        required: [true, 'Password is required'],
-        minlength: [6, 'Password must be at least 6 characters'],
+        required: [true, 'Password là bắt buộc'],
+        minlength: [6, 'Password phải có ít nhất 6 ký tự'],
         select: false // Don't include password in queries by default
     },
     role: {

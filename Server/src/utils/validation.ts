@@ -28,16 +28,18 @@ const loginSchema = joi.object({
         .email()
         .required()
         .messages({
-            'string.email': 'Please enter a valid email address',
-            'any.required': 'Email is required'
+            'string.email': 'Vui lòng nhập địa chỉ email hợp lệ',
+            'any.required': 'Email là bắt buộc'
         }),
     password: joi.string()
         .min(6)
         .required()
         .messages({
-            'string.min': 'Password must be at least 6 characters',
-            'any.required': 'Password is required'
-        })
+            'string.min': 'Mật khẩu phải có ít nhất 6 ký tự',
+            'any.required': 'Mật khẩu là bắt buộc'
+        }),
+    rememberMe: joi.boolean()
+        .optional()
 });
 
 /**
@@ -50,70 +52,63 @@ const userProfileSchema = joi.object({
         .max(50)
         .required()
         .messages({
-            'string.min': 'First name must be at least 2 characters',
-            'string.max': 'First name cannot exceed 50 characters',
-            'any.required': 'First name is required'
-        }),
-    lastName: joi.string()
-        .trim()
-        .min(2)
-        .max(50)
-        .required()
-        .messages({
-            'string.min': 'Last name must be at least 2 characters',
-            'string.max': 'Last name cannot exceed 50 characters',
-            'any.required': 'Last name is required'
-        }),
-    age: joi.number()
-        .integer()
-        .min(13)
-        .max(120)
-        .required()
-        .messages({
-            'number.min': 'Must be at least 13 years old',
-            'number.max': 'Age cannot exceed 120',
-            'any.required': 'Age is required'
-        }),
-    weight: joi.number()
-        .min(20)
-        .max(500)
-        .required()
-        .messages({
-            'number.min': 'Weight must be at least 20kg',
-            'number.max': 'Weight cannot exceed 500kg',
-            'any.required': 'Weight is required'
-        }),
-    height: joi.number()
-        .min(100)
-        .max(250)
-        .required()
-        .messages({
-            'number.min': 'Height must be at least 100cm',
-            'number.max': 'Height cannot exceed 250cm',
-            'any.required': 'Height is required'
-        }),
-    fitnessGoals: joi.array()
-        .items(joi.string().valid(...Object.values(FitnessGoal)))
-        .min(1)
-        .required()
-        .messages({
-            'array.min': 'At least one fitness goal is required',
-            'any.required': 'Fitness goals are required'
-        }),
-    experienceLevel: joi.string()
-        .valid(...Object.values(ExperienceLevel))
-        .required()
-        .messages({
-            'any.only': 'Experience level must be beginner, intermediate, advanced, or expert',
-            'any.required': 'Experience level is required'
-        }),
-    bio: joi.string()
-        .max(500)
-        .allow('')
-        .optional()
-        .messages({
-            'string.max': 'Bio cannot exceed 500 characters'
-        })
+            'string.min': 'Họ phải có ít nhất 2 ký tự',
+            'string.max': 'Họ không được vượt quá 50 ký tự',
+            'any.required': 'Họ là bắt buộc'
+        }), lastName: joi.string()
+            .trim()
+            .min(2)
+            .max(50)
+            .required()
+            .messages({
+                'string.min': 'Tên phải có ít nhất 2 ký tự',
+                'string.max': 'Tên không được vượt quá 50 ký tự',
+                'any.required': 'Tên là bắt buộc'
+            }), age: joi.number()
+                .integer()
+                .min(13)
+                .max(120)
+                .required()
+                .messages({
+                    'number.min': 'Phải ít nhất 13 tuổi',
+                    'number.max': 'Tuổi không được vượt quá 120',
+                    'any.required': 'Tuổi là bắt buộc'
+                }), weight: joi.number()
+                    .min(20)
+                    .max(500)
+                    .required()
+                    .messages({
+                        'number.min': 'Cân nặng phải ít nhất 20kg',
+                        'number.max': 'Cân nặng không được vượt quá 500kg',
+                        'any.required': 'Cân nặng là bắt buộc'
+                    }), height: joi.number()
+                        .min(100)
+                        .max(250)
+                        .required()
+                        .messages({
+                            'number.min': 'Chiều cao phải ít nhất 100cm',
+                            'number.max': 'Chiều cao không được vượt quá 250cm',
+                            'any.required': 'Chiều cao là bắt buộc'
+                        }), fitnessGoals: joi.array()
+                            .items(joi.string().valid(...Object.values(FitnessGoal)))
+                            .min(1)
+                            .required()
+                            .messages({
+                                'array.min': 'Cần chọn ít nhất một mục tiêu tập luyện',
+                                'any.required': 'Mục tiêu tập luyện là bắt buộc'
+                            }), experienceLevel: joi.string()
+                                .valid(...Object.values(ExperienceLevel))
+                                .required()
+                                .messages({
+                                    'any.only': 'Cấp độ kinh nghiệm phải là người mới, trung cấp, cao cấp hoặc chuyên gia',
+                                    'any.required': 'Cấp độ kinh nghiệm là bắt buộc'
+                                }), bio: joi.string()
+                                    .max(500)
+                                    .allow('')
+                                    .optional()
+                                    .messages({
+                                        'string.max': 'Tiểu sử không được vượt quá 500 ký tự'
+                                    })
 });
 
 /**
@@ -124,37 +119,34 @@ const registerSchema = joi.object({
         .email()
         .required()
         .messages({
-            'string.email': 'Please enter a valid email address',
-            'any.required': 'Email is required'
-        }),
-    username: joi.string()
-        .trim()
-        .min(3)
-        .max(30)
-        .pattern(/^[a-zA-Z0-9_]+$/)
-        .required()
-        .messages({
-            'string.min': 'Username must be at least 3 characters',
-            'string.max': 'Username cannot exceed 30 characters',
-            'string.pattern.base': 'Username can only contain letters, numbers, and underscores',
-            'any.required': 'Username is required'
-        }),
-    password: joi.string()
-        .min(6)
-        .max(128)
-        .required()
-        .messages({
-            'string.min': 'Password must be at least 6 characters',
-            'string.max': 'Password cannot exceed 128 characters',
-            'any.required': 'Password is required'
-        }),
-    confirmPassword: joi.string()
-        .valid(joi.ref('password'))
-        .required()
-        .messages({
-            'any.only': 'Passwords do not match',
-            'any.required': 'Password confirmation is required'
-        }),
+            'string.email': 'Vui lòng nhập địa chỉ email hợp lệ',
+            'any.required': 'Email là bắt buộc'
+        }), username: joi.string()
+            .trim()
+            .min(3)
+            .max(30)
+            .pattern(/^[a-zA-Z0-9_]+$/)
+            .required()
+            .messages({
+                'string.min': 'Tên người dùng phải có ít nhất 3 ký tự',
+                'string.max': 'Tên người dùng không được vượt quá 30 ký tự',
+                'string.pattern.base': 'Tên người dùng chỉ được chứa chữ cái, số và dấu gạch dưới',
+                'any.required': 'Tên người dùng là bắt buộc'
+            }), password: joi.string()
+                .min(6)
+                .max(128)
+                .required()
+                .messages({
+                    'string.min': 'Mật khẩu phải có ít nhất 6 ký tự',
+                    'string.max': 'Mật khẩu không được vượt quá 128 ký tự',
+                    'any.required': 'Mật khẩu là bắt buộc'
+                }), confirmPassword: joi.string()
+                    .valid(joi.ref('password'))
+                    .required()
+                    .messages({
+                        'any.only': 'Mật khẩu không khớp',
+                        'any.required': 'Xác nhận mật khẩu là bắt buộc'
+                    }),
     profile: userProfileSchema.required()
 });
 
@@ -165,24 +157,22 @@ const changePasswordSchema = joi.object({
     currentPassword: joi.string()
         .required()
         .messages({
-            'any.required': 'Current password is required'
-        }),
-    newPassword: joi.string()
-        .min(6)
-        .max(128)
-        .required()
-        .messages({
-            'string.min': 'New password must be at least 6 characters',
-            'string.max': 'New password cannot exceed 128 characters',
-            'any.required': 'New password is required'
-        }),
-    confirmNewPassword: joi.string()
-        .valid(joi.ref('newPassword'))
-        .required()
-        .messages({
-            'any.only': 'New passwords do not match',
-            'any.required': 'New password confirmation is required'
-        })
+            'any.required': 'Mật khẩu hiện tại là bắt buộc'
+        }), newPassword: joi.string()
+            .min(6)
+            .max(128)
+            .required()
+            .messages({
+                'string.min': 'Mật khẩu mới phải có ít nhất 6 ký tự',
+                'string.max': 'Mật khẩu mới không được vượt quá 128 ký tự',
+                'any.required': 'Mật khẩu mới là bắt buộc'
+            }), confirmNewPassword: joi.string()
+                .valid(joi.ref('newPassword'))
+                .required()
+                .messages({
+                    'any.only': 'Mật khẩu mới không khớp',
+                    'any.required': 'Xác nhận mật khẩu mới là bắt buộc'
+                })
 });
 
 /**
@@ -193,8 +183,8 @@ const emailSchema = joi.object({
         .email()
         .required()
         .messages({
-            'string.email': 'Please enter a valid email address',
-            'any.required': 'Email is required'
+            'string.email': 'Vui lòng nhập địa chỉ email hợp lệ',
+            'any.required': 'Email là bắt buộc'
         })
 });
 
@@ -211,7 +201,7 @@ export const validateLogin = (data: unknown): ValidationResult => {
     if (error) {
         return {
             isValid: false,
-            message: error.details?.[0]?.message || 'Validation failed',
+            message: error.details?.[0]?.message || 'Xác thực đăng nhập thất bại',
             errors: error.details.reduce((acc, detail) => {
                 const key = detail.path.join('.');
                 acc[key] = detail.message;
@@ -232,7 +222,7 @@ export const validateRegister = (data: unknown): ValidationResult => {
     if (error) {
         return {
             isValid: false,
-            message: error.details?.[0]?.message || 'Validation failed',
+            message: error.details?.[0]?.message || 'Xác thực đăng ký thất bại',
             errors: error.details.reduce((acc, detail) => {
                 const key = detail.path.join('.');
                 acc[key] = detail.message;
@@ -253,7 +243,7 @@ export const validateUserProfile = (data: unknown): ValidationResult => {
     if (error) {
         return {
             isValid: false,
-            message: error.details?.[0]?.message || 'Validation failed',
+            message: error.details?.[0]?.message || 'Xác thực hồ sơ người dùng thất bại',
             errors: error.details.reduce((acc, detail) => {
                 const key = detail.path.join('.');
                 acc[key] = detail.message;
@@ -274,7 +264,7 @@ export const validateChangePassword = (data: unknown): ValidationResult => {
     if (error) {
         return {
             isValid: false,
-            message: error.details?.[0]?.message || 'Validation failed',
+            message: error.details?.[0]?.message || 'Xác thực đổi mật khẩu thất bại',
             errors: error.details.reduce((acc, detail) => {
                 const key = detail.path.join('.');
                 acc[key] = detail.message;
@@ -295,7 +285,7 @@ export const validateEmail = (data: unknown): ValidationResult => {
     if (error) {
         return {
             isValid: false,
-            message: error.details?.[0]?.message || 'Invalid email'
+            message: error.details?.[0]?.message || 'Email không hợp lệ'
         };
     }
 

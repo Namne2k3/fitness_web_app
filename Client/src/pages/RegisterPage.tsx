@@ -210,17 +210,24 @@ export default function RegisterPage() {
 
                             <RegisterForm />
 
-                            <Box sx={{ mt: 4, pt: 3, borderTop: `1px solid ${theme.palette.divider}` }}>
-                                <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                    textAlign="center"
-                                    sx={{ lineHeight: 1.6 }}
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                textAlign="center"
+                                sx={{ lineHeight: 1.6, pt: 3, mt: 3, borderTop: `1px solid ${theme.palette.divider}` }}
+                            >
+                                Đã có tài khoản?{' '}
+                                <Link
+                                    to="/login"
+                                    style={{
+                                        color: theme.palette.primary.main,
+                                        textDecoration: 'none',
+                                        fontWeight: 600
+                                    }}
                                 >
-                                    Đã có tài khoản?{' '}
-                                    <Link to="/login">Đăng nhập</Link>
-                                </Typography>
-                            </Box>
+                                    Đăng nhập
+                                </Link>
+                            </Typography>
                         </Paper>
                     </Box>
                 </Box>
