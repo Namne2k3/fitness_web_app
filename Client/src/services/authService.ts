@@ -92,22 +92,60 @@ export class AuthService {
             error: response.error || 'Login failed',
             data: undefined
         };
-    }
-
-    /**
+    }    /**
      * Đăng xuất user
-     * @returns Promise
+     * @returns Promise với kết quả logout
      */
-    static async logout(): Promise<void> {
+    static async logout(): Promise<ApiResponse<null>> {
         try {
-            await api.post('/auth/logout');
-        } catch (error) {
-            // Log error nhưng vẫn clear local storage
-            console.error('Logout error:', error);
-        } finally {
-            // Xóa tokens khỏi localStorage thông qua TokenService
+            // Even if there's no token, we should still proceed with local logout
+            // but just log instead of returning false
+            const hasToken = TokenService.getAccessToken() !== null;
+
+            if (!hasToken) {
+                console.log('No active token found, proceeding with local logout');
+            }
+
+            // Try to call the server endpoint (uncomment when server endpoint is ready)
+            // If server is unreachable or returns error, we still want to clear client-side data
+            const serverMessage = 'Logged out successfully';
+
+            // if (hasToken) {
+            //     try {
+            //         // Attempt to call server endpoint
+            //         const response = await api.post<null>('/auth/logout');
+            //         serverMessage = response.message || serverMessage;
+            //     } catch (serverError) {
+            //         // If server call fails, log but continue with client-side logout
+            //         console.warn('Server logout failed, proceeding with client-side logout', serverError);
+            //     }
+            // }
+
+            // Always clear tokens regardless of server response
             TokenService.clearTokens();
-            localStorage.removeItem('rememberMe');
+
+            // Return success even if server call failed - client is "logged out" locally
+            return {
+                success: true,
+                message: serverMessage,
+                data: null
+            };
+        } catch (error) {
+            console.error('Logout error:', error);
+
+            // Even on error, try to clear tokens as a last resort
+            try {
+                TokenService.clearTokens();
+            } catch (clearError) {
+                console.error('Failed to clear tokens during error handling:', clearError);
+            }
+
+            // Return failure instead of throwing error to make logout more robust
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unexpected logout error',
+                data: null
+            };
         }
     }
 

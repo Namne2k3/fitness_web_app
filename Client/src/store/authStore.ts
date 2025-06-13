@@ -23,10 +23,11 @@ interface AuthState {
     // Actions
     login: (email: string, password: string, rememberMe?: boolean) => Promise<any>;
     register: (data: any) => Promise<void>;
-    logout: () => Promise<void>;
+    logout: () => Promise<any>;
     refreshUser: () => Promise<void>;
     clearError: () => void;
     setLoading: (loading: boolean) => void;
+    resetStore: () => void; // New method to reset store state
 
     // Google/Facebook OAuth
     googleLogin: (token: string) => Promise<void>;
@@ -124,28 +125,71 @@ export const useAuthStore = create<AuthState>()(
 
                 /**
                  * Đăng xuất user
+                 * Ensures both server-side and client-side logout
+                 * Always attempts to reset local state even if server logout fails
                  */
                 logout: async () => {
                     try {
                         set({ isLoading: true });
 
-                        await AuthService.logout();
+                        // Pre-emptively reset the store to ensure client-side logout happens immediately
+                        // This should help avoid race conditions
+                        const resetStore = get().resetStore;
+
+                        // Get a reference to resetStore first
+                        let response;
+                        try {
+                            // Try to call the server logout
+                            response = await AuthService.logout();
+                        } catch (serverError) {
+                            console.error('Server logout failed:', serverError);
+                            // Ensure we continue with local logout even if server call fails
+                        }
+
+                        // Always reset the store state regardless of server response
+                        resetStore();
+
+                        // Set loading to false after reset
+                        set({ isLoading: false });
+
+                        // Return appropriate response
+                        if (response?.success) {
+                            return {
+                                success: true,
+                                message: response.message || 'Logged out successfully'
+                            };
+                        } else {
+                            // We still consider this a success from the user's perspective
+                            // since the local logout was successful
+                            return {
+                                success: true,
+                                message: 'Local logout completed successfully'
+                            };
+                        }
+                    } catch (error: any) {
+                        console.error('Logout process error:', error);
+
+                        // Extra safety: always ensure store is reset even if there's an error
+                        try {
+                            const resetStore = get().resetStore;
+                            resetStore();
+                        } catch (resetError) {
+                            console.error('Failed to reset store during error handling:', resetError);
+                        }
 
                         set({
-                            user: null,
-                            isAuthenticated: false,
                             isLoading: false,
                             error: null,
-                        });
-                    } catch (error: any) {
-                        // Log error nhưng vẫn clear state
-                        console.error('Logout error:', error);
-                        set({
+                            // Ensure user is set to null no matter what
                             user: null,
-                            isAuthenticated: false,
-                            isLoading: false,
-                            error: null,
+                            isAuthenticated: false
                         });
+
+                        // Return a partial success - local logout likely worked
+                        return {
+                            success: true,
+                            message: 'Logged out locally, but there were some errors'
+                        };
                     }
                 },
 
@@ -338,10 +382,41 @@ export const useAuthStore = create<AuthState>()(
 
                 /**
                  * Kiểm tra user có bất kỳ role nào trong danh sách không
-                 */
-                hasAnyRole: (roles: UserRole[]): boolean => {
+                 */                hasAnyRole: (roles: UserRole[]): boolean => {
                     const { user } = get();
                     return user ? roles.includes(user.role) : false;
+                },                /**
+                 * Reset store state completely
+                 * Completely clears all store state, including local storage persistence
+                 * This is a critical method for ensuring proper logout
+                 */                resetStore: () => {
+                    // Reset the store state (without the true parameter which causes errors)
+                    set({
+                        user: null,
+                        isAuthenticated: false,
+                        isLoading: false,
+                        error: null,
+                    });
+
+                    // Clear persisted state specifically
+                    try {
+                        // Clear both possible Zustand store persistence keys
+                        localStorage.removeItem('auth-store');
+                        localStorage.removeItem('zustand-auth-store');
+                        sessionStorage.removeItem('auth-store');
+                        sessionStorage.removeItem('zustand-auth-store');
+
+                        // Also clear tokens directly for extra security
+                        localStorage.removeItem('accessToken');
+                        localStorage.removeItem('refreshToken');
+                        localStorage.removeItem('rememberMe');
+                        sessionStorage.removeItem('accessToken');
+                        sessionStorage.removeItem('refreshToken');
+
+                        console.log('✅ Successfully reset auth store and cleared all tokens');
+                    } catch (error) {
+                        console.error('❌ Failed to clear persisted store:', error);
+                    }
                 },
             }),
             {

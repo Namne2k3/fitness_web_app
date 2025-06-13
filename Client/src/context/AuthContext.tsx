@@ -14,6 +14,7 @@ interface ActionHookState<T = null> {
     success: boolean;
     error?: string | null;
     data?: T;
+    message?: string; // Add message field for success messages
 }
 
 interface AuthContextType {
@@ -27,7 +28,8 @@ interface AuthContextType {
     registerAction: (formData: FormData) => void;
     registerState: ActionHookState; // Expose action state
     logoutAction: () => void;
-    // logoutState: ActionHookState; // Expose action state (optional, as it's simple)
+    logoutState: ActionHookState; // Expose action state (optional, as it's simple)
+    logoutPending: boolean; // <-- expose isPending for logout
     updateProfileAction: (formData: FormData) => void;
     updateProfileState: ActionHookState; // Expose action state
     clearError: () => void;
@@ -123,17 +125,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return { success: false, error: null };
         },
         { success: false, error: null }
-    );
-
-    const [_logoutState, logoutAction] = useActionState( // logoutState might not be needed externally
+    ); const [logoutState, logoutAction, logoutPending] = useActionState(
         async (): Promise<ActionHookState> => {
             try {
-                await logout();
-                // Reset login state when logging out to prevent navigation issues
+                // First reset login state - this is important to prevent navigation issues
                 resetLoginState();
-                return { success: true };
+
+                // Wait for the logout result from the store
+                const result = await logout();
+
+                // We consider logout always successful from UI perspective
+                // Even if server request failed, we've already cleared client-side state
+                if (result?.success) {
+                    return {
+                        success: true,
+                        data: null,
+                        message: result.message || 'Logout successful'
+                    };
+                }
+
+                // If something went wrong but we got a result - it's still a success from UI perspective
+                if (result) {
+                    console.warn('Partial logout success:', result);
+                    return {
+                        success: true,
+                        message: 'You have been logged out'
+                    };
+                }
+
+                // Always return success even if there was an issue
+                // The user is effectively logged out on the client side
+                return {
+                    success: true,
+                    message: 'You have been logged out'
+                };
             } catch (err) {
-                return { success: false, error: err instanceof Error ? err.message : 'Logout failed' };
+                console.error('Logout error:', err);
+
+                // Even on error, we want the user to be logged out client-side
+                // Try to manually clear storage as a last resort
+                try {
+                    localStorage.removeItem('auth-store');
+                    sessionStorage.removeItem('auth-store');
+                    localStorage.removeItem('accessToken');
+                    sessionStorage.removeItem('accessToken');
+                } catch (clearError) {
+                    console.error('Failed to clear storage manually:', clearError);
+                }
+
+                // Return success from user perspective
+                return {
+                    success: true,
+                    message: 'You have been logged out'
+                };
             }
         },
         { success: false, error: null }
@@ -259,14 +303,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: optimisticUser, // Use optimistic user for UI
         isAuthenticated,
         isLoading,
-        error: storeError ?? loginState.error ?? registerState.error ?? updateProfileState.error ?? null, // Combine errors and ensure type is string | null
+        error: storeError
+            ?? loginState.error
+            ?? registerState.error
+            ?? updateProfileState.error
+            ?? logoutState.error
+            ?? null, // Combine errors and ensure type is string | null
         loginAction,
         loginState,
         loginPending, // <-- expose loginPending
         registerAction,
         registerState,
         logoutAction,
-        // logoutState, // if needed
+        logoutState, // if needed
+        logoutPending,
         updateProfileAction,
         updateProfileState,
         clearError, // This clears the storeError

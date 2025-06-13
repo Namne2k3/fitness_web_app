@@ -1,29 +1,31 @@
-import React from 'react';
 import {
-    AppBar,
-    Toolbar,
-    Typography,
-    Button,
-    Box,
-    Container,
-    IconButton,
-    Menu,
-    MenuItem,
-    Avatar,
-    Divider,
-    ListItemIcon,
-} from '@mui/material';
-import {
-    FitnessCenter,
     AccountCircle,
     ExitToApp,
-    Person,
+    FitnessCenter,
     Home,
     Login,
+    Person,
     PersonAdd,
 } from '@mui/icons-material';
+import {
+    AppBar,
+    Avatar,
+    Box,
+    Button,
+    Container,
+    Divider,
+    IconButton,
+    ListItemIcon,
+    Menu,
+    MenuItem,
+    Toolbar,
+    Typography,
+} from '@mui/material';
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
+import LogoutConfirmDialog from './auth/LogoutConfirmDialog';
+import LogoutDialog from './auth/LogoutDialog';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -35,9 +37,11 @@ interface LayoutProps {
  * Updated: Conditional navigation cho full-screen pages
  */
 export default function Layout({ children }: LayoutProps) {
-    const { user, isAuthenticated, logoutAction, isLoading } = useAuth();
+    const { user, isAuthenticated, logoutAction, isLoading, logoutPending } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+    const [showLogoutConfirmDialog, setShowLogoutConfirmDialog] = useState(false);
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
@@ -59,10 +63,21 @@ export default function Layout({ children }: LayoutProps) {
         handleClose();
     };
 
+    // Xử lý hiển thị dialog logout
     const handleLogout = () => {
-        logoutAction();
         handleClose();
-        navigate('/');
+        // Hiển thị dialog xác nhận đầu tiên
+        setShowLogoutConfirmDialog(true);
+    };
+
+    // Khi người dùng nhấn nút đăng xuất (form sẽ được submit)
+    const handleLogoutStart = () => {
+        // Đóng dialog xác nhận
+        setShowLogoutConfirmDialog(false);
+        // Hiển thị dialog đăng xuất với loading
+        setShowLogoutDialog(true);
+
+        // KHÔNG gọi logoutAction ở đây - action sẽ được gọi bởi form submission
     };
 
     return (
@@ -217,7 +232,22 @@ export default function Layout({ children }: LayoutProps) {
                         </Typography>
                     </Container>
                 </Box>
-            )}
+            )}            {/* Logout Confirmation Dialog với form */}
+            <LogoutConfirmDialog
+                open={showLogoutConfirmDialog}
+                onClose={() => setShowLogoutConfirmDialog(false)}
+                logoutAction={logoutAction} // Truyền action thay vì onConfirm
+                isLoading={isLoading}
+                onConfirmStart={handleLogoutStart} // Callback khi form được submit
+            />
+
+            {/* Logout Loading Dialog */}
+            <LogoutDialog
+                open={showLogoutDialog}
+                onClose={() => setShowLogoutDialog(false)}
+                redirectPath="/login"
+                isLoading={isLoading || logoutPending}
+            />
         </Box>
     );
 }
