@@ -22,7 +22,7 @@ export interface User {
     subscription: UserSubscription;
     isActive: boolean; // Account status
     passwordResetToken?: string; // For password reset
-    passwordResetExpires?: Date; // For password reset expiration
+    passwordResetExpires?: Date | null; // For password reset expiration
     createdAt: Date;
     updatedAt: Date;
 }

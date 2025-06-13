@@ -16,7 +16,9 @@ import {
     validateRegister,
     validateUserProfile,
     validateChangePassword,
-    validateEmail
+    validateEmail,
+    validateResetPassword,
+    validateToken
 } from '../utils/validation';
 import {
     calculateBMI,
@@ -58,6 +60,22 @@ export interface ChangePasswordRequest {
     currentPassword: string;
     newPassword: string;
     confirmNewPassword: string;
+}
+
+/**
+ * Reset password request interface
+ */
+export interface ResetPasswordRequest {
+    token: string;
+    newPassword: string;
+    confirmNewPassword: string;
+}
+
+/**
+ * Forgot password request interface
+ */
+export interface ForgotPasswordRequest {
+    email: string;
 }
 
 /**
@@ -245,7 +263,7 @@ export class AuthService {
      * Kiểm tra email có tồn tại không
      */
     static async checkEmailExists(email: string): Promise<boolean> {
-        const validation = validateEmail({ email });
+        const validation = validateEmail(email);
         if (!validation.isValid) {
             throw new Error(validation.message || 'Invalid email format');
         }
@@ -321,7 +339,7 @@ export class AuthService {
      * Resend email verification
      */
     static async resendEmailVerification(email: string): Promise<string> {
-        const validation = validateEmail({ email });
+        const validation = validateEmail(email);
         if (!validation.isValid) {
             throw new Error(validation.message || 'Invalid email format');
         }
@@ -504,18 +522,151 @@ export class AuthService {
             // Verify refresh token
             const { userId } = verifyRefreshToken(refreshToken);
 
-            // Get user data to include in new tokens
+            // Fetch user to ensure they still exist
             const user = await UserModel.findById(userId);
             if (!user || !user.isActive) {
                 throw new Error('User not found or inactive');
             }
 
             // Generate new tokens
-            const tokens = generateTokens(user._id, user.email, user.role);
-
-            return tokens;
+            return generateTokens(user._id, user.email, user.role);
         } catch (error) {
             throw new Error('Invalid refresh token');
         }
+    }
+
+    /**
+     * 📧 Forgot Password - Generate và gửi reset token
+     */
+    static async forgotPassword(data: ForgotPasswordRequest): Promise<{ message: string }> {
+        // Validate email
+        const validation = validateEmail(data.email);
+        if (!validation.isValid) {
+            throw new Error('Email không hợp lệ');
+        }
+
+        const { email } = validation.data;
+
+        // Find user by email
+        const user = await UserModel.findOne({
+            email: email.toLowerCase(),
+            isActive: true
+        });
+
+        // Always return success message for security (không reveal user existence)
+        if (!user) {
+            return {
+                message: 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link reset password trong vài phút.'
+            };
+        }
+
+        // Generate reset token (expires in 1 hour)
+        const resetToken = generateSecureToken();
+        const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
+        // Save reset token to user
+        user.passwordResetToken = resetToken;
+        user.passwordResetExpires = resetTokenExpiry;
+        await user.save();
+
+        // TODO: Send email với reset link
+        // await EmailService.sendPasswordResetEmail(user.email, resetToken);
+        console.log(`🔗 Password reset token for ${email}: ${resetToken}`);
+        console.log(`🔗 Reset link: ${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`);
+
+        return {
+            message: 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link reset password trong vài phút.'
+        };
+    }
+
+    /**
+     * 🔒 Reset Password - Verify token và update password
+     */
+    static async resetPassword(data: ResetPasswordRequest): Promise<{ message: string }> {
+        // Validate reset password data
+        const validation = validateResetPassword(data);
+        if (!validation.isValid) {
+            throw new Error(validation.message || 'Dữ liệu không hợp lệ');
+        }
+
+        const { token, newPassword } = validation.data;
+
+        // Find user by reset token
+        const user = await UserModel.findOne({
+            passwordResetToken: token,
+            passwordResetExpires: { $gt: new Date() }, // Token chưa expired
+            isActive: true
+        });
+
+        if (!user) {
+            throw new Error('Token không hợp lệ hoặc đã hết hạn');
+        }
+
+        // Hash new password
+        const hashedPassword = await hashPassword(newPassword);
+
+        // Update password và clear reset token
+        user.password = hashedPassword;
+        user.passwordResetToken = '';
+        user.passwordResetExpires = null;
+        await user.save();
+
+        return { message: 'Mật khẩu đã được cập nhật thành công' };
+    }
+
+    /**
+     * 🔍 Validate Reset Password Token - Kiểm tra token có hợp lệ không
+     */
+    static async validateResetToken(token: string): Promise<{
+        isValid: boolean;
+        message: string;
+        expiresAt?: Date | undefined;
+        timeRemaining?: number; // seconds
+    }> {
+        // Validate token format first
+        const tokenValidation = validateToken(token);
+        if (!tokenValidation.isValid) {
+            return {
+                isValid: false,
+                message: 'Token không đúng định dạng'
+            };
+        }
+
+        const normalizedToken = tokenValidation.data;
+
+        // Find user by reset token
+        const user = await UserModel.findOne({
+            passwordResetToken: normalizedToken,
+            isActive: true
+        }).select('+passwordResetExpires');
+
+        if (!user) {
+            return {
+                isValid: false,
+                message: 'Token không tồn tại hoặc đã được sử dụng'
+            };
+        }
+
+        // Check if token is expired
+        const now = new Date();
+        const expiresAt = user.passwordResetExpires;
+
+        if (!expiresAt || expiresAt <= now) {
+            return {
+                isValid: false,
+                message: 'Token đã hết hạn',
+                expiresAt: expiresAt ?? undefined
+            };
+        }
+
+        // Calculate time remaining
+        const timeRemaining = Math.floor((expiresAt.getTime() - now.getTime()) / 1000);
+
+        return {
+            isValid: true,
+            message: 'Token hợp lệ',
+            expiresAt,
+            timeRemaining
+        };
     }
 }

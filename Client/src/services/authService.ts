@@ -297,6 +297,73 @@ export class AuthService {
         const customPayload = payload as any;
         return customPayload.role || null;
     }
+
+    /**
+     * 📧 Forgot Password - Gửi email reset password
+     * @param email - Email address để reset password
+     * @returns Promise với kết quả request
+     */
+    static async forgotPassword(email: string): Promise<{ message: string }> {
+        const response = await api.post<{ message: string }>('/auth/forgot-password', { email });
+
+        if (response.success && response.data) {
+            return response.data;
+        }
+
+        throw new Error(response.error || 'Failed to send reset password email');
+    }
+
+    /**
+     * 🔒 Reset Password - Đặt lại mật khẩu với token
+     * @param data - Token và mật khẩu mới
+     * @returns Promise với kết quả reset
+     */
+    static async resetPassword(data: {
+        token: string;
+        newPassword: string;
+        confirmNewPassword: string;
+    }): Promise<{ message: string }> {
+        const response = await api.post<{ message: string }>('/auth/reset-password', data, {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${data.token}`,
+            },
+        });
+
+        if (response.success && response.data) {
+            return response.data;
+        }
+
+        throw new Error(response.error || 'Failed to reset password');
+    }
+
+    /**
+     * 🔍 Validate Reset Password Token
+     * @param token - Reset password token
+     * @returns Promise với kết quả validation
+     */
+    static async validateResetToken(token: string): Promise<{
+        isValid: boolean;
+        message: string;
+        expiresAt?: string;
+        timeRemaining?: number;
+    }> {
+        const response = await api.get<{
+            isValid: boolean;
+            message: string;
+            expiresAt?: string;
+            timeRemaining?: number;
+        }>(`/auth/validate-reset-token/${token}`);
+
+        if (response.success && response.data) {
+            return response.data;
+        }
+
+        throw new Error(response.error || 'Failed to validate token');
+    }
 }
 
 export default AuthService;
+
+// Export named instance để consistent với import patterns
+export const authService = AuthService;

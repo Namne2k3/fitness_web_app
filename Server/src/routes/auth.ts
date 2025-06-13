@@ -582,9 +582,7 @@ router.get('/health-insights', authenticate, AuthController.getHealthInsights);
  *             properties:
  *               refreshToken:
  *                 type: string
- *                 description: Refresh token
- *           example:
- *             refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *                 example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *     responses:
  *       200:
  *         description: Token refreshed successfully
@@ -615,5 +613,142 @@ router.get('/health-insights', authenticate, AuthController.getHealthInsights);
  *         description: Invalid refresh token
  */
 router.post('/refresh', AuthController.refreshToken);
+
+/**
+ * @swagger
+ * /auth/forgot-password:
+ *   post:
+ *     summary: Request password reset email
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "john.doe@example.com"
+ *     responses:
+ *       200:
+ *         description: Password reset email sent (if email exists)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       example: "Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link reset password trong vài phút."
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Invalid email format
+ */
+router.post('/forgot-password', AuthController.forgotPassword);
+
+/**
+ * @swagger
+ * /auth/reset-password:
+ *   post:
+ *     summary: Reset password using token
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - newPassword
+ *               - confirmNewPassword
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 example: "abc123def456..."
+ *               newPassword:
+ *                 type: string
+ *                 minLength: 6
+ *                 example: "NewPassword123"
+ *               confirmNewPassword:
+ *                 type: string
+ *                 example: "NewPassword123"
+ *     responses:
+ *       200:
+ *         description: Password reset successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       example: "Mật khẩu đã được cập nhật thành công"
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Invalid token or validation errors
+ *       404:
+ *         description: Token not found or expired
+ */
+router.post('/reset-password', AuthController.resetPassword);
+
+/**
+ * @swagger
+ * /auth/validate-reset-token/{token}:
+ *   get:
+ *     summary: Validate reset password token
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Reset password token to validate
+ *     responses:
+ *       200:
+ *         description: Token validation result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     isValid:
+ *                       type: boolean
+ *                     message:
+ *                       type: string
+ *                     expiresAt:
+ *                       type: string
+ *                       format: date-time
+ *                     timeRemaining:
+ *                       type: number
+ *                       description: Seconds until expiry
+ *       400:
+ *         description: Invalid request
+ */
+router.get('/validate-reset-token/:token', AuthController.validateResetToken);
 
 export default router;

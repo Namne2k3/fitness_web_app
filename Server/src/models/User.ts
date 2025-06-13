@@ -210,8 +210,7 @@ const UserSchema = new Schema<IUser>({
     emailVerificationToken: {
         type: String,
         select: false
-    },
-    passwordResetToken: {
+    }, passwordResetToken: {
         type: String,
         select: false
     },
@@ -234,7 +233,7 @@ const UserSchema = new Schema<IUser>({
             delete ret.password;
             delete ret.emailVerificationToken;
             delete ret.passwordResetToken;
-            delete ret.passwordResetExpires;
+            delete ret.passwordResetExpiry;
             return ret;
         }
     },
@@ -359,4 +358,4 @@ UserSchema.pre('save', function (this: IUser, next) {
 //     next();
 // });
 
-export const UserModel = mongoose.model<IUser>('User', UserSchema);
+export const UserModel = mongoose.model('User', UserSchema);

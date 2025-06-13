@@ -176,7 +176,36 @@ const changePasswordSchema = joi.object({
 });
 
 /**
- * Email validation schema
+ * Reset password validation schema
+ */
+const resetPasswordSchema = joi.object({
+    token: joi.string()
+        .required()
+        .messages({
+            'any.required': 'Token là bắt buộc'
+        }),
+    newPassword: joi.string()
+        .min(6)
+        .max(50)
+        .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)'))
+        .required()
+        .messages({
+            'string.min': 'Mật khẩu mới phải có ít nhất 6 ký tự',
+            'string.max': 'Mật khẩu mới không được vượt quá 50 ký tự',
+            'string.pattern.base': 'Mật khẩu mới phải chứa ít nhất 1 chữ thường, 1 chữ hoa và 1 số',
+            'any.required': 'Mật khẩu mới là bắt buộc'
+        }),
+    confirmNewPassword: joi.string()
+        .valid(joi.ref('newPassword'))
+        .required()
+        .messages({
+            'any.only': 'Xác nhận mật khẩu không khớp',
+            'any.required': 'Xác nhận mật khẩu là bắt buộc'
+        })
+});
+
+/**
+ * Email validation schema for forgot password
  */
 const emailSchema = joi.object({
     email: joi.string()
@@ -277,10 +306,71 @@ export const validateChangePassword = (data: unknown): ValidationResult => {
 };
 
 /**
+ * Validate reset password
+ */
+export const validateResetPassword = (data: unknown): ValidationResult => {
+    const { error, value } = resetPasswordSchema.validate(data, { abortEarly: false });
+
+    if (error) {
+        return {
+            isValid: false,
+            message: error.details?.[0]?.message || 'Xác thực reset mật khẩu thất bại',
+            errors: error.details.reduce((acc, detail) => {
+                const key = detail.path.join('.');
+                acc[key] = detail.message;
+                return acc;
+            }, {} as Record<string, string>)
+        };
+    }
+
+    return { isValid: true, data: value };
+};
+
+/**
+ * Validate reset password token format
+ */
+export const validateToken = (token: string): ValidationResult => {
+    if (!token) {
+        return {
+            isValid: false,
+            message: 'Token là bắt buộc'
+        };
+    }
+
+    if (typeof token !== 'string') {
+        return {
+            isValid: false,
+            message: 'Token phải là chuỗi ký tự'
+        };
+    }
+
+    // Token should be at least 32 characters (from generateSecureToken)
+    if (token.length < 32) {
+        return {
+            isValid: false,
+            message: 'Token không hợp lệ'
+        };
+    }
+
+    // Token should only contain alphanumeric characters (from crypto.randomBytes)
+    if (!/^[a-f0-9]+$/i.test(token)) {
+        return {
+            isValid: false,
+            message: 'Token chứa ký tự không hợp lệ'
+        };
+    }
+
+    return {
+        isValid: true,
+        data: token.toLowerCase()
+    };
+};
+
+/**
  * Validate email format
  */
-export const validateEmail = (data: unknown): ValidationResult => {
-    const { error, value } = emailSchema.validate(data);
+export const validateEmail = (email: string): ValidationResult => {
+    const { error, value } = emailSchema.validate({ email });
 
     if (error) {
         return {

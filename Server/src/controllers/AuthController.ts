@@ -4,7 +4,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { AuthService, RegisterRequest, LoginRequest, ChangePasswordRequest } from '../services/AuthService';
+import { AuthService, RegisterRequest, LoginRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest } from '../services/AuthService';
 import { ApiResponse, RequestWithUser } from '../types';
 import { AuthMapper } from '../mappers/authMapper';
 
@@ -416,6 +416,83 @@ export class AuthController {
                 error: error instanceof Error ? error.message : 'Invalid refresh token',
                 data: null
             });
+        }
+    }
+
+    /**
+     * 📧 Forgot Password - Gửi email reset password
+     * @route POST /api/v1/auth/forgot-password
+     */
+    static async forgotPassword(
+        req: Request<{}, ApiResponse, ForgotPasswordRequest>,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const result = await AuthService.forgotPassword(req.body);
+
+            res.status(200).json({
+                success: true,
+                data: result,
+                message: result.message
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * 🔒 Reset Password - Đặt lại mật khẩu với token
+     * @route POST /api/v1/auth/reset-password
+     */
+    static async resetPassword(
+        req: Request<{}, ApiResponse, ResetPasswordRequest>,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const result = await AuthService.resetPassword(req.body);
+
+            res.status(200).json({
+                success: true,
+                data: result,
+                message: result.message
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * 🔍 Validate Reset Password Token
+     * @route GET /api/v1/auth/validate-reset-token/:token
+     */
+    static async validateResetToken(
+        req: Request<{ token: string }>,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { token } = req.params;
+
+            if (!token) {
+                res.status(400).json({
+                    success: false,
+                    error: 'Token là bắt buộc',
+                    data: null
+                });
+                return;
+            }
+
+            const result = await AuthService.validateResetToken(token);
+
+            res.status(200).json({
+                success: true,
+                data: result,
+                message: result.message
+            });
+        } catch (error) {
+            next(error);
         }
     }
 }

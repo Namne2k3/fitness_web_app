@@ -5,6 +5,7 @@
 
 import jwt, { SignOptions, Secret } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { JWTPayload, AuthTokens, UserRole } from '../types';
 
 /**
@@ -147,12 +148,6 @@ export const extractTokenFromHeader = (authHeader?: string): string | null => {
  * Generate secure random token (cho password reset, email verification)
  */
 export const generateSecureToken = (length: number = 32): string => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let token = '';
-
-    for (let i = 0; i < length; i++) {
-        token += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-
-    return token;
+    // ✅ Generate hex token (64 characters for 32 bytes)
+    return crypto.randomBytes(length).toString('hex');
 };
