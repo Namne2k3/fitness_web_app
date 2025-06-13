@@ -9,7 +9,7 @@ import {
     Box,
     Button,
     Container,
-    Grid,
+    Grid, // Explicitly import GridV2 and alias it as Grid
     Paper,
     Typography,
     useTheme
@@ -70,7 +70,7 @@ export default function NotFoundPage() {
 
                 <Grid container spacing={4} alignItems="center">
                     {/* Left side - Illustration */}
-                    <Grid item xs={12} md={5} sx={{ textAlign: 'center' }}>
+                    <Grid item xs={12} md={5} sx={{ textAlign: 'center' }}> {/* Restored item prop */}
                         <SentimentDissatisfied sx={{
                             fontSize: 100,
                             color: theme.palette.error.main, // Changed color for better semantics
@@ -91,7 +91,7 @@ export default function NotFoundPage() {
                     </Grid>
 
                     {/* Right side - Content */}
-                    <Grid item xs={12} md={7}>
+                    <Grid item xs={12} md={7}> {/* Restored item prop */}
                         <Typography variant="h4" component="h1" gutterBottom fontWeight="bold">
                             Trang không tìm thấy
                         </Typography>
@@ -114,7 +114,7 @@ export default function NotFoundPage() {
                         </Box>
 
                         <Grid container spacing={2}>
-                            <Grid item>
+                            <Grid item xs="auto"> {/* Restored item prop */}
                                 <Button
                                     variant="outlined"
                                     color="primary"
@@ -124,7 +124,7 @@ export default function NotFoundPage() {
                                     Quay lại
                                 </Button>
                             </Grid>
-                            <Grid item>
+                            <Grid item xs="auto"> {/* Restored item prop */}
                                 <Button
                                     variant="contained"
                                     color="primary"
@@ -134,7 +134,7 @@ export default function NotFoundPage() {
                                     Trang chủ
                                 </Button>
                             </Grid>
-                            <Grid item>
+                            <Grid item xs="auto"> {/* Restored item prop */}
                                 <Button
                                     variant="outlined"
                                     color="secondary"
