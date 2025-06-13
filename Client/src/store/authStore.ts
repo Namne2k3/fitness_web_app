@@ -7,8 +7,8 @@
 
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { User, UserRole } from '../types';
 import AuthService from '../services/authService';
+import { User, UserRole } from '../types';
 
 /**
  * Interface cho Auth State
@@ -21,7 +21,7 @@ interface AuthState {
     error: string | null;
 
     // Actions
-    login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
+    login: (email: string, password: string, rememberMe?: boolean) => Promise<any>;
     register: (data: any) => Promise<void>;
     logout: () => Promise<void>;
     refreshUser: () => Promise<void>;
@@ -64,7 +64,7 @@ export const useAuthStore = create<AuthState>()(
                         const response = await AuthService.login({
                             email,
                             password,
-                            // rememberMe,
+                            rememberMe,
                         });
 
                         if (response.success && response.data) {
@@ -74,18 +74,20 @@ export const useAuthStore = create<AuthState>()(
                                 isLoading: false,
                                 error: null,
                             });
+                            return { success: true, user: response.data.user }; // Trả về kết quả thành công
                         } else {
                             set({
                                 error: response.error || 'Login failed',
                                 isLoading: false,
                             });
+                            return { success: false, error: response.error || 'Login failed' }; // Trả về lỗi
                         }
                     } catch (error: any) {
                         set({
-                            error: error.message || 'Login failed',
+                            error: error.error || error.message || 'Login failed',
                             isLoading: false,
                         });
-                        throw error;
+                        throw error; // Vẫn giữ throw error để handle ở component
                     }
                 },
 
@@ -249,30 +251,30 @@ export const useAuthStore = create<AuthState>()(
                  * Cập nhật profile user
                  */
                 updateProfile: async (data: Partial<User>) => {
-                    try {
-                        set({ isLoading: true, error: null });
+                    // try {
+                    //     set({ isLoading: true, error: null });
 
-                        const response = await AuthService.updateProfile(data);
+                    //     const response = await AuthService.updateProfile(data);
 
-                        if (response.success && response.data) {
-                            set({
-                                user: response.data,
-                                isLoading: false,
-                                error: null,
-                            });
-                        } else {
-                            set({
-                                error: response.error || 'Profile update failed',
-                                isLoading: false,
-                            });
-                        }
-                    } catch (error: any) {
-                        set({
-                            error: error.message || 'Profile update failed',
-                            isLoading: false,
-                        });
-                        throw error;
-                    }
+                    //     if (response.success && response.data) {
+                    //         set({
+                    //             user: response.data,
+                    //             isLoading: false,
+                    //             error: null,
+                    //         });
+                    //     } else {
+                    //         set({
+                    //             error: response.error || 'Profile update failed',
+                    //             isLoading: false,
+                    //         });
+                    //     }
+                    // } catch (error: any) {
+                    //     set({
+                    //         error: error.message || 'Profile update failed',
+                    //         isLoading: false,
+                    //     });
+                    //     throw error;
+                    // }
                 },
 
                 /**
@@ -283,33 +285,33 @@ export const useAuthStore = create<AuthState>()(
                     newPassword: string,
                     confirmPassword: string
                 ) => {
-                    try {
-                        set({ isLoading: true, error: null });
+                    // try {
+                    //     set({ isLoading: true, error: null });
 
-                        const response = await AuthService.changePassword({
-                            currentPassword,
-                            newPassword,
-                            confirmPassword,
-                        });
+                    //     const response = await AuthService.changePassword({
+                    //         currentPassword,
+                    //         newPassword,
+                    //         confirmPassword,
+                    //     });
 
-                        if (response.success) {
-                            set({
-                                isLoading: false,
-                                error: null,
-                            });
-                        } else {
-                            set({
-                                error: response.error || 'Password change failed',
-                                isLoading: false,
-                            });
-                        }
-                    } catch (error: any) {
-                        set({
-                            error: error.message || 'Password change failed',
-                            isLoading: false,
-                        });
-                        throw error;
-                    }
+                    //     if (response.success) {
+                    //         set({
+                    //             isLoading: false,
+                    //             error: null,
+                    //         });
+                    //     } else {
+                    //         set({
+                    //             error: response.error || 'Password change failed',
+                    //             isLoading: false,
+                    //         });
+                    //     }
+                    // } catch (error: any) {
+                    //     set({
+                    //         error: error.message || 'Password change failed',
+                    //         isLoading: false,
+                    //     });
+                    //     throw error;
+                    // }
                 },
 
                 /**

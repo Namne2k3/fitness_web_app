@@ -8,7 +8,8 @@ import {
     hashPassword,
     comparePassword,
     generateTokens,
-    generateSecureToken
+    generateSecureToken,
+    verifyRefreshToken
 } from '../config/auth';
 import {
     validateLogin,
@@ -47,6 +48,7 @@ export interface RegisterRequest {
 export interface LoginRequest {
     email: string;
     password: string;
+    rememberMe?: boolean; // Optional for "Remember Me" functionality
 }
 
 /**
@@ -492,5 +494,28 @@ export class AuthService {
         }
 
         return recommendations;
+    }
+
+    /**
+     * Refresh tokens (generate new access token from refresh token)
+     */
+    static async refreshToken(refreshToken: string): Promise<AuthTokens> {
+        try {
+            // Verify refresh token
+            const { userId } = verifyRefreshToken(refreshToken);
+
+            // Get user data to include in new tokens
+            const user = await UserModel.findById(userId);
+            if (!user || !user.isActive) {
+                throw new Error('User not found or inactive');
+            }
+
+            // Generate new tokens
+            const tokens = generateTokens(user._id, user.email, user.role);
+
+            return tokens;
+        } catch (error) {
+            throw new Error('Invalid refresh token');
+        }
     }
 }

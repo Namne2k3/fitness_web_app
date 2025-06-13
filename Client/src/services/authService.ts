@@ -36,13 +36,12 @@ export class AuthService {
      * @returns Promise với thông tin user và tokens
      */
     static async register(data: RegisterFormData): Promise<ApiResponse<AuthResponse>> {
-        const response = await api.post<AuthResponse>('/auth/register', data);
-
-        if (response.success && response.data) {
-            // Lưu tokens vào localStorage thông qua TokenService
+        const response = await api.post<AuthResponse>('/auth/register', data); if (response.success && response.data) {
+            // For new registrations, default to not remembering (sessionStorage)
             TokenService.saveTokens(
                 response.data.accessToken,
-                response.data.refreshToken
+                response.data.refreshToken,
+                false
             );
 
             // Trả về flat structure cho client
@@ -69,19 +68,13 @@ export class AuthService {
      * @returns Promise với thông tin user và tokens
      */
     static async login(data: LoginFormData): Promise<ApiResponse<AuthResponse>> {
-        const response = await api.post<AuthResponse>('/auth/login', data);
-
-        if (response.success && response.data) {
-            // Lưu tokens vào localStorage thông qua TokenService
+        const response = await api.post<AuthResponse>('/auth/login', data); if (response.success && response.data) {
+            // Lưu tokens vào localStorage hoặc sessionStorage dựa vào rememberMe flag
             TokenService.saveTokens(
                 response.data.accessToken,
-                response.data.refreshToken
+                response.data.refreshToken,
+                !!data.rememberMe // Convert to boolean if undefined
             );
-
-            // Lưu remember me preference
-            if (data.rememberMe) {
-                localStorage.setItem('rememberMe', 'true');
-            }
 
             // Trả về flat structure cho client
             return {
@@ -154,58 +147,58 @@ export class AuthService {
      * @param token - Google access token
      * @returns Promise với thông tin user và tokens
      */
-    // static async googleLogin(token: string): Promise<ApiResponse<AuthResponse>> {
-    //     const response = await api.post<ServerAuthResponse>('/auth/google', { token });
+    static async googleLogin(token: string): Promise<ApiResponse<AuthResponse>> {
+        const response = await api.post<AuthResponse>('/auth/google', { token });
 
-    //     if (response.success && response.data) {
-    //         // Lưu tokens
-    //         TokenService.saveTokens(
-    //             response.data.tokens.accessToken,
-    //             response.data.tokens.refreshToken
-    //         );
+        if (response.success && response.data) {
+            // Lưu tokens
+            TokenService.saveTokens(
+                response.data.accessToken,
+                response.data.refreshToken
+            );
 
-    //         // Trả về flat structure
-    //         return {
-    //             success: true,
-    //             data: {
-    //                 user: response.data.user,
-    //                 accessToken: response.data.tokens.accessToken,
-    //                 refreshToken: response.data.tokens.refreshToken
-    //             }
-    //         };
-    //     }
+            // Trả về flat structure
+            return {
+                success: true,
+                data: {
+                    user: response.data.user,
+                    accessToken: response.data.accessToken,
+                    refreshToken: response.data.refreshToken
+                }
+            };
+        }
 
-    //     return response as ApiResponse<AuthResponse>;
-    // }
+        return response as ApiResponse<AuthResponse>;
+    }
 
     /**
      * Facebook OAuth login
      * @param token - Facebook access token
      * @returns Promise với thông tin user và tokens
      */
-    // static async facebookLogin(token: string): Promise<ApiResponse<AuthResponse>> {
-    //     const response = await api.post<ServerAuthResponse>('/auth/facebook', { token });
+    static async facebookLogin(token: string): Promise<ApiResponse<AuthResponse>> {
+        const response = await api.post<AuthResponse>('/auth/facebook', { token });
 
-    //     if (response.success && response.data) {
-    //         // Lưu tokens
-    //         TokenService.setTokens(
-    //             response.data.tokens.accessToken,
-    //             response.data.tokens.refreshToken
-    //         );
+        if (response.success && response.data) {
+            // Lưu tokens
+            TokenService.saveTokens(
+                response.data.accessToken,
+                response.data.refreshToken
+            );
 
-    //         // Trả về flat structure
-    //         return {
-    //             success: true,
-    //             data: {
-    //                 user: response.data.user,
-    //                 accessToken: response.data.tokens.accessToken,
-    //                 refreshToken: response.data.tokens.refreshToken
-    //             }
-    //         };
-    //     }
+            // Trả về flat structure
+            return {
+                success: true,
+                data: {
+                    user: response.data.user,
+                    accessToken: response.data.accessToken,
+                    refreshToken: response.data.refreshToken
+                }
+            };
+        }
 
-    //     return response as ApiResponse<AuthResponse>;
-    // }
+        return response as ApiResponse<AuthResponse>;
+    }
 
     /**
      * Kiểm tra xem user có đăng nhập không

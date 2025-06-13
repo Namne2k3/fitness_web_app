@@ -565,4 +565,55 @@ router.delete('/deactivate', authenticate, AuthController.deactivateAccount);
  */
 router.get('/health-insights', authenticate, AuthController.getHealthInsights);
 
+/**
+ * @swagger
+ * /auth/refresh:
+ *   post:
+ *     summary: Refresh access token using refresh token
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 description: Refresh token
+ *           example:
+ *             refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *     responses:
+ *       200:
+ *         description: Token refreshed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     tokens:
+ *                       type: object
+ *                       properties:
+ *                         accessToken:
+ *                           type: string
+ *                         refreshToken:
+ *                           type: string
+ *                         expiresIn:
+ *                           type: number
+ *                 message:
+ *                   type: string
+ *                   example: Token refreshed successfully
+ *       401:
+ *         description: Invalid refresh token
+ */
+router.post('/refresh', AuthController.refreshToken);
+
 export default router;

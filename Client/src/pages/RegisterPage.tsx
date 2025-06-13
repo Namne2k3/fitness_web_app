@@ -21,6 +21,7 @@ import {
     EmojiEvents,
 } from '@mui/icons-material';
 import RegisterForm from "../components/auth/RegisterForm";
+import { Link } from 'react-router-dom';
 
 /**
  * RegisterPage component với modern Material UI design
@@ -51,7 +52,7 @@ export default function RegisterPage() {
                 background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.primary.main} 100%)`,
                 display: 'flex',
                 alignItems: 'center',
-                py: 4,
+                // py: 4,
             }}
         >
             <Container maxWidth="lg">
@@ -198,13 +199,13 @@ export default function RegisterPage() {
                                 >
                                     Đăng ký tài khoản
                                 </Typography>
-                                <Typography
+                                {/* <Typography
                                     variant="body1"
                                     color="text.secondary"
                                     sx={{ mb: 2 }}
                                 >
                                     Chỉ cần vài bước để bắt đầu
-                                </Typography>
+                                </Typography> */}
                             </Box>
 
                             <RegisterForm />
@@ -217,20 +218,7 @@ export default function RegisterPage() {
                                     sx={{ lineHeight: 1.6 }}
                                 >
                                     Đã có tài khoản?{' '}
-                                    <Typography
-                                        component="a"
-                                        href="/login"
-                                        sx={{
-                                            color: 'secondary.main',
-                                            textDecoration: 'none',
-                                            fontWeight: 600,
-                                            '&:hover': {
-                                                textDecoration: 'underline',
-                                            },
-                                        }}
-                                    >
-                                        Đăng nhập ngay
-                                    </Typography>
+                                    <Link to="/login">Đăng nhập</Link>
                                 </Typography>
                             </Box>
                         </Paper>

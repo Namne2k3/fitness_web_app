@@ -67,11 +67,10 @@ const createApiInstance = (): AxiosInstance => {
 
                         // Handle both flat and nested response structures
                         const tokens = response.data.tokens || response.data.data?.tokens || response.data.data;
-                        const newAccessToken = tokens.accessToken || tokens.accessToken;
-
-                        if (newAccessToken) {
-                            // Update tokens trong TokenService
-                            TokenService.saveTokens(newAccessToken, refreshToken);
+                        const newAccessToken = tokens.accessToken || tokens.accessToken; if (newAccessToken) {
+                            // Update tokens trong TokenService - maintain current storage preference (localStorage/sessionStorage)
+                            const rememberMe = TokenService.isRememberMeEnabled();
+                            TokenService.saveTokens(newAccessToken, refreshToken, rememberMe);
 
                             // Retry original request với token mới
                             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;

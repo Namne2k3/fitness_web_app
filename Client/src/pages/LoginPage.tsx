@@ -8,10 +8,13 @@ import {
     Box,
     Chip,
     Container,
+    Divider,
+    Paper,
     Stack,
     Typography,
     useTheme
 } from '@mui/material';
+import { Link } from 'react-router-dom';
 import LoginForm from "../components/auth/LoginForm";
 
 /**
@@ -46,7 +49,7 @@ export default function LoginPage() {
                             flex: 1,
                             textAlign: { xs: 'center', md: 'left' },
                             color: 'white',
-                            order: { xs: 2, md: 1 },
+                            order: { xs: 1, md: 1 },
                         }}
                     >
                         <Stack direction="row" alignItems="center" justifyContent={{ xs: 'center', md: 'flex-start' }} sx={{ mb: 3 }}>
@@ -110,7 +113,7 @@ export default function LoginPage() {
                                 }}
                             />
                         </Stack>
-                    </Box >
+                    </Box>
 
                     {/* Right Side - Login Form */}
                     <Box
@@ -118,14 +121,45 @@ export default function LoginPage() {
                             flex: 1,
                             width: '100%',
                             maxWidth: 450,
-                            order: { xs: 1, md: 2 },
-                        }
-                        }
+                            order: { xs: 2, md: 2 },
+                        }}
                     >
                         <LoginForm />
-                    </Box >
-                </Box >
-            </Container >
-        </Box >
+
+                        {/* Registration Link - Moved from LoginForm */}
+                        <Paper
+                            elevation={3}
+                            sx={{
+                                p: 3,
+                                mt: 3,
+                                maxWidth: 400,
+                                mx: 'auto',
+                                textAlign: 'center',
+                                borderRadius: 2
+                            }}
+                        >
+                            <Divider sx={{ mb: 2 }}>Hoặc</Divider>
+
+                            <Typography variant="body1">
+                                Chưa có tài khoản?
+                            </Typography>
+
+                            <Link
+                                to="/register"
+                                style={{
+                                    display: 'block',
+                                    marginTop: 8,
+                                    textDecoration: 'none',
+                                    fontWeight: 600,
+                                    color: theme.palette.primary.main
+                                }}
+                            >
+                                Đăng ký ngay
+                            </Link>
+                        </Paper>
+                    </Box>
+                </Box>
+            </Container>
+        </Box>
     );
 }

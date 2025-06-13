@@ -124,7 +124,7 @@ export default function RegisterForm() {
     return (
         <Box>
             {/* Progress Stepper */}
-            <Stepper activeStep={currentStep} sx={{ mb: 4 }}>
+            <Stepper activeStep={currentStep} sx={{ mb: 2 }}>
                 {steps.map((label) => (
                     <Step key={label}>
                         <StepLabel>{label}</StepLabel>

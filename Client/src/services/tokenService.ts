@@ -26,29 +26,46 @@ const STORAGE_KEYS = {
 /**
  * Token Service Class
  */
-export class TokenService {
-    /**
-     * Lưu tokens vào localStorage
+export class TokenService {    /**
+     * Lưu tokens vào storage (localStorage hoặc sessionStorage dựa trên rememberMe)
+     * @param accessToken Access token
+     * @param refreshToken Refresh token
+     * @param rememberMe Nếu true, lưu vào localStorage, nếu false, lưu vào sessionStorage
      */
-    static saveTokens(accessToken: string, refreshToken: string): void {
+    static saveTokens(
+        accessToken: string,
+        refreshToken: string,
+        rememberMe: boolean = false
+    ): void {
         try {
-            localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
-            localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
+            // Quyết định storage type dựa trên rememberMe flag
+            const storage = rememberMe ? localStorage : sessionStorage;
+
+            storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
+            storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
+            localStorage.setItem(STORAGE_KEYS.REMEMBER_ME, String(rememberMe));
+
             if (import.meta.env.DEV) {
-                console.log('✅ Tokens saved successfully');
+                console.log(`✅ Tokens saved successfully to ${rememberMe ? 'localStorage' : 'sessionStorage'}`);
                 this.debugTokens();
             }
         } catch (error) {
             console.error('❌ Failed to save tokens:', error);
         }
-    }
-
-    /**
-     * Lấy access token
+    }    /**
+     * Lấy access token (từ localStorage hoặc sessionStorage)
      */
     static getAccessToken(): string | null {
         try {
-            return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+            // Check localStorage first
+            let token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+
+            // If not found, check sessionStorage
+            if (!token) {
+                token = sessionStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+            }
+
+            return token;
         } catch (error) {
             console.error('❌ Failed to get access token:', error);
             return null;
@@ -56,11 +73,19 @@ export class TokenService {
     }
 
     /**
-     * Lấy refresh token
+     * Lấy refresh token (từ localStorage hoặc sessionStorage)
      */
     static getRefreshToken(): string | null {
         try {
-            return localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+            // Check localStorage first
+            let token = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+
+            // If not found, check sessionStorage
+            if (!token) {
+                token = sessionStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+            }
+
+            return token;
         } catch (error) {
             console.error('❌ Failed to get refresh token:', error);
             return null;
@@ -68,15 +93,26 @@ export class TokenService {
     }
 
     /**
-     * Xóa tất cả tokens
+     * Check if user chose "Remember Me" option
+     */
+    static isRememberMeEnabled(): boolean {
+        return localStorage.getItem(STORAGE_KEYS.REMEMBER_ME) === 'true';
+    }    /**
+     * Xóa tất cả tokens (từ cả localStorage và sessionStorage)
      */
     static clearTokens(): void {
         try {
+            // Clear from localStorage
             localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
             localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
             localStorage.removeItem(STORAGE_KEYS.REMEMBER_ME);
+
+            // Clear from sessionStorage
+            sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+            sessionStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+
             if (import.meta.env.DEV) {
-                console.log('✅ Tokens cleared successfully');
+                console.log('✅ Tokens cleared successfully from both storages');
             }
         } catch (error) {
             console.error('❌ Failed to clear tokens:', error);

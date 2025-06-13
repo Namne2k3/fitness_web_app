@@ -15,11 +15,12 @@ export class AuthController {
     /**
      * Đăng ký user mới
      * @route POST /api/v1/auth/register
-     */    static async register(
-    req: Request<{}, ApiResponse, RegisterRequest>,
-    res: Response<ApiResponse>,
-    next: NextFunction
-): Promise<void> {
+     */
+    static async register(
+        req: Request<{}, ApiResponse, RegisterRequest>,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
         try {
             const result = await AuthService.register(req.body);
 
@@ -46,7 +47,8 @@ export class AuthController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const result = await AuthService.login(req.body);
+            const { email, password, rememberMe } = req.body;
+            const result = await AuthService.login({ email, password });
 
             // 🔹 Transform data với AuthMapper để loại bỏ sensitive info
             const safeResponse = AuthMapper.toLoginResponse(result);
@@ -64,7 +66,8 @@ export class AuthController {
     /**
      * Lấy thông tin user hiện tại
      * @route GET /api/v1/auth/me
-     */    static async getMe(
+     */
+    static async getMe(
         req: RequestWithUser,
         res: Response<ApiResponse>,
         next: NextFunction
@@ -376,6 +379,43 @@ export class AuthController {
             });
         } catch (error) {
             next(error);
+        }
+    }
+
+    /**
+     * Refresh access token using refresh token
+     * @route POST /api/v1/auth/refresh
+     */
+    static async refreshToken(
+        req: Request<{}, ApiResponse, { refreshToken: string }>,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { refreshToken } = req.body;
+
+            if (!refreshToken) {
+                res.status(400).json({
+                    success: false,
+                    error: 'Refresh token is required',
+                    data: null
+                });
+                return;
+            }
+
+            const tokens = await AuthService.refreshToken(refreshToken);
+
+            res.status(200).json({
+                success: true,
+                data: { tokens },
+                message: 'Token refreshed successfully'
+            });
+        } catch (error) {
+            res.status(401).json({
+                success: false,
+                error: error instanceof Error ? error.message : 'Invalid refresh token',
+                data: null
+            });
         }
     }
 }

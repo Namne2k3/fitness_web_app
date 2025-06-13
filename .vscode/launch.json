@@ -2,10 +2,17 @@
     "version": "0.2.0",
     "compounds": [
         {
-            "name": "Chạy Cả 2 (Server kèm debug)",
+            "name": "Full Stack Debug",
             "configurations": [
                 "Debug Server",
-                "Chạy Client"
+                "Debug Client"
+            ]
+        },
+        {
+            "name": "Development Mode",
+            "configurations": [
+                "Run Server",
+                "Run Client"
             ]
         }
     ],
@@ -21,14 +28,32 @@
             ],
             "cwd": "${workspaceFolder}/Server",
             "console": "integratedTerminal",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "sourceMaps": true,
             "env": {
                 "NODE_ENV": "development"
             }
         },
         {
+            "type": "msedge",
+            "request": "launch",
+            "name": "Debug Client",
+            "url": "http://localhost:5173",
+            "webRoot": "${workspaceFolder}/Client",
+            "sourceMapPathOverrides": {
+                "webpack:///./src/*": "${webRoot}/src/*"
+            },
+            "preLaunchTask": "Start Client",
+            "outFiles": [
+                "${workspaceFolder}/Client/dist/**/*.js"
+            ]
+        },
+        {
             "type": "node",
             "request": "launch",
-            "name": "Chạy Client",
+            "name": "Run Client",
             "runtimeExecutable": "npm",
             "runtimeArgs": [
                 "run",
@@ -43,7 +68,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Chạy Server (không debug)",
+            "name": "Run Server",
             "runtimeExecutable": "npm",
             "runtimeArgs": [
                 "run",
@@ -54,6 +79,18 @@
             "env": {
                 "NODE_ENV": "development"
             }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Run Tests",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run",
+                "test"
+            ],
+            "cwd": "${workspaceFolder}/Server",
+            "console": "integratedTerminal"
         }
     ]
 }

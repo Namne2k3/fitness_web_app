@@ -23,6 +23,7 @@ interface AuthContextType {
     error: string | null; // This will be the error from the Zustand store
     loginAction: (formData: FormData) => void;
     loginState: ActionHookState; // Expose action state
+    loginPending: boolean; // <-- expose isPending for login
     registerAction: (formData: FormData) => void;
     registerState: ActionHookState; // Expose action state
     logoutAction: () => void;
@@ -53,15 +54,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } = useAuthStore();
 
     // React 19: Login action với useActionState
-    const [loginState, loginAction] = useActionState(
+    const [loginState, loginAction, loginPending] = useActionState(
         async (_prevState: ActionHookState, formData: FormData): Promise<ActionHookState> => {
             const email = formData.get('email') as string;
             const password = formData.get('password') as string;
             const rememberMe = formData.get('rememberMe') === 'true';
 
             try {
-                await login(email, password, rememberMe);
-                return { success: true };
+                const resultLogin = await login(email, password, rememberMe);
+                return { success: resultLogin.success };
             } catch (err) {
                 return { success: false, error: err instanceof Error ? err.message : 'Login failed' };
             }
@@ -112,11 +113,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         { success: false, error: null }
     );
 
-    // React 19: Logout action
+    // React 19: Logout action    // For type safety, define a reset function for login state
+    const [_, resetLoginState] = useActionState<ActionHookState>(
+        async (_prevState) => {
+            return { success: false, error: null };
+        },
+        { success: false, error: null }
+    );
+
     const [_logoutState, logoutAction] = useActionState( // logoutState might not be needed externally
         async (): Promise<ActionHookState> => {
             try {
                 await logout();
+                // Reset login state when logging out to prevent navigation issues
+                resetLoginState();
                 return { success: true };
             } catch (err) {
                 return { success: false, error: err instanceof Error ? err.message : 'Logout failed' };
@@ -248,6 +258,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         error: storeError ?? loginState.error ?? registerState.error ?? updateProfileState.error ?? null, // Combine errors and ensure type is string | null
         loginAction,
         loginState,
+        loginPending, // <-- expose loginPending
         registerAction,
         registerState,
         logoutAction,
