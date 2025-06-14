@@ -97,6 +97,9 @@ export const useAuthStore = create<AuthState>()(
                  */
                 register: async (data: any) => {
                     try {
+
+                        console.log("Check data register >>> ", data)
+
                         set({ isLoading: true, error: null });
 
                         const response = await AuthService.register(data);

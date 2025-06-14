@@ -23,14 +23,19 @@ import {
     Typography,
 } from '@mui/material';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export default function LoginForm() {
     const { loginAction, loginState, isLoading, error, loginPending, isAuthenticated } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [rememberMe, setRememberMe] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+
+    // ✅ ADD: Get message from registration success
+    const registrationMessage = location.state?.message;
+    const isRegistrationSuccess = location.state?.registrationSuccess;
 
     if (isAuthenticated) {
         navigate('/');
@@ -57,16 +62,41 @@ export default function LoginForm() {
                     }}
                 >
                     <CircularProgress size={60} />
-                    <Typography variant="body1" fontWeight="medium">
+                    <Typography variant="body1" color="text.secondary">
                         Đang đăng nhập...
                     </Typography>
                 </Box>
             )}
 
+            {/* ✅ ADD: Registration success message */}
+            {isRegistrationSuccess && registrationMessage && (
+                <Alert
+                    severity="success"
+                    sx={{
+                        mb: 3,
+                        border: '1px solid',
+                        borderColor: 'success.main',
+                        bgcolor: 'success.light',
+                        '& .MuiAlert-icon': {
+                            color: 'success.main'
+                        }
+                    }}
+                >
+                    {registrationMessage}
+                </Alert>
+            )}
+
             {/* Error Alert */}
             {(error || loginState.error) && (
-                <Alert severity="error" sx={{ mb: 2 }}>
+                <Alert severity="error" sx={{ mb: 3 }}>
                     {error || loginState.error}
+                </Alert>
+            )}
+
+            {/* Success message */}
+            {loginState.success && (
+                <Alert severity="success" sx={{ mb: 3 }}>
+                    Đăng nhập thành công! Đang chuyển hướng...
                 </Alert>
             )}
 

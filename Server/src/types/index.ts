@@ -27,12 +27,19 @@ export interface User {
     updatedAt: Date;
 }
 
+export enum Gender {
+    MALE = 'male',
+    FEMALE = 'female',
+    OTHER = 'other'
+}
+
 export interface UserProfile {
     firstName: string;
     lastName: string;
     age: number;
     weight: number; // kg
     height: number; // cm
+    gender: Gender;
     fitnessGoals: FitnessGoal[];
     experienceLevel: ExperienceLevel;
     avatar?: string; // Cloudinary URL

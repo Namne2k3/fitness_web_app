@@ -4,7 +4,7 @@
  */
 
 import joi from 'joi';
-import { FitnessGoal, ExperienceLevel } from '../types';
+import { FitnessGoal, ExperienceLevel, Gender } from '../types';
 
 /**
  * Validation result interface
@@ -49,8 +49,7 @@ const userProfileSchema = joi.object({
     firstName: joi.string()
         .trim()
         .min(2)
-        .max(50)
-        .required()
+        .max(50).required()
         .messages({
             'string.min': 'Họ phải có ít nhất 2 ký tự',
             'string.max': 'Họ không được vượt quá 50 ký tự',
@@ -64,51 +63,57 @@ const userProfileSchema = joi.object({
                 'string.min': 'Tên phải có ít nhất 2 ký tự',
                 'string.max': 'Tên không được vượt quá 50 ký tự',
                 'any.required': 'Tên là bắt buộc'
-            }), age: joi.number()
-                .integer()
-                .min(13)
-                .max(120)
+            }), gender: joi.string()
+                .valid(...Object.values(Gender))
                 .required()
                 .messages({
-                    'number.min': 'Phải ít nhất 13 tuổi',
-                    'number.max': 'Tuổi không được vượt quá 120',
-                    'any.required': 'Tuổi là bắt buộc'
-                }), weight: joi.number()
-                    .min(20)
-                    .max(500)
+                    'any.only': 'Giới tính phải là nam, nữ hoặc khác',
+                    'any.required': 'Giới tính là bắt buộc'
+                }), age: joi.number()
+                    .integer()
+                    .min(13)
+                    .max(120)
                     .required()
                     .messages({
-                        'number.min': 'Cân nặng phải ít nhất 20kg',
-                        'number.max': 'Cân nặng không được vượt quá 500kg',
-                        'any.required': 'Cân nặng là bắt buộc'
-                    }), height: joi.number()
-                        .min(100)
-                        .max(250)
+                        'number.min': 'Phải ít nhất 13 tuổi',
+                        'number.max': 'Tuổi không được vượt quá 120',
+                        'any.required': 'Tuổi là bắt buộc'
+                    }), weight: joi.number()
+                        .min(20)
+                        .max(500)
                         .required()
                         .messages({
-                            'number.min': 'Chiều cao phải ít nhất 100cm',
-                            'number.max': 'Chiều cao không được vượt quá 250cm',
-                            'any.required': 'Chiều cao là bắt buộc'
-                        }), fitnessGoals: joi.array()
-                            .items(joi.string().valid(...Object.values(FitnessGoal)))
-                            .min(1)
+                            'number.min': 'Cân nặng phải ít nhất 20kg',
+                            'number.max': 'Cân nặng không được vượt quá 500kg',
+                            'any.required': 'Cân nặng là bắt buộc'
+                        }), height: joi.number()
+                            .min(100)
+                            .max(250)
                             .required()
                             .messages({
-                                'array.min': 'Cần chọn ít nhất một mục tiêu tập luyện',
-                                'any.required': 'Mục tiêu tập luyện là bắt buộc'
-                            }), experienceLevel: joi.string()
-                                .valid(...Object.values(ExperienceLevel))
+                                'number.min': 'Chiều cao phải ít nhất 100cm',
+                                'number.max': 'Chiều cao không được vượt quá 250cm',
+                                'any.required': 'Chiều cao là bắt buộc'
+                            }), fitnessGoals: joi.array()
+                                .items(joi.string().valid(...Object.values(FitnessGoal)))
+                                .min(1)
                                 .required()
                                 .messages({
-                                    'any.only': 'Cấp độ kinh nghiệm phải là người mới, trung cấp, cao cấp hoặc chuyên gia',
-                                    'any.required': 'Cấp độ kinh nghiệm là bắt buộc'
-                                }), bio: joi.string()
-                                    .max(500)
-                                    .allow('')
-                                    .optional()
+                                    'array.min': 'Cần chọn ít nhất một mục tiêu tập luyện',
+                                    'any.required': 'Mục tiêu tập luyện là bắt buộc'
+                                }), experienceLevel: joi.string()
+                                    .valid(...Object.values(ExperienceLevel))
+                                    .required()
                                     .messages({
-                                        'string.max': 'Tiểu sử không được vượt quá 500 ký tự'
-                                    })
+                                        'any.only': 'Cấp độ kinh nghiệm phải là người mới, trung cấp, cao cấp hoặc chuyên gia',
+                                        'any.required': 'Cấp độ kinh nghiệm là bắt buộc'
+                                    }), bio: joi.string()
+                                        .max(500)
+                                        .allow('')
+                                        .optional()
+                                        .messages({
+                                            'string.max': 'Tiểu sử không được vượt quá 500 ký tự'
+                                        })
 });
 
 /**
