@@ -24,7 +24,8 @@ import {
     calculateBMI,
     getBMICategory,
     validateBMIForGoals,
-    generateHealthInsights
+    generateHealthInsights,
+    calculateBMR
 } from '../utils/healthCalculations';
 import {
     User,
@@ -363,42 +364,6 @@ export class AuthService {
         await user.save();
 
         return emailVerificationToken;
-    }    /**
-     * Get user stats với health metrics
-     */
-    static async getUserStats(userId: string): Promise<any> {
-        const user = await UserModel.findById(userId);
-        if (!user) {
-            throw new Error('User not found');
-        }
-
-        // Calculate health metrics
-        const bmi = calculateBMI(user.profile.weight, user.profile.height);
-        const bmiCategory = getBMICategory(bmi);
-
-        // BMI warnings based on fitness goals
-        const bmiWarnings = validateBMIForGoals(bmi, user.profile.fitnessGoals);
-
-        return {
-            id: user._id,
-            joinDate: user.createdAt,
-            lastLogin: user.lastLoginAt,
-            isEmailVerified: user.isEmailVerified,
-            subscriptionPlan: user.subscription.plan,
-            subscriptionStatus: user.subscription.status,
-            healthMetrics: {
-                bmi: bmi,
-                bmiCategory: bmiCategory,
-                weight: user.profile.weight,
-                height: user.profile.height,
-                age: user.profile.age
-            },
-            fitnessProfile: {
-                experienceLevel: user.profile.experienceLevel,
-                fitnessGoals: user.profile.fitnessGoals,
-                bmiWarnings: bmiWarnings
-            }
-        };
     }
 
     /**
@@ -415,14 +380,13 @@ export class AuthService {
         const bmiCategory = getBMICategory(bmi);
 
         // BMI warnings and recommendations
-        const bmiWarnings = validateBMIForGoals(bmi, user.profile.fitnessGoals);
-
-        // Calculate BMR and TDEE estimates (assuming average gender distribution)
-        const estimatedBMR = Math.round((
-            10 * user.profile.weight +
-            6.25 * user.profile.height -
-            5 * user.profile.age
-        ) + (Math.random() > 0.5 ? 5 : -161)); // Rough gender estimation
+        const bmiWarnings = validateBMIForGoals(bmi, user.profile.fitnessGoals);        // Calculate BMR using actual gender data (Mifflin-St Jeor Equation)
+        const estimatedBMR = calculateBMR(
+            user.profile.weight,
+            user.profile.height,
+            user.profile.age,
+            user.profile.gender // Now using actual gender
+        );
 
         const recommendedCalories = {
             sedentary: Math.round(estimatedBMR * 1.2),

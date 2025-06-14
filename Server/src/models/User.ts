@@ -13,7 +13,8 @@ import {
     ExperienceLevel,
     FitnessGoal,
     SubscriptionPlan,
-    SubscriptionStatus
+    SubscriptionStatus,
+    Gender
 } from '../types';
 import { NextFunction } from 'express';
 
@@ -47,6 +48,11 @@ const UserProfileSchema = new Schema<UserProfile>({
         required: [true, 'Age is required'],
         min: [13, 'Must be at least 13 years old'],
         max: [120, 'Age cannot exceed 120']
+    },
+    gender: {
+        type: String,
+        enum: Object.values(Gender),
+        required: [true, 'Gender is required']
     },
     weight: {
         type: Number,

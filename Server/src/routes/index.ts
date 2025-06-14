@@ -6,6 +6,7 @@
 import { Router } from 'express';
 import authRoutes from './auth';
 import systemRoutes from './system';
+import accountRoutes from './account';
 
 const router = Router();
 
@@ -30,6 +31,7 @@ router.get('/health', (req, res) => {
  */
 router.use('/auth', authRoutes);
 router.use('/system', systemRoutes);
+router.use('/account', accountRoutes)
 
 /**
  * 404 Handler cho undefined routes

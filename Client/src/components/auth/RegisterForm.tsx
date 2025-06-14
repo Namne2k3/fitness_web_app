@@ -38,7 +38,7 @@ import {
     Close,
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
-import { ExperienceLevel, FitnessGoal } from '../../types';
+import { ExperienceLevel, FitnessGoal, Gender } from '../../types';
 
 interface FormStepProps {
     children: React.ReactNode;
@@ -280,9 +280,7 @@ export default function RegisterForm() {
                                 variant="outlined"
                                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                             />
-                        </Box>
-
-                            <Box sx={{ display: 'flex', gap: 2 }}>
+                        </Box>                            <Box sx={{ display: 'flex', gap: 2 }}>
                                 <TextField
                                     name="age"
                                     type="number"
@@ -293,6 +291,23 @@ export default function RegisterForm() {
                                     inputProps={{ min: 13, max: 120 }}
                                     sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                                 />
+                                <FormControl fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}>
+                                    <InputLabel id="gender-label">Giới tính</InputLabel>
+                                    <Select
+                                        labelId="gender-label"
+                                        name="gender"
+                                        label="Giới tính"
+                                        defaultValue={Gender.MALE}
+                                        required
+                                    >
+                                        <MenuItem value={Gender.MALE}>Nam</MenuItem>
+                                        <MenuItem value={Gender.FEMALE}>Nữ</MenuItem>
+                                        <MenuItem value={Gender.OTHER}>Khác</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', gap: 2 }}>
                                 <TextField
                                     name="weight"
                                     type="number"

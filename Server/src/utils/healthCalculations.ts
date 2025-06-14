@@ -3,7 +3,7 @@
  * BMI, BMR, TDEE và các tính toán sức khỏe khác
  */
 
-import { FitnessGoal } from '../types';
+import { FitnessGoal, Gender } from '../types';
 
 // ================================
 // 📊 Core Health Calculations
@@ -42,14 +42,14 @@ export const getBMICategory = (bmi: number): string => {
  * @param weight - Cân nặng (kg)
  * @param height - Chiều cao (cm)
  * @param age - Tuổi
- * @param gender - Giới tính ('male' | 'female')
+ * @param gender - Giới tính (Gender.MALE | Gender.FEMALE | Gender.OTHER)
  * @returns BMR in calories per day
  */
 export const calculateBMR = (
     weight: number,
     height: number,
     age: number,
-    gender: 'male' | 'female'
+    gender: string
 ): number => {
     const baseBMR = 10 * weight + 6.25 * height - 5 * age;
     return gender === 'male' ? baseBMR + 5 : baseBMR - 161;

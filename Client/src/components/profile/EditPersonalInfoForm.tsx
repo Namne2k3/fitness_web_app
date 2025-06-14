@@ -130,9 +130,7 @@ function EditPersonalInfoForm({
                                 defaultValue={user.profile.lastName}
                                 margin="normal"
                             />
-                        </Grid>
-
-                        <Grid item xs={12} md={4}>
+                        </Grid>                        <Grid item xs={12} md={4}>
                             <TextField
                                 name="age"
                                 label="Tuổi"
@@ -143,6 +141,23 @@ function EditPersonalInfoForm({
                                 margin="normal"
                                 InputProps={{ inputProps: { min: 13, max: 100 } }}
                             />
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                            <FormControl fullWidth margin="normal">
+                                <InputLabel id="gender-select-label">Giới tính</InputLabel>
+                                <Select
+                                    labelId="gender-select-label"
+                                    id="gender-select"
+                                    name="gender"
+                                    defaultValue={user.profile.gender}
+                                    label="Giới tính"
+                                    required
+                                >
+                                    <MenuItem value={Gender.MALE}>Nam</MenuItem>
+                                    <MenuItem value={Gender.FEMALE}>Nữ</MenuItem>
+                                    <MenuItem value={Gender.OTHER}>Khác</MenuItem>
+                                </Select>
+                            </FormControl>
                         </Grid>
                         <Grid item xs={12} md={4}>
                             <TextField

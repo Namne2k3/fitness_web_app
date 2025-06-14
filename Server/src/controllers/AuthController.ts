@@ -321,37 +321,6 @@ export class AuthController {
     }
 
     /**
-     * Get user stats
-     * @route GET /api/v1/auth/stats
-     */
-    static async getUserStats(
-        req: RequestWithUser,
-        res: Response<ApiResponse>,
-        next: NextFunction
-    ): Promise<void> {
-        try {
-            if (!req.user) {
-                res.status(401).json({
-                    success: false,
-                    error: 'User not authenticated',
-                    data: null
-                });
-                return;
-            }
-
-            const stats = await AuthService.getUserStats(req.user._id);
-
-            res.status(200).json({
-                success: true,
-                data: stats,
-                message: 'User stats retrieved successfully'
-            });
-        } catch (error) {
-            next(error);
-        }
-    }
-
-    /**
      * Get health insights và recommendations
      * @route GET /api/v1/auth/health-insights
      */
