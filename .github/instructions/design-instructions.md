@@ -1,4 +1,4 @@
-# 🎨 Fitness Web App - Design System & UI Guidelines
+# 🎨 Fitness Web App (TrackMe) - Design System & UI Guidelines
 
 > **Design Philosophy**: Modern, clean, accessible fitness-focused interface dựa trên Material UI với React 19 patterns.
 

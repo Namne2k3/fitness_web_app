@@ -1,7 +1,7 @@
 ````
 
 ````markdown
-# 🏋️ Fitness Web App - System Schema Overview
+# 🏋️ Fitness Web App (TrackMe) - System Schema Overview
 ## Giải thích toàn bộ cấu trúc dữ liệu và mối quan hệ
 
 ---

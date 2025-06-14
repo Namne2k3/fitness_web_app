@@ -2,7 +2,7 @@
 
 ## 📋 Tổng quan React 19
 
-Khi phát triển ứng dụng Fitness Web App, **luôn ưu tiên sử dụng các tính năng mới của React 19** để tối ưu performance và developer experience.
+Khi phát triển ứng dụng Fitness Web App tên là TrackMe, **luôn ưu tiên sử dụng các tính năng mới của React 19** để tối ưu performance và developer experience.
 
 ---
 

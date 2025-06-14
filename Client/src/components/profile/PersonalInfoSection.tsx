@@ -1,0 +1,171 @@
+import React from 'react';
+import {
+    Card,
+    CardContent,
+    Typography,
+    Box,
+    Avatar,
+    Chip,
+    Grid,
+    Divider,
+    List,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
+    IconButton,
+    Button,
+    Stack
+} from '@mui/material';
+import {
+    AccountCircle as AccountCircleIcon,
+    Email as EmailIcon,
+    Cake as CakeIcon,
+    Wc as GenderIcon,
+    Edit as EditIcon,
+    VerifiedUser as VerifiedUserIcon
+} from '@mui/icons-material';
+import { User, Gender } from '../../types';
+
+interface PersonalInfoSectionProps {
+    user: User;
+    onEditClick: () => void;
+}
+
+/**
+ * Component hiển thị thông tin cá nhân của user
+ * Sử dụng React 19 patterns
+ */
+function PersonalInfoSection({ user, onEditClick }: PersonalInfoSectionProps) {
+    const fullName = `${user.profile.firstName} ${user.profile.lastName}`;
+
+    // Format the gender display
+    const getGenderDisplay = (gender: Gender) => {
+        switch (gender) {
+            case Gender.MALE:
+                return 'Nam';
+            case Gender.FEMALE:
+                return 'Nữ';
+            case Gender.OTHER:
+                return 'Khác';
+            default:
+                return 'Không xác định';
+        }
+    };
+
+    return (
+        <Card sx={{ mb: 3 }}>
+            <CardContent>
+                <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                    <Typography variant="h6" component="h2">
+                        Thông tin cá nhân
+                    </Typography>
+                    <Button
+                        variant="outlined"
+                        startIcon={<EditIcon />}
+                        size="small"
+                        onClick={onEditClick}
+                    >
+                        Chỉnh sửa
+                    </Button>
+                </Box>
+
+                <Divider sx={{ mb: 3 }} />
+
+                <Box display="flex" alignItems="center" mb={3}>
+                    <Avatar
+                        src={user.avatar}
+                        alt={fullName}
+                        sx={{ width: 100, height: 100, mr: 3 }}
+                    />
+                    <Box>
+                        <Box display="flex" alignItems="center">
+                            <Typography variant="h5" component="h1">
+                                {fullName}
+                            </Typography>
+                            {user.isVerified && (
+                                <Chip
+                                    icon={<VerifiedUserIcon />}
+                                    label="Đã xác thực"
+                                    color="primary"
+                                    size="small"
+                                    sx={{ ml: 2 }}
+                                />
+                            )}
+                        </Box>
+                        <Typography variant="subtitle1" color="textSecondary">
+                            @{user.username}
+                        </Typography>
+                        <Chip
+                            label={user.role}
+                            color={user.role === 'admin' ? 'error' : user.role === 'trainer' ? 'warning' : 'default'}
+                            size="small"
+                            sx={{ mt: 1 }}
+                        />
+                    </Box>
+                </Box>
+
+                <Grid container spacing={2}>
+                    <Grid item xs={12} md={6}>
+                        <List dense>
+                            <ListItem>
+                                <ListItemIcon>
+                                    <EmailIcon color="primary" />
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary="Email"
+                                    secondary={user.email}
+                                />
+                            </ListItem>
+
+                            <ListItem>
+                                <ListItemIcon>
+                                    <CakeIcon color="primary" />
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary="Tuổi"
+                                    secondary={`${user.profile.age} tuổi`}
+                                />
+                            </ListItem>
+
+                            <ListItem>
+                                <ListItemIcon>
+                                    <GenderIcon color="primary" />
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary="Giới tính"
+                                    secondary={getGenderDisplay(user.profile.gender)}
+                                />
+                            </ListItem>
+                        </List>
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                        <Typography variant="subtitle2" gutterBottom>
+                            Tài khoản được tạo vào
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary" gutterBottom>
+                            {new Date(user.createdAt).toLocaleDateString('vi-VN', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                            })}
+                        </Typography>
+
+                        <Typography variant="subtitle2" sx={{ mt: 2 }} gutterBottom>
+                            Cập nhật gần nhất
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                            {new Date(user.updatedAt).toLocaleDateString('vi-VN', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                            })}
+                        </Typography>
+                    </Grid>
+                </Grid>
+            </CardContent>
+        </Card>
+    );
+};
+
+export default PersonalInfoSection;
