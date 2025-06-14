@@ -6,7 +6,7 @@
 
 import { createContext, useContext, ReactNode } from 'react';
 import { useActionState, useOptimistic } from 'react';
-import { User, UserRole, UserProfile, FitnessGoal, ExperienceLevel, RegisterFormData } from '../types'; // Added UserProfile, FitnessGoal, ExperienceLevel, RegisterFormData
+import { User, UserRole, UserProfile, FitnessGoal, ExperienceLevel } from '../types';
 import useAuthStore from '../store/authStore';
 
 // Define a common state type for action hooks
@@ -27,6 +27,7 @@ interface AuthContextType {
     loginPending: boolean; // <-- expose isPending for login
     registerAction: (formData: FormData) => void;
     registerState: ActionHookState; // Expose action state
+    registerPending: boolean; // <-- expose isPending for register
     logoutAction: () => void;
     logoutState: ActionHookState; // Expose action state (optional, as it's simple)
     logoutPending: boolean; // <-- expose isPending for logout
@@ -74,42 +75,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Initial state mặc định ban đầu cho loginState
         { success: false, error: null }
-    );
-
-    // React 19: Register action
-    const [registerState, registerAction] = useActionState(
+    );    // React 19: Register action với nested profile structure
+    const [registerState, registerAction, registerPending] = useActionState(
         async (_prevState: ActionHookState, formData: FormData): Promise<ActionHookState> => {
             try {
-                const fitnessGoalsString = formData.get('fitnessGoals') as string;
-                let fitnessGoals: FitnessGoal[] = [];
-                if (fitnessGoalsString) {
-                    try {
-                        fitnessGoals = JSON.parse(fitnessGoalsString);
-                    } catch (parseError) {
-                        console.error("Failed to parse fitnessGoals:", parseError);
-                        return { success: false, error: "Invalid format for fitness goals." };
-                    }
+                console.log("Check formData:", formData);
+
+                // Parse profile JSON from FormData
+                const profileString = formData.get('profile') as string;
+                let profile;
+                try {
+                    profile = JSON.parse(profileString);
+                } catch (parseError) {
+                    console.error("Failed to parse profile:", parseError);
+                    return { success: false, error: "Invalid format for profile data." };
                 }
 
-                const registerData: RegisterFormData = { // Using RegisterFormData for stricter typing
+                // Create nested register data structure
+                const registerData = {
                     email: formData.get('email') as string,
                     username: formData.get('username') as string,
                     password: formData.get('password') as string,
                     confirmPassword: formData.get('confirmPassword') as string,
-                    // profile fields are now directly part of RegisterFormData
-                    firstName: formData.get('firstName') as string,
-                    lastName: formData.get('lastName') as string,
-                    age: Number(formData.get('age')),
-                    weight: Number(formData.get('weight')),
-                    height: Number(formData.get('height')),
-                    gender: formData.get('gender') as UserProfile['gender'], // Assuming gender is also collected
-                    fitnessGoals: fitnessGoals,
-                    experienceLevel: formData.get('experienceLevel') as ExperienceLevel,
-                    // bio: formData.get('bio') as string || '', // Assuming bio is part of UserProfile if collected
-                    agreeToTerms: formData.get('agreeToTerms') === 'true', // Assuming agreeToTerms is collected
+                    profile: profile
                 };
 
-                // The register function from authStore should handle the profile nesting
+                console.log("Parsed registration data:", registerData);
+
+                // The register function from authStore should handle the nested structure
                 await register(registerData);
                 return { success: true };
             } catch (err) {
@@ -310,10 +303,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             ?? logoutState.error
             ?? null, // Combine errors and ensure type is string | null
         loginAction,
-        loginState,
-        loginPending, // <-- expose loginPending
+        loginState, loginPending, // <-- expose loginPending
         registerAction,
         registerState,
+        registerPending, // <-- expose registerPending
         logoutAction,
         logoutState, // if needed
         logoutPending,
