@@ -8,7 +8,9 @@ import {
     Collapse,
     Box,
     Divider,
-    ListItemButton
+    ListItemButton,
+    Typography,
+    Stack
 } from '@mui/material';
 import {
     Menu as MenuIcon,
@@ -29,15 +31,18 @@ import {
     EmojiEvents,
     ExpandLess,
     ExpandMore,
-    Home
+    Home,
+    Close
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '@mui/material/styles';
 
 /**
  * Mobile navigation menu component with drawer
  */
 const MobileNavMenu: React.FC = () => {
     const navigate = useNavigate();
+    const theme = useTheme();
     const [open, setOpen] = useState(false);
 
     // State for collapsible sections
@@ -78,18 +83,91 @@ const MobileNavMenu: React.FC = () => {
                 >
                     <MenuIcon />
                 </IconButton>
-            </Box>
-
-            <Drawer
+            </Box>            <Drawer
                 anchor="left"
                 open={open}
                 onClose={toggleDrawer(false)}
+                sx={{
+                    zIndex: 1400, // Cao hơn navbar (1300) để không bị đè
+                    '& .MuiDrawer-paper': {
+                        width: 280,
+                        backgroundColor: 'background.paper',
+                        backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05))',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: '100vh',
+                    },
+                }}
+            >                <Box
+                sx={{
+                    width: 280,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%',
+                }}
+                role="presentation"
             >
-                <Box
-                    sx={{ width: 280 }}
-                    role="presentation"
-                >
-                    <List>
+                    {/* Header với Logo */}
+                    <Box
+                        sx={{
+                            p: 3,
+                            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                        }}
+                    >
+                        <Stack
+                            direction="row"
+                            alignItems="center"
+                            spacing={1.5}
+                            onClick={() => {
+                                setOpen(false);
+                                navigate('/');
+                            }}
+                            sx={{
+                                cursor: 'pointer',
+                                flex: 1
+                            }}
+                        >
+                            <Box
+                                sx={{
+                                    p: 1,
+                                    borderRadius: 2,
+                                    background: 'rgba(255, 255, 255, 0.2)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <FitnessCenter sx={{ fontSize: '1.5rem' }} />
+                            </Box>
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    fontWeight: 700,
+                                    fontSize: '1.25rem'
+                                }}
+                            >
+                                TrackMe
+                            </Typography>
+                        </Stack>
+
+                        <IconButton
+                            onClick={toggleDrawer(false)}
+                            sx={{
+                                color: 'white',
+                                '&:hover': {
+                                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                }
+                            }}
+                        >
+                            <Close />
+                        </IconButton>
+                    </Box>
+
+                    <List sx={{ flex: 1, overflow: 'auto' }}>
                         <ListItemButton onClick={() => handleNavigate('/')}>
                             <ListItemIcon><Home /></ListItemIcon>
                             <ListItemText primary="Trang chủ" />
@@ -100,26 +178,26 @@ const MobileNavMenu: React.FC = () => {
                         {/* Workouts Section */}
                         <ListItemButton onClick={toggleWorkouts}>
                             <ListItemIcon><FitnessCenter /></ListItemIcon>
-                            <ListItemText primary="Workouts" />
+                            <ListItemText primary="Bài tập" />
                             {workoutsOpen ? <ExpandLess /> : <ExpandMore />}
                         </ListItemButton>
                         <Collapse in={workoutsOpen} timeout="auto" unmountOnExit>
                             <List component="div" disablePadding>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/workouts/browse')}>
                                     <ListItemIcon><MenuBook /></ListItemIcon>
-                                    <ListItemText primary="Browse Workouts" />
+                                    <ListItemText primary="Khám phá bài tập" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/workouts/my-workouts')}>
                                     <ListItemIcon><FitnessCenter /></ListItemIcon>
-                                    <ListItemText primary="My Workouts" />
+                                    <ListItemText primary="Bài tập của tôi" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/workouts/create')}>
                                     <ListItemIcon><SportsGymnastics /></ListItemIcon>
-                                    <ListItemText primary="Create Workout" />
+                                    <ListItemText primary="Tạo bài tập" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/workouts/progress')}>
                                     <ListItemIcon><BarChart /></ListItemIcon>
-                                    <ListItemText primary="Progress Tracking" />
+                                    <ListItemText primary="Theo dõi tiến độ" />
                                 </ListItemButton>
                             </List>
                         </Collapse>
@@ -127,22 +205,22 @@ const MobileNavMenu: React.FC = () => {
                         {/* Exercises Section */}
                         <ListItemButton onClick={toggleExercises}>
                             <ListItemIcon><SportsGymnastics /></ListItemIcon>
-                            <ListItemText primary="Exercises" />
+                            <ListItemText primary="Động tác" />
                             {exercisesOpen ? <ExpandLess /> : <ExpandMore />}
                         </ListItemButton>
                         <Collapse in={exercisesOpen} timeout="auto" unmountOnExit>
                             <List component="div" disablePadding>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/exercises/library')}>
                                     <ListItemIcon><MenuBook /></ListItemIcon>
-                                    <ListItemText primary="Exercise Library" />
+                                    <ListItemText primary="Thư viện động tác" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/exercises/videos')}>
                                     <ListItemIcon><Videocam /></ListItemIcon>
-                                    <ListItemText primary="Video Tutorials" />
+                                    <ListItemText primary="Video hướng dẫn" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/exercises/favorites')}>
                                     <ListItemIcon><Star /></ListItemIcon>
-                                    <ListItemText primary="My Favorites" />
+                                    <ListItemText primary="Yêu thích" />
                                 </ListItemButton>
                             </List>
                         </Collapse>
@@ -150,22 +228,22 @@ const MobileNavMenu: React.FC = () => {
                         {/* Nutrition Section */}
                         <ListItemButton onClick={toggleNutrition}>
                             <ListItemIcon><Restaurant /></ListItemIcon>
-                            <ListItemText primary="Nutrition" />
+                            <ListItemText primary="Dinh dưỡng" />
                             {nutritionOpen ? <ExpandLess /> : <ExpandMore />}
                         </ListItemButton>
                         <Collapse in={nutritionOpen} timeout="auto" unmountOnExit>
                             <List component="div" disablePadding>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/nutrition/guides')}>
                                     <ListItemIcon><MenuBook /></ListItemIcon>
-                                    <ListItemText primary="Nutrition Guides" />
+                                    <ListItemText primary="Hướng dẫn dinh dưỡng" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/nutrition/supplements')}>
                                     <ListItemIcon><LocalCafe /></ListItemIcon>
-                                    <ListItemText primary="Supplements" />
+                                    <ListItemText primary="Thực phẩm bổ sung" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/nutrition/meal-plans')}>
                                     <ListItemIcon><Restaurant /></ListItemIcon>
-                                    <ListItemText primary="Meal Plans" />
+                                    <ListItemText primary="Kế hoạch ăn uống" />
                                 </ListItemButton>
                             </List>
                         </Collapse>
@@ -173,30 +251,30 @@ const MobileNavMenu: React.FC = () => {
                         {/* Reviews Section */}
                         <ListItemButton onClick={toggleReviews}>
                             <ListItemIcon><Star /></ListItemIcon>
-                            <ListItemText primary="Reviews" />
+                            <ListItemText primary="Đánh giá" />
                             {reviewsOpen ? <ExpandLess /> : <ExpandMore />}
                         </ListItemButton>
                         <Collapse in={reviewsOpen} timeout="auto" unmountOnExit>
                             <List component="div" disablePadding>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/reviews/gyms')}>
                                     <ListItemIcon><FitnessCenter /></ListItemIcon>
-                                    <ListItemText primary="Gym Reviews" />
+                                    <ListItemText primary="Đánh giá phòng gym" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/reviews/equipment')}>
                                     <ListItemIcon><SportsGymnastics /></ListItemIcon>
-                                    <ListItemText primary="Equipment Reviews" />
+                                    <ListItemText primary="Đánh giá thiết bị" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/reviews/supplements')}>
                                     <ListItemIcon><LocalCafe /></ListItemIcon>
-                                    <ListItemText primary="Supplement Reviews" />
+                                    <ListItemText primary="Đánh giá thực phẩm bổ sung" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/reviews/trainers')}>
                                     <ListItemIcon><Person /></ListItemIcon>
-                                    <ListItemText primary="Trainer Reviews" />
+                                    <ListItemText primary="Đánh giá huấn luyện viên" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/reviews/write')}>
                                     <ListItemIcon><RateReview /></ListItemIcon>
-                                    <ListItemText primary="Write a Review" />
+                                    <ListItemText primary="Viết đánh giá" />
                                 </ListItemButton>
                             </List>
                         </Collapse>
@@ -204,26 +282,26 @@ const MobileNavMenu: React.FC = () => {
                         {/* Sponsored Content Section */}
                         <ListItemButton onClick={toggleSponsored}>
                             <ListItemIcon><Money /></ListItemIcon>
-                            <ListItemText primary="Sponsored" />
+                            <ListItemText primary="Nội dung tài trợ" />
                             {sponsoredOpen ? <ExpandLess /> : <ExpandMore />}
                         </ListItemButton>
                         <Collapse in={sponsoredOpen} timeout="auto" unmountOnExit>
                             <List component="div" disablePadding>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/sponsored/featured')}>
                                     <ListItemIcon><Star /></ListItemIcon>
-                                    <ListItemText primary="Featured Content" />
+                                    <ListItemText primary="Nội dung nổi bật" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/sponsored/promotions')}>
                                     <ListItemIcon><Money /></ListItemIcon>
-                                    <ListItemText primary="Special Promotions" />
+                                    <ListItemText primary="Ưu đãi đặc biệt" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/sponsored/guides')}>
                                     <ListItemIcon><MenuBook /></ListItemIcon>
-                                    <ListItemText primary="Sponsored Guides" />
+                                    <ListItemText primary="Hướng dẫn tài trợ" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/sponsored/partners')}>
                                     <ListItemIcon><Storefront /></ListItemIcon>
-                                    <ListItemText primary="Our Partners" />
+                                    <ListItemText primary="Đối tác của chúng tôi" />
                                 </ListItemButton>
                             </List>
                         </Collapse>
@@ -231,22 +309,22 @@ const MobileNavMenu: React.FC = () => {
                         {/* Community Section */}
                         <ListItemButton onClick={toggleCommunity}>
                             <ListItemIcon><Group /></ListItemIcon>
-                            <ListItemText primary="Community" />
+                            <ListItemText primary="Cộng đồng" />
                             {communityOpen ? <ExpandLess /> : <ExpandMore />}
                         </ListItemButton>
                         <Collapse in={communityOpen} timeout="auto" unmountOnExit>
                             <List component="div" disablePadding>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/community/forum')}>
                                     <ListItemIcon><Group /></ListItemIcon>
-                                    <ListItemText primary="Forums" />
+                                    <ListItemText primary="Diễn đàn" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/community/challenges')}>
                                     <ListItemIcon><EmojiEvents /></ListItemIcon>
-                                    <ListItemText primary="Challenges" />
+                                    <ListItemText primary="Thử thách" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/community/leaderboard')}>
                                     <ListItemIcon><BarChart /></ListItemIcon>
-                                    <ListItemText primary="Leaderboard" />
+                                    <ListItemText primary="Bảng xếp hạng" />
                                 </ListItemButton>
                             </List>
                         </Collapse>
@@ -254,30 +332,54 @@ const MobileNavMenu: React.FC = () => {
                         {/* Marketplace Section */}
                         <ListItemButton onClick={toggleMarketplace}>
                             <ListItemIcon><ShoppingCart /></ListItemIcon>
-                            <ListItemText primary="Marketplace" />
+                            <ListItemText primary="Chợ fitness" />
                             {marketplaceOpen ? <ExpandLess /> : <ExpandMore />}
                         </ListItemButton>
                         <Collapse in={marketplaceOpen} timeout="auto" unmountOnExit>
                             <List component="div" disablePadding>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/marketplace/trainers')}>
                                     <ListItemIcon><Person /></ListItemIcon>
-                                    <ListItemText primary="Find a Trainer" />
+                                    <ListItemText primary="Tìm huấn luyện viên" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/marketplace/equipment')}>
                                     <ListItemIcon><SportsGymnastics /></ListItemIcon>
-                                    <ListItemText primary="Equipment Shop" />
+                                    <ListItemText primary="Cửa hàng thiết bị" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/marketplace/supplements')}>
                                     <ListItemIcon><LocalCafe /></ListItemIcon>
-                                    <ListItemText primary="Supplements" />
+                                    <ListItemText primary="Thực phẩm bổ sung" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/marketplace/deals')}>
                                     <ListItemIcon><Money /></ListItemIcon>
-                                    <ListItemText primary="Special Deals" />
+                                    <ListItemText primary="Ưu đãi đặc biệt" />
                                 </ListItemButton>
-                            </List>
-                        </Collapse>
+                            </List>                        </Collapse>
                     </List>
+
+                    {/* Footer */}
+                    <Box
+                        sx={{
+                            mt: 'auto',
+                            p: 2,
+                            borderTop: `1px solid ${theme.palette.divider}`,
+                            textAlign: 'center',
+                        }}
+                    >
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ fontSize: '0.75rem' }}
+                        >
+                            FitApp © 2025
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ fontSize: '0.75rem' }}
+                        >
+                            Cộng đồng fitness #1 Việt Nam
+                        </Typography>
+                    </Box>
                 </Box>
             </Drawer>
         </>

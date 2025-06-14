@@ -1,4 +1,4 @@
-# 🏋️ Fitness Web App - Coding Standards & Instructions
+# 🏋️ Fitness Web App (TrackMe) - Coding Standards & Instructions
 
 ## 📋 Yêu cầu Chung
 

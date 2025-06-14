@@ -354,7 +354,7 @@ export default function HomePage() {
                 sx={{
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
                     color: 'white',
-                    py: { xs: 8, md: 12 },
+                    py: { xs: '8rem', md: '10rem', sm: '10rem' },
                     position: 'relative',
                     minHeight: '100vh',
                     display: 'flex',
