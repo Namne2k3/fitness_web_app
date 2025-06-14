@@ -67,13 +67,13 @@ export const generateTokens = (
 ): AuthTokens => {
     const accessToken = jwt.sign(
         { userId, email, role },
-        process.env.JWT_SECRET as string,
+        JWT_CONFIG.secret as string,
         { expiresIn: '15m' } // Access token luôn có thời hạn ngắn
     );
 
     const refreshToken = jwt.sign(
         { userId, email, tokenType: 'refresh' },
-        process.env.JWT_REFRESH_SECRET as string,
+        JWT_CONFIG.refreshSecret as string,
         { expiresIn: rememberMe ? '30d' : '1d' } // Refresh token có thời hạn dài hơn nếu rememberMe=true
     );
 
