@@ -34,42 +34,71 @@ const Navbar: React.FC = () => {
                     sx={{
                         borderRadius: 3,
                         backdropFilter: 'blur(20px)',
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        overflow: 'visible', // Changed from 'hidden' to 'visible'
+                        background: `
+                            linear-gradient(135deg, 
+                                rgba(102, 126, 234, 0.15) 0%, 
+                                rgba(118, 75, 162, 0.15) 50%,
+                                rgba(99, 102, 241, 0.15) 100%
+                            ),
+                            rgba(255, 255, 255, 0.85)
+                        `,
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        overflow: 'visible',
                         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                         '&:hover': {
                             elevation: 12,
-                            backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                            background: `
+                                linear-gradient(135deg, 
+                                    rgba(102, 126, 234, 0.2) 0%, 
+                                    rgba(118, 75, 162, 0.2) 50%,
+                                    rgba(99, 102, 241, 0.2) 100%
+                                ),
+                                rgba(255, 255, 255, 0.9)
+                            `,
+                            transform: 'translateY(-1px)',
                         },
                         // Dark mode support
                         ...(theme => theme.palette.mode === 'dark' && {
-                            backgroundColor: 'rgba(18, 18, 18, 0.95)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            background: `
+                                linear-gradient(135deg, 
+                                    rgba(102, 126, 234, 0.2) 0%, 
+                                    rgba(118, 75, 162, 0.2) 50%,
+                                    rgba(99, 102, 241, 0.2) 100%
+                                ),
+                                rgba(18, 18, 18, 0.85)
+                            `,
+                            border: '1px solid rgba(255, 255, 255, 0.15)',
                             '&:hover': {
-                                backgroundColor: 'rgba(18, 18, 18, 0.98)',
+                                background: `
+                                    linear-gradient(135deg, 
+                                        rgba(102, 126, 234, 0.25) 0%, 
+                                        rgba(118, 75, 162, 0.25) 50%,
+                                        rgba(99, 102, 241, 0.25) 100%
+                                    ),
+                                    rgba(18, 18, 18, 0.9)
+                                `,
+                                transform: 'translateY(-1px)',
                             },
                         }),
                     }}
+                >                    <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        px: { xs: 2, sm: 3, md: 4 },
+                        py: { xs: 1.5, sm: 2 },
+                        minHeight: '64px',
+                    }}
                 >
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            px: { xs: 2, sm: 3, md: 4 },
-                            py: { xs: 1.5, sm: 2 },
-                            minHeight: '64px',
-                        }}
-                    >
-                        {/* Left Section: Logo + Brand + Navigation */}
+                        {/* Left Section: Logo + Brand + Mobile Menu */}
                         <Box
                             sx={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: { xs: 2, md: 4 },
-                                flex: 1,
-                                minWidth: 0,
+                                gap: { xs: 1, sm: 2 },
+                                flex: '0 1 auto',
+                                minWidth: 'fit-content',
                             }}
                         >
                             {/* Mobile Menu (chỉ hiện trên mobile) */}
@@ -115,23 +144,24 @@ const Navbar: React.FC = () => {
                                         WebkitBackgroundClip: 'text',
                                         WebkitTextFillColor: 'transparent',
                                         display: { xs: 'none', sm: 'block' },
+                                        whiteSpace: 'nowrap',
                                     }}
                                 >
                                     TrackMe
                                 </Typography>
                             </Box>
+                        </Box>
 
-                            {/* Desktop Navigation Menu */}
-                            <Box
-                                sx={{
-                                    display: { xs: 'none', md: 'flex' },
-                                    flex: 1,
-                                    justifyContent: 'center',
-                                    maxWidth: '600px',
-                                }}
-                            >
-                                <NavigationMenu />
-                            </Box>
+                        {/* Center Section: Navigation Menu (chiếm nhiều nhất) */}
+                        <Box
+                            sx={{
+                                display: { xs: 'none', md: 'flex' },
+                                flex: '1 1 auto',
+                                justifyContent: 'center',
+                                mx: 3,
+                            }}
+                        >
+                            <NavigationMenu />
                         </Box>
 
                         {/* Right Section: Auth Buttons hoặc User Menu */}
@@ -140,7 +170,8 @@ const Navbar: React.FC = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 1,
-                                flexShrink: 0,
+                                flex: '0 1 auto',
+                                minWidth: 'fit-content',
                             }}
                         >
                             {isAuthenticated && user ? (

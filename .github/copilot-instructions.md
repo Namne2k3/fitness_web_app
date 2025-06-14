@@ -1,4 +1,4 @@
-# 🏋️ Fitness Web App - Kế hoạch Triển khai Chi tiết
+# 🏋️ Fitness Web App (TrackMe) - Kế hoạch Triển khai Chi tiết
 ## Focus: Sponsored Content & Reviews Monetization
 
 > **🚀 REACT 19 PRIORITY**: Luôn sử dụng React 19 features khi phát triển:
