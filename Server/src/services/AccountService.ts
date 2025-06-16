@@ -3,9 +3,9 @@ import { calculateBMI, getBMICategory, validateBMIForGoals } from "../utils/heal
 
 export class AccountService {
     /**
-        * Get user stats với health metrics
+        * Get user prpfile với health metrics
         */
-    static async getUserStats(userId: string): Promise<any> {
+    static async getUserProfile(userId: string): Promise<any> {
         const user = await UserModel.findById(userId);
         if (!user) {
             throw new Error('User not found');

@@ -12,6 +12,7 @@ import {
     getBMICategory,
     ACTIVITY_LEVELS
 } from '../utils/healthCalculations';
+import { ResponseHelper, validateRequired } from '../utils/responseHelper';
 
 /**
  * System Controller Class
@@ -52,11 +53,7 @@ export class SystemController {
                 }
             };
 
-            res.status(200).json({
-                success: true,
-                message: 'Fitness App API is running! 🏋️‍♂️',
-                data: systemInfo
-            });
+            ResponseHelper.success(res, systemInfo, 'Fitness App API is running! 🏋️‍♂️');
         } catch (error) {
             next(error);
         }
@@ -157,40 +154,26 @@ export class SystemController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { weight, height } = req.body;
+            const { weight, height } = req.body;            // Validation using helper
+            if (!validateRequired(res, { weight, height })) return;
 
-            // Validation
-            if (!weight || !height || weight <= 0 || height <= 0) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Weight and height must be positive numbers',
-                    data: null
-                });
+            if (weight <= 0 || height <= 0) {
+                ResponseHelper.badRequest(res, 'Weight and height must be positive numbers');
                 return;
             }
 
             if (weight < 20 || weight > 500) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Weight must be between 20kg and 500kg',
-                    data: null
-                });
+                ResponseHelper.badRequest(res, 'Weight must be between 20kg and 500kg');
                 return;
             }
 
             if (height < 100 || height > 250) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Height must be between 100cm and 250cm',
-                    data: null
-                });
+                ResponseHelper.badRequest(res, 'Height must be between 100cm and 250cm');
                 return;
             }
 
             const bmi = calculateBMI(weight, height);
-            const category = getBMICategory(bmi);
-
-            const result = {
+            const category = getBMICategory(bmi); const result = {
                 input: { weight, height },
                 bmi: bmi,
                 category: category,
@@ -201,11 +184,7 @@ export class SystemController {
                 }
             };
 
-            res.status(200).json({
-                success: true,
-                data: result,
-                message: 'BMI calculated successfully'
-            });
+            ResponseHelper.success(res, result, 'BMI calculated successfully');
         } catch (error) {
             next(error);
         }

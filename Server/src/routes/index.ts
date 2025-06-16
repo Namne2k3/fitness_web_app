@@ -7,6 +7,7 @@ import { Router } from 'express';
 import authRoutes from './auth';
 import systemRoutes from './system';
 import accountRoutes from './account';
+import { ResponseHelper } from '../utils/responseHelper';
 
 const router = Router();
 
@@ -14,16 +15,14 @@ const router = Router();
  * API Health Check
  */
 router.get('/health', (req, res) => {
-    res.status(200).json({
-        success: true,
-        data: {
-            status: 'healthy',
-            timestamp: new Date().toISOString(),
-            environment: process.env.NODE_ENV || 'development',
-            version: '1.0.0'
-        },
-        message: '🏋️ Fitness App API is running!'
-    });
+    const healthData = {
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        version: '1.0.0'
+    };
+
+    ResponseHelper.success(res, healthData, '🏋️ Fitness App API is running!');
 });
 
 /**
@@ -37,11 +36,7 @@ router.use('/account', accountRoutes)
  * 404 Handler cho undefined routes
  */
 router.use('*', (req, res) => {
-    res.status(404).json({
-        success: false,
-        error: `Route ${req.originalUrl} not found`,
-        data: null
-    });
+    ResponseHelper.notFound(res, `Route ${req.originalUrl} not found`);
 });
 
 export default router;
