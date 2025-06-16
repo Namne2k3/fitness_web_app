@@ -7,7 +7,6 @@ import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import ProfilePage from './pages/ProfilePage';
-import TestProfilePage from './pages/TestProfilePage';
 import LogoutPage from './pages/LogoutPage';
 import NotFoundPage from './pages/NotFoundPage';
 import { AuthProvider } from './context/AuthContext';
@@ -30,7 +29,6 @@ export default function AppRouter() {
                             <Route path="/register" element={<RegisterPage />} />
                             <Route path="/forgot-password" element={<ForgotPasswordPage />} />                            <Route path="/reset-password" element={<ResetPasswordPage />} />
                             <Route path="/profile" element={<ProfilePage />} />
-                            <Route path="/test-profile" element={<TestProfilePage />} />
                             <Route path="/logout" element={<LogoutPage />} />
                             <Route path="*" element={<NotFoundPage />} />
                         </Routes>
