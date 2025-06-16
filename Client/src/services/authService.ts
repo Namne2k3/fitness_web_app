@@ -10,8 +10,8 @@ import {
     User,
     LoginFormData,
     RegisterFormData,
-    ApiResponse
 } from '../types';
+import { ApiResponse } from '../types/app.interface';
 
 /**
  * Interface cho server auth response (nested structure)
@@ -170,14 +170,27 @@ export class AuthService {
         }
 
         return response;
-    }
-
-    /**
+    }    /**
      * Lấy thông tin user hiện tại
      * @returns Promise với thông tin user
      */
     static async getCurrentUser(): Promise<ApiResponse<User>> {
-        return api.get<User>('/auth/me');
+        const response = await api.get<{ user: User }>('/auth/me');
+
+        if (response.success && response.data) {
+            // ✅ Extract user from nested structure
+            return {
+                success: true,
+                data: response.data.user, // Extract user from { user: User }
+                message: response.message
+            };
+        }
+
+        return {
+            success: false,
+            error: response.error || 'Failed to get current user',
+            data: undefined
+        };
     }
 
     /**

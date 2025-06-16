@@ -8,6 +8,9 @@ import { createContext, useContext, ReactNode } from 'react';
 import { useActionState, useOptimistic } from 'react';
 import { User, UserRole, UserProfile, FitnessGoal, ExperienceLevel } from '../types';
 import useAuthStore from '../store/authStore';
+import { useEffect } from 'react';
+import TokenService from '../services/tokenService';
+import AuthService from '../services/authService';
 
 // Define a common state type for action hooks
 interface ActionHookState<T = null> {
@@ -54,7 +57,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updateProfile,
         clearError,
         hasRole,
+        refreshUser, // <-- import refreshUser action
+        resetStore, // <-- import resetStore action
     } = useAuthStore();
+
+    // ✅ Sync token với user state
+    useEffect(() => {
+        const syncAuthState = async () => {
+            const hasToken = AuthService.isAuthenticated();
+
+            // Case 1: Có token nhưng không có user data
+            if (hasToken && !user && !isLoading) {
+                console.log('🔄 Token exists but no user data, refreshing...');
+                try {
+                    await refreshUser();
+                } catch (error) {
+                    console.error('❌ Failed to refresh user, clearing tokens');
+                    // Clear tokens nếu không thể refresh
+                    TokenService.clearTokens();
+                    resetStore();
+                }
+            }
+
+            // Case 2: Không có token nhưng có user data
+            if (!hasToken && user) {
+                console.log('🧹 No token but user data exists, clearing user');
+                resetStore();
+            }
+        };
+
+        syncAuthState();
+    }, [user, isLoading]); // Dependency on user and loading state
 
     // React 19: Login action với useActionState
     const [loginState, loginAction, loginPending] = useActionState(
@@ -248,7 +281,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                                 userProfileDataToUpdate.lastName = value as string;
                                 break;
                             case 'bio':
-                                // @ts-expect-error: bio may not be in UserProfile type, but allow for extension
                                 userProfileDataToUpdate.bio = value as string;
                                 break;
                             default:
