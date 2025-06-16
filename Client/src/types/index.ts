@@ -12,6 +12,7 @@ export interface User {
     profile: UserProfile;
     preferences: UserPreferences;
     isVerified: boolean;
+    isEmailVerified: boolean; // Thêm field này
     role: UserRole;
     createdAt: Date;
     updatedAt: Date;
@@ -27,6 +28,7 @@ export interface UserProfile {
     fitnessGoals: FitnessGoal[];
     experienceLevel: ExperienceLevel;
     medicalConditions?: string[];
+    bio?: string; // Thêm field bio
 }
 
 export interface UserPreferences {

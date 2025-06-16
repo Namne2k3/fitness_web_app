@@ -130,7 +130,8 @@ function EditPersonalInfoForm({
                                 defaultValue={user.profile.lastName}
                                 margin="normal"
                             />
-                        </Grid>                        <Grid item xs={12} md={4}>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
                             <TextField
                                 name="age"
                                 label="Tuổi"
