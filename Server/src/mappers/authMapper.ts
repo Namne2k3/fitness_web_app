@@ -21,6 +21,7 @@ export interface SafeUser {
         fitnessGoals: string[];
         experienceLevel: string;
         avatar?: string;
+        gender?: string;
         bio?: string;
         bmi?: number;
         fullName?: string;
@@ -108,6 +109,7 @@ export class AuthMapper {
             profile: {
                 firstName: userObj.profile.firstName,
                 lastName: userObj.profile.lastName,
+                gender: userObj.profile.gender,
                 age: userObj.profile.age,
                 weight: userObj.profile.weight,
                 height: userObj.profile.height,

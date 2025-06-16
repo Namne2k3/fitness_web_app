@@ -15,7 +15,7 @@ import {
     Card,
     CardContent,
     Chip,
-    Divider,
+    // Divider,
     Grid,
     LinearProgress,
     Paper,
@@ -198,7 +198,7 @@ const FitnessStatsSection = ({ user, userProfile }: FitnessStatsSectionProps) =>
                 <Box sx={{ p: 3 }}>
                     <Grid container spacing={3}>
                         {/* Physical Stats Section */}
-                        <Grid item xs={12} md={6}>
+                        <Grid>
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                                 {/* Height Card */}
                                 <Paper
@@ -255,7 +255,7 @@ const FitnessStatsSection = ({ user, userProfile }: FitnessStatsSectionProps) =>
                         </Grid>
 
                         {/* BMI Section */}
-                        <Grid item xs={12} md={6}>
+                        <Grid>
                             {bmi && bmiCategory && (
                                 <Paper
                                     elevation={0}
@@ -337,8 +337,8 @@ const FitnessStatsSection = ({ user, userProfile }: FitnessStatsSectionProps) =>
                         </Grid>
 
                         {/* Experience Level */}
-                        <Grid item xs={12}>
-                            <Divider sx={{ my: 2 }} />
+                        <Grid>
+                            {/* <Divider sx={{ my: 2 }} /> */}
                             <Paper
                                 elevation={0}
                                 sx={{
@@ -383,7 +383,7 @@ const FitnessStatsSection = ({ user, userProfile }: FitnessStatsSectionProps) =>
                         </Grid>
 
                         {/* Fitness Goals */}
-                        <Grid item xs={12}>
+                        <Grid>
                             <Paper
                                 elevation={0}
                                 sx={{
@@ -424,7 +424,7 @@ const FitnessStatsSection = ({ user, userProfile }: FitnessStatsSectionProps) =>
 
                         {/* Medical Conditions (if any) */}
                         {profile.medicalConditions && profile.medicalConditions.length > 0 && (
-                            <Grid item xs={12}>
+                            <Grid>
                                 <Paper
                                     elevation={0}
                                     sx={{
