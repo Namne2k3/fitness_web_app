@@ -19,7 +19,7 @@ export class AccountService {
         const bmiWarnings = validateBMIForGoals(bmi, user.profile.fitnessGoals);
 
         return {
-            id: user._id,
+            // id: user._id,
             joinDate: user.createdAt,
             lastLogin: user.lastLoginAt,
             isEmailVerified: user.isEmailVerified,

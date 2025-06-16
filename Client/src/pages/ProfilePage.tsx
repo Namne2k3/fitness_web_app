@@ -8,7 +8,8 @@ import {
     Tabs,
     Tab,
     Button,
-    useMediaQuery
+    useMediaQuery,
+    Alert
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import {
@@ -23,6 +24,7 @@ import PersonalInfoSection from '../components/profile/PersonalInfoSection';
 import FitnessStatsSection from '../components/profile/FitnessStatsSection';
 import EditPersonalInfoForm from '../components/profile/EditPersonalInfoForm';
 import UserWorkoutsSection from '../components/profile/UserWorkoutsSection';
+import SimpleAccountProfile from '../components/profile/SimpleAccountProfile';
 import { User } from '../types';
 
 interface TabPanelProps {
@@ -127,7 +129,11 @@ export default function ProfilePage() {
             </Paper>            {/* Personal Info Tab */}
             <TabPanel value={tabValue} index={0}>
                 {updatedUser && (
-                    <Box>
+                    <Box>                        {/* Simple Account Profile - No Suspense needed */}
+                        <Box mb={3}>
+                            <SimpleAccountProfile />
+                        </Box>
+
                         <Box mb={3}>
                             {isEditing ? (
                                 <EditPersonalInfoForm
@@ -161,17 +167,33 @@ export default function ProfilePage() {
                         Chức năng quản lý đánh giá sẽ sớm được ra mắt.
                     </Typography>
                 </Paper>
-            </TabPanel>
-
-            {/* Settings Tab */}
+            </TabPanel>            {/* Settings Tab */}
             <TabPanel value={tabValue} index={3}>
-                <Paper sx={{ p: 3, textAlign: 'center' }}>
-                    <Typography variant="h6" color="textSecondary" gutterBottom>
-                        Tính năng đang được phát triển
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
+                <Paper sx={{ p: 3 }}>
+                    <Alert severity="info" sx={{ mb: 3 }}>
                         Chức năng cài đặt tài khoản sẽ sớm được ra mắt.
+                    </Alert>
+
+                    <Typography variant="h6" gutterBottom>
+                        Cài đặt sẽ bao gồm:
                     </Typography>
+                    <Box component="ul" sx={{ pl: 2 }}>
+                        <Typography component="li" variant="body2" sx={{ mb: 1 }}>
+                            Thay đổi mật khẩu
+                        </Typography>
+                        <Typography component="li" variant="body2" sx={{ mb: 1 }}>
+                            Cài đặt thông báo
+                        </Typography>
+                        <Typography component="li" variant="body2" sx={{ mb: 1 }}>
+                            Quyền riêng tư
+                        </Typography>
+                        <Typography component="li" variant="body2" sx={{ mb: 1 }}>
+                            Xuất dữ liệu cá nhân
+                        </Typography>
+                        <Typography component="li" variant="body2">
+                            Xóa tài khoản
+                        </Typography>
+                    </Box>
                 </Paper>
             </TabPanel>
         </Container>
