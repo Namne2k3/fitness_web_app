@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
     Container,
@@ -9,7 +9,8 @@ import {
     Tab,
     Button,
     useMediaQuery,
-    Alert
+    Alert,
+    CircularProgress
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import {
@@ -24,8 +25,8 @@ import PersonalInfoSection from '../components/profile/PersonalInfoSection';
 import FitnessStatsSection from '../components/profile/FitnessStatsSection';
 import EditPersonalInfoForm from '../components/profile/EditPersonalInfoForm';
 import UserWorkoutsSection from '../components/profile/UserWorkoutsSection';
-import SimpleAccountProfile from '../components/profile/SimpleAccountProfile';
-import { User } from '../types';
+import { User, ExperienceLevel, FitnessGoal } from '../types';
+import { AccountService, AccountProfile } from '../services/accountService';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -57,17 +58,67 @@ function TabPanel(props: TabPanelProps) {
 }
 
 /**
- * Trang hồ sơ cá nhân
- * Sử dụng React 19 patterns cho performance optimization
+ * Trang hồ sơ cá nhân với React 19 patterns
+ * Fetches account profile data và phân phối cho các component con
  */
 export default function ProfilePage() {
     const { user } = useAuth();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
     // State management
     const [tabValue, setTabValue] = useState(0);
     const [isEditing, setIsEditing] = useState(false);
     const [updatedUser, setUpdatedUser] = useState<User | null>(user);
+
+    // ✅ Account profile data from API
+    const [accountProfile, setAccountProfile] = useState<AccountProfile | null>(null);
+    const [profileLoading, setProfileLoading] = useState<boolean>(true);
+    const [profileError, setProfileError] = useState<string | null>(null);
+
+    // ✅ Fetch account profile data khi component mount
+    useEffect(() => {
+        const fetchAccountProfile = async () => {
+            try {
+                setProfileLoading(true);
+                setProfileError(null);
+
+                const response = await AccountService.getAccountProfile();
+
+                if (response.success && response.data) {
+                    setAccountProfile(response.data);                    // ✅ Update user data với health metrics từ API
+                    if (user) {
+                        const updatedUserWithProfile: User = {
+                            ...user,
+                            profile: {
+                                ...user.profile,
+                                age: response.data.healthMetrics.age,
+                                weight: response.data.healthMetrics.weight,
+                                height: response.data.healthMetrics.height,
+                                // ✅ Convert string to enum types
+                                experienceLevel: response.data.fitnessProfile.experienceLevel as ExperienceLevel,
+                                fitnessGoals: response.data.fitnessProfile.fitnessGoals.map(goal => goal as FitnessGoal),
+                            },
+                            isEmailVerified: response.data.isEmailVerified,
+                            createdAt: new Date(response.data.joinDate),
+                        };
+                        setUpdatedUser(updatedUserWithProfile);
+                    }
+                } else {
+                    setProfileError(response.error || 'Failed to fetch profile');
+                }
+            } catch (err) {
+                setProfileError(err instanceof Error ? err.message : 'Unknown error');
+                console.error('❌ Error fetching account profile:', err);
+            } finally {
+                setProfileLoading(false);
+            }
+        };
+
+        if (user) {
+            fetchAccountProfile();
+        }
+    }, [user]);
 
     // Handle tab change
     const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
@@ -126,14 +177,32 @@ export default function ProfilePage() {
                     <Tab icon={<StarIcon />} label="Đánh giá của tôi" />
                     <Tab icon={<SettingsIcon />} label="Cài đặt tài khoản" />
                 </Tabs>
-            </Paper>            {/* Personal Info Tab */}
-            <TabPanel value={tabValue} index={0}>
-                {updatedUser && (
-                    <Box>                        {/* Simple Account Profile - No Suspense needed */}
-                        <Box mb={3}>
-                            <SimpleAccountProfile />
-                        </Box>
+            </Paper>
 
+            {/* Personal Info Tab */}
+            <TabPanel value={tabValue} index={0}>
+                {/* ✅ Show loading/error states for profile data */}
+                {profileLoading && (
+                    <Box display="flex" alignItems="center" gap={2} sx={{ py: 2 }}>
+                        <CircularProgress size={20} />
+                        <Typography variant="body2" color="text.secondary">
+                            Loading profile data...
+                        </Typography>
+                    </Box>
+                )}
+
+                {profileError && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        <Typography variant="body2">
+                            Failed to load profile data: {profileError}
+                        </Typography>
+                    </Alert>
+                )}
+
+                {/* ✅ Show content when both user and profile data are loaded */}
+                {updatedUser && accountProfile && !profileLoading && (
+                    <Box>
+                        {/* ✅ Personal Info Section - uses existing component */}
                         <Box mb={3}>
                             {isEditing ? (
                                 <EditPersonalInfoForm
@@ -142,11 +211,24 @@ export default function ProfilePage() {
                                     onSuccess={handleUpdateSuccess}
                                 />
                             ) : (
-                                <PersonalInfoSection user={updatedUser} onEditClick={handleEditClick} />
+                                <PersonalInfoSection
+                                    user={updatedUser}
+                                    onEditClick={handleEditClick}
+                                />
                             )}
-                        </Box>
+                        </Box>                        {/* ✅ Fitness Stats Section - uses existing component with API data */}
                         <Box>
-                            <FitnessStatsSection userProfile={updatedUser.profile} />
+                            <FitnessStatsSection
+                                userProfile={{
+                                    ...updatedUser.profile,
+                                    // ✅ Override with fresh data from API
+                                    age: accountProfile.healthMetrics.age,
+                                    weight: accountProfile.healthMetrics.weight,
+                                    height: accountProfile.healthMetrics.height,
+                                    experienceLevel: accountProfile.fitnessProfile.experienceLevel as ExperienceLevel,
+                                    fitnessGoals: accountProfile.fitnessProfile.fitnessGoals.map(goal => goal as FitnessGoal),
+                                }}
+                            />
                         </Box>
                     </Box>
                 )}
@@ -167,7 +249,9 @@ export default function ProfilePage() {
                         Chức năng quản lý đánh giá sẽ sớm được ra mắt.
                     </Typography>
                 </Paper>
-            </TabPanel>            {/* Settings Tab */}
+            </TabPanel>
+
+            {/* Settings Tab */}
             <TabPanel value={tabValue} index={3}>
                 <Paper sx={{ p: 3 }}>
                     <Alert severity="info" sx={{ mb: 3 }}>
