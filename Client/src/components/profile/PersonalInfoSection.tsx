@@ -1,30 +1,26 @@
-import React from 'react';
 import {
+    Cake as CakeIcon,
+    Edit as EditIcon,
+    Email as EmailIcon,
+    Wc as GenderIcon,
+    VerifiedUser as VerifiedUserIcon
+} from '@mui/icons-material';
+import {
+    Avatar,
+    Box,
+    Button,
     Card,
     CardContent,
-    Typography,
-    Box,
-    Avatar,
     Chip,
-    Grid,
     Divider,
+    Grid,
     List,
     ListItem,
     ListItemIcon,
     ListItemText,
-    IconButton,
-    Button,
-    Stack
+    Typography
 } from '@mui/material';
-import {
-    AccountCircle as AccountCircleIcon,
-    Email as EmailIcon,
-    Cake as CakeIcon,
-    Wc as GenderIcon,
-    Edit as EditIcon,
-    VerifiedUser as VerifiedUserIcon
-} from '@mui/icons-material';
-import { User, Gender } from '../../types';
+import { Gender, User } from '../../types';
 
 interface PersonalInfoSectionProps {
     user: User;
@@ -81,12 +77,18 @@ function PersonalInfoSection({ user, onEditClick }: PersonalInfoSectionProps) {
                         <Box display="flex" alignItems="center">
                             <Typography variant="h5" component="h1">
                                 {fullName}
-                            </Typography>
-                            {user.isVerified && (
+                            </Typography>                        {user.isEmailVerified ? (
                                 <Chip
                                     icon={<VerifiedUserIcon />}
                                     label="Đã xác thực"
-                                    color="primary"
+                                    color="success"
+                                    size="small"
+                                    sx={{ ml: 2 }}
+                                />
+                            ) : (
+                                <Chip
+                                    label="Chưa xác thực"
+                                    color="warning"
                                     size="small"
                                     sx={{ ml: 2 }}
                                 />
@@ -138,31 +140,58 @@ function PersonalInfoSection({ user, onEditClick }: PersonalInfoSectionProps) {
                             </ListItem>
                         </List>
                     </Grid>
-
                     <Grid item xs={12} md={6}>
-                        <Typography variant="subtitle2" gutterBottom>
-                            Tài khoản được tạo vào
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary" gutterBottom>
-                            {new Date(user.createdAt).toLocaleDateString('vi-VN', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric'
-                            })}
-                        </Typography>
+                        <List dense>
+                            <ListItem>
+                                <ListItemText
+                                    primary="Trạng thái email"
+                                    secondary={
+                                        <Box display="flex" alignItems="center">
+                                            <Chip
+                                                label={user.isVerified ? "Đã xác minh" : "Chưa xác minh"}
+                                                color={user.isVerified ? "success" : "warning"}
+                                                size="small"
+                                            />
+                                        </Box>
+                                    }
+                                />
+                            </ListItem>
 
-                        <Typography variant="subtitle2" sx={{ mt: 2 }} gutterBottom>
-                            Cập nhật gần nhất
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary">
-                            {new Date(user.updatedAt).toLocaleDateString('vi-VN', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric'
-                            })}
-                        </Typography>
+                            <ListItem>
+                                <ListItemText
+                                    primary="Ngày tham gia"
+                                    secondary={new Date(user.createdAt).toLocaleDateString('vi-VN', {
+                                        day: 'numeric',
+                                        month: 'long',
+                                        year: 'numeric'
+                                    })}
+                                />
+                            </ListItem>
+
+                            <ListItem>
+                                <ListItemText
+                                    primary="Đăng nhập gần nhất"
+                                    secondary={user.updatedAt ? new Date(user.updatedAt).toLocaleDateString('vi-VN', {
+                                        day: 'numeric',
+                                        month: 'long',
+                                        year: 'numeric'
+                                    }) : 'Chưa có thông tin'}
+                                />
+                            </ListItem>                        </List>
                     </Grid>
                 </Grid>
+
+                {user.profile.bio && (
+                    <Box mt={3}>
+                        <Divider sx={{ mb: 2 }} />
+                        <Typography variant="subtitle2" gutterBottom>
+                            Giới thiệu
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                            {user.profile.bio}
+                        </Typography>
+                    </Box>
+                )}
             </CardContent>
         </Card>
     );

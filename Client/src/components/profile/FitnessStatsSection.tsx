@@ -5,9 +5,9 @@ import {
     Typography,
     Box,
     Divider,
-    Grid,
     Chip,
-    LinearProgress
+    LinearProgress,
+    Grid
 } from '@mui/material';
 import {
     FitnessCenter as FitnessCenterIcon,
@@ -15,6 +15,7 @@ import {
     MonitorWeight as WeightIcon
 } from '@mui/icons-material';
 import { User, FitnessGoal, ExperienceLevel, UserProfile } from '../../types';
+import BMIDisplay from './BMIDisplay';
 
 /**
  * Props interface for FitnessStatsSection
@@ -26,23 +27,31 @@ interface FitnessStatsSectionProps {
 }
 
 /**
- * Component hiển thị thông tin fitness của user
- * Sử dụng React 19 patterns
+ * Component hiển thị thông tin fitness của user với React 19 features
  * 
  * @param props Component props
  * @param props.user Complete user object (optional)
  * @param props.userProfile User profile object directly (optional)
  * @returns Component displaying fitness statistics
- * 
- * Note: Component requires either user or userProfile prop, but not necessarily both
  */
 function FitnessStatsSection({ user, userProfile }: FitnessStatsSectionProps) {
     // Use userProfile directly if provided, otherwise extract it from user
     const profile = userProfile || (user?.profile);
 
-    // If neither is provided, return null
+    // If neither is provided, return fallback
     if (!profile) {
-        return null;
+        return (
+            <Card sx={{ mb: 3 }}>
+                <CardContent>
+                    <Typography variant="h6" component="h2" gutterBottom>
+                        Chỉ số thể hình
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Chưa có thông tin thể hình
+                    </Typography>
+                </CardContent>
+            </Card>
+        );
     }
 
     // Tính BMI từ chiều cao và cân nặng
@@ -126,7 +135,7 @@ function FitnessStatsSection({ user, userProfile }: FitnessStatsSectionProps) {
 
                 <Grid container spacing={3}>
                     {/* Height and Weight */}
-                    <Grid item xs={12} md={6}>
+                    <Grid xs={12} md={6}>
                         <Box sx={{ mb: 3 }}>
                             <Box display="flex" alignItems="center" mb={1}>
                                 <StraightenIcon color="primary" sx={{ mr: 1 }} />
@@ -149,27 +158,20 @@ function FitnessStatsSection({ user, userProfile }: FitnessStatsSectionProps) {
                     </Grid>
 
                     {/* BMI */}
-                    <Grid item xs={12} md={6}>
+                    <Grid xs={12} md={6}>
                         <Box sx={{ mb: 2 }}>
-                            <Typography variant="subtitle1" gutterBottom>
-                                Chỉ số BMI
-                            </Typography>
-                            <Typography variant="h4" color="primary">
-                                {bmi || '–'}
-                            </Typography>
-                            {bmiCategory && (
-                                <Chip
-                                    label={bmiCategory.label}
+                            {bmi && bmiCategory && (
+                                <BMIDisplay
+                                    bmi={parseFloat(bmi)}
+                                    category={bmiCategory.label}
                                     color={bmiCategory.color as 'success' | 'warning' | 'error'}
-                                    size="small"
-                                    sx={{ mt: 1 }}
                                 />
                             )}
                         </Box>
                     </Grid>
 
                     {/* Experience Level */}
-                    <Grid item xs={12}>
+                    <Grid xs={12}>
                         <Divider sx={{ my: 2 }} />
                         <Typography variant="subtitle1" gutterBottom>
                             Mức độ kinh nghiệm
@@ -189,7 +191,7 @@ function FitnessStatsSection({ user, userProfile }: FitnessStatsSectionProps) {
                     </Grid>
 
                     {/* Fitness Goals */}
-                    <Grid item xs={12}>
+                    <Grid xs={12}>
                         <Divider sx={{ my: 2 }} />
                         <Typography variant="subtitle1" gutterBottom>
                             Mục tiêu tập luyện
@@ -208,7 +210,7 @@ function FitnessStatsSection({ user, userProfile }: FitnessStatsSectionProps) {
 
                     {/* Medical Conditions (if any) */}
                     {profile.medicalConditions && profile.medicalConditions.length > 0 && (
-                        <Grid item xs={12}>
+                        <Grid xs={12}>
                             <Divider sx={{ my: 2 }} />
                             <Typography variant="subtitle1" gutterBottom>
                                 Tình trạng sức khỏe cần lưu ý
