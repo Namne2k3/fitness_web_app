@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
 
         syncAuthState();
-    }, [user, isLoading]); // Dependency on user and loading state
+    }, [user, isLoading, refreshUser, resetStore]); // Dependency on user and loading state
 
     // React 19: Login action với useActionState
     const [loginState, loginAction, loginPending] = useActionState(
