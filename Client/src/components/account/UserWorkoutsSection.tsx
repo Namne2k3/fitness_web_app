@@ -1,42 +1,41 @@
-import React, { useEffect, useState } from 'react';
 import {
+    Assessment,
+    CalendarToday,
+    CompareArrows,
+    EmojiEvents,
+    FavoriteRounded,
+    FitnessCenter,
+    History,
+    LocalFireDepartment,
+    MoreVert,
+    PlayArrow,
+    Schedule,
+    Share,
+    Speed,
+    StarRate,
+    Timer,
+    TrendingDown,
+    TrendingUp,
+    VerifiedUser,
+    Whatshot
+} from '@mui/icons-material';
+import {
+    Avatar,
+    Badge,
+    Box,
+    Button,
     Card,
     CardContent,
-    Typography,
-    Box,
-    CircularProgress,
-    Paper,
-    Avatar,
     Chip,
-    Button,
-    LinearProgress,
+    CircularProgress,
     IconButton,
+    LinearProgress,
+    Paper,
     Tooltip,
-    Badge
+    Typography
 } from '@mui/material';
-import {
-    FitnessCenter,
-    Timer,
-    LocalFireDepartment, TrendingUp,
-    StarRate,
-    FavoriteRounded,
-    Share,
-    PlayArrow,
-    MoreVert,
-    EmojiEvents,
-    Whatshot,
-    Speed,
-    VerifiedUser,
-    History,
-    CompareArrows,
-    AccessTime,
-    CalendarToday,
-    StickyNote2,
-    TrendingDown,
-    Schedule,
-    Assessment
-} from '@mui/icons-material';
-import { Workout, DifficultyLevel, WorkoutCategory } from '../../types/workout.interface';
+import React, { useEffect, useState } from 'react';
+import { DifficultyLevel, Workout, WorkoutCategory } from '../../types/workout.interface';
 
 // Enhanced interfaces for workout history
 interface WorkoutHistoryEntry {
@@ -740,7 +739,7 @@ const WorkoutStatsContent = () => {
             </Box>
 
             {/* Progress Section */}
-            <Paper
+            {/* <Paper
                 elevation={0}
                 sx={{
                     p: 3,
@@ -777,7 +776,6 @@ const WorkoutStatsContent = () => {
                     />
                 </Box>
 
-                {/* Achievement Badges */}
                 <Box display="flex" gap={1} flexWrap="wrap" mt={2}>
                     <Chip
                         icon={<EmojiEvents />}
@@ -798,7 +796,7 @@ const WorkoutStatsContent = () => {
                         sx={{ bgcolor: 'rgba(76, 175, 80, 0.1)', color: cardThemes.stats.textColor }}
                     />
                 </Box>
-            </Paper>
+            </Paper> */}
         </Box>
     );
 };

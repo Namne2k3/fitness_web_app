@@ -1,12 +1,17 @@
 export interface User {
-    readonly id: string;
+    readonly _id: string;
     email: string;
     username: string;
-    avatar?: string;
+    role: UserRole;
+    isEmailVerified: boolean;
+    emailVerificationToken?: string;
+    passwordResetToken?: string;
+    passwordResetExpires?: Date;
+    lastLoginAt?: Date;
+    isActive: boolean;
     profile: UserProfile;
     preferences: UserPreferences;
-    isVerified: boolean;
-    role: UserRole;
+    subscription: UserSubscription;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -20,15 +25,29 @@ export interface UserProfile {
     gender: Gender;
     fitnessGoals: FitnessGoal[];
     experienceLevel: ExperienceLevel;
+    avatar?: string; // Cloudinary URL
+    bio?: string; // max 500 chars
     medicalConditions?: string[];
 }
 
 export interface UserPreferences {
+    contentTypes?: string[];
     notifications: NotificationSettings;
     privacy: PrivacySettings;
     theme: 'light' | 'dark' | 'auto';
     language: 'vi' | 'en';
     units: 'metric' | 'imperial';
+}
+
+export interface UserSubscription {
+    plan: 'free' | 'premium' | 'pro';
+    status: 'active' | 'cancelled' | 'expired';
+    startDate?: Date;
+    endDate?: Date;
+    stripeCustomerId?: string;
+    stripeSubscriptionId?: string;
+    cancelAtPeriodEnd?: boolean;
+    features?: string[]; // enabled features
 }
 
 export enum FitnessGoal {
@@ -60,18 +79,18 @@ export enum Gender {
 }
 
 export interface NotificationSettings {
+    workoutReminders: boolean;
+    newContent: boolean;
+    sponsoredOffers: boolean;
+    socialUpdates: boolean;
     email: boolean;
     push: boolean;
-    sms: boolean;
-    workoutReminders: boolean;
-    sponsoredContent: boolean;
-    newFeatures: boolean;
-    marketing: boolean;
 }
 
 export interface PrivacySettings {
     profileVisibility: 'public' | 'friends' | 'private';
-    workoutVisibility: 'public' | 'friends' | 'private';
-    allowDataCollection: boolean;
-    allowPersonalization: boolean;
+    showRealName: boolean;
+    allowMessages: boolean;
+    shareWorkouts: boolean;
+    trackingConsent: boolean;
 }

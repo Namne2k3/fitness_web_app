@@ -3,7 +3,7 @@
  * Business logic cho user authentication và management
  */
 
-import { UserModel, IUser } from '../models/User';
+import { UserModel, IUser, FitnessGoal } from '../models/User';
 import {
     hashPassword,
     comparePassword,
