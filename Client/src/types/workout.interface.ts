@@ -1,4 +1,3 @@
-import { SponsorInfo, CampaignInfo } from "./sponsor.interface";
 import { ExerciseCategory, ExerciseVariation } from "./exercise.interface";
 
 export interface Workout {
@@ -13,14 +12,15 @@ export interface Workout {
     isPublic: boolean;
 
     // Embedded Exercises Array
-    exercises: WorkoutExercise[];
-
-    // Monetization
-    isSponsored: boolean;
+    exercises: WorkoutExercise[];    // Monetization
+    isSponsored?: boolean;
     sponsorData?: {
-        sponsor: SponsorInfo;
-        campaign: CampaignInfo;
-    };    // Social Features
+        sponsorId: string;
+        campaignId: string;
+        rate: number;
+        type: 'review' | 'guide' | 'promotion';
+        disclosure: string;
+    };// Social Features
     likes?: string[]; // user IDs who liked - OPTIONAL to match Server
     likeCount?: number; // denormalized for performance - OPTIONAL
     saves?: string[]; // user IDs who saved - OPTIONAL  
