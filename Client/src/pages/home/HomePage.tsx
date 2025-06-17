@@ -1,45 +1,44 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Trang chủ của Fitness Web App - Modern UI với React 19 & Material UI
  * Features: Hero section, Feature cards, Stats, CTA, Responsive design
  */
-import React from 'react';
 import {
+    ArrowForward,
+    AutoAwesome,
+    CheckCircle,
+    EmojiEvents,
+    FitnessCenter,
+    Groups,
+    LocalFireDepartment,
+    Login,
+    People,
+    PersonAdd,
+    PlayArrow,
+    Star,
+    Timeline,
+    Timer,
+    Verified
+} from '@mui/icons-material';
+import {
+    alpha,
+    Avatar,
     Box,
-    Typography,
     Button,
     Card,
     CardContent,
-    Container,
-    Stack,
-    Avatar,
-    Paper,
     Chip,
-    Grid,
-    IconButton,
+    Container,
     Divider,
-    useTheme,
-    alpha,
+    Grid,
+    Paper,
+    Stack,
+    Typography,
+    useTheme
 } from '@mui/material';
-import {
-    FitnessCenter,
-    TrendingUp,
-    People,
-    EmojiEvents,
-    PlayArrow,
-    Login,
-    PersonAdd,
-    Star,
-    ArrowForward,
-    Timer,
-    LocalFireDepartment,
-    Timeline,
-    Groups,
-    CheckCircle,
-    Verified,
-    AutoAwesome,
-} from '@mui/icons-material';
-import { useAuth } from '../context/AuthContext';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 interface FeatureCardProps {
     icon: React.ReactNode;
@@ -377,7 +376,7 @@ export default function HomePage() {
             >
                 <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
                     <Grid container spacing={6} alignItems="center" justifyContent="center">
-                        <Grid item xs={12} md={6} >
+                        <Grid >
                             <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
                                 {/* <Chip
                                     label="🚀 PHIÊN BẢN MỚI"
@@ -551,7 +550,7 @@ export default function HomePage() {
                             </Box>
                         </Grid>
 
-                        <Grid item xs={12} md={6}>
+                        <Grid >
                             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                 {isAuthenticated && user ? (
                                     <Paper
@@ -714,7 +713,7 @@ export default function HomePage() {
 
                     <Grid container spacing={4} justifyContent="center">
                         {features.map((feature, index) => (
-                            <Grid item xs={12} sm={6} md={3} key={index}>
+                            <Grid key={index}>
                                 <FeatureCard
                                     icon={feature.icon}
                                     title={feature.title}
@@ -776,7 +775,7 @@ export default function HomePage() {
                             </Typography>
                             <Grid container spacing={4} justifyContent="center">
                                 {stats.map((stat, index) => (
-                                    <Grid item xs={6} md={3} key={index}>
+                                    <Grid key={index}>
                                         <StatCard
                                             label={stat.label}
                                             value={stat.value}
@@ -826,7 +825,7 @@ export default function HomePage() {
 
                     <Grid container spacing={4} justifyContent="center">
                         {testimonials.map((testimonial, index) => (
-                            <Grid item xs={12} md={4} key={index}>
+                            <Grid key={index}>
                                 <TestimonialCard {...testimonial} />
                             </Grid>
                         ))}

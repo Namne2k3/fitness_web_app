@@ -12,9 +12,11 @@
 
 > **📖 IMPORTANT**: Khi code, luôn tham khảo:
 > - [React 19 Features](./instructions/react-19-features.md) 
+> - [Design UI](./instructions/design-instructions.md)
 > - [Plan](./instructions/plan.instructions.md) 
 > - [Migration Guide](./instructions/react-19-migration.md)
 > - [Coding Standards](./instructions/coding-standards.md)
+> - [Schema Complete](../Client/docs/DATABASE_SCHEMA_COMPLETE.md)
 > 
 > Use `#react-19-features` hoặc `#coding-standards` để reference trong prompts.
 
