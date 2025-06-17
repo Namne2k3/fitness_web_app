@@ -24,7 +24,8 @@ const createApiInstance = (): AxiosInstance => {
         headers: {
             'Content-Type': 'application/json',
         },
-    });    // Request interceptor để thêm auth token
+    });
+    // Request interceptor để thêm auth token
     instance.interceptors.request.use(
         (config) => {
             // Sử dụng TokenService thay vì localStorage trực tiếp

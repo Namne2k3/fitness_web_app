@@ -1,17 +1,18 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import ProfilePage from './pages/ProfilePage';
-import LogoutPage from './pages/LogoutPage';
-import NotFoundPage from './pages/NotFoundPage';
-import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from '@mui/material/styles';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import ProfilePage from './pages/account/ProfilePage';
+import LoginPage from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage';
 import Layout from './components/Layout';
+import { AuthProvider } from './context/AuthContext';
+import NotFoundPage from './pages/app/NotFoundPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import LogoutPage from './pages/auth/LogoutPage';
+import HomePage from './pages/home/HomePage';
 import fitnessTheme from './styles/theme';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
+import WorkoutPage from './pages/workout/WorkoutPage';
 
 /**
  * AppRouter - Định nghĩa các route chính cho ứng dụng với MUI Theme
@@ -31,6 +32,8 @@ export default function AppRouter() {
                             <Route path="/reset-password" element={<ResetPasswordPage />} />
                             <Route path="/profile" element={<ProfilePage />} />
                             <Route path="/logout" element={<LogoutPage />} />
+                            <Route path="/workouts/browse" element={<WorkoutPage />} />
+
                             <Route path="*" element={<NotFoundPage />} />
                         </Routes>
                     </Layout>

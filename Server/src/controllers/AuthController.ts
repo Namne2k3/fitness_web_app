@@ -7,6 +7,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthService, RegisterRequest, LoginRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest } from '../services/AuthService';
 import { ApiResponse, RequestWithUser } from '../types';
 import { AuthMapper } from '../mappers/authMapper';
+import { ResponseHelper, requireAuth, checkEmailExists, checkUsernameExists } from '../utils/responseHelper';
 
 /**
  * Authentication Controller Class
@@ -15,23 +16,19 @@ export class AuthController {
     /**
      * Đăng ký user mới
      * @route POST /api/v1/auth/register
-     */
-    static async register(
-        req: Request<{}, ApiResponse, RegisterRequest>,
-        res: Response<ApiResponse>,
-        next: NextFunction
-    ): Promise<void> {
+     */    static async register(
+    req: Request<{}, ApiResponse, RegisterRequest>,
+    res: Response<ApiResponse>,
+    next: NextFunction
+): Promise<void> {
         try {
             const result = await AuthService.register(req.body);
 
             // 🔹 Transform data với AuthMapper để loại bỏ sensitive info
             const safeResponse = AuthMapper.toRegisterResponse(result);
 
-            res.status(201).json({
-                success: true,
-                data: safeResponse,
-                message: 'User registered successfully'
-            });
+            // ✅ Sử dụng ResponseHelper
+            ResponseHelper.created(res, safeResponse, 'User registered successfully');
         } catch (error) {
             next(error);
         }
@@ -40,8 +37,7 @@ export class AuthController {
     /**
      * Đăng nhập user
      * @route POST /api/v1/auth/login
-     */
-    static async login(
+     */    static async login(
         req: Request<{}, ApiResponse, LoginRequest>,
         res: Response<ApiResponse>,
         next: NextFunction
@@ -53,11 +49,8 @@ export class AuthController {
             // 🔹 Transform data với AuthMapper để loại bỏ sensitive info
             const safeResponse = AuthMapper.toLoginResponse(result);
 
-            res.status(200).json({
-                success: true,
-                data: safeResponse,
-                message: 'Đăng nhập thành công'
-            });
+            // ✅ Sử dụng ResponseHelper
+            ResponseHelper.success(res, safeResponse, 'Đăng nhập thành công');
         } catch (error) {
             next(error);
         }
@@ -66,41 +59,27 @@ export class AuthController {
     /**
      * Lấy thông tin user hiện tại
      * @route GET /api/v1/auth/me
-     */
-    static async getMe(
+     */    static async getMe(
         req: RequestWithUser,
         res: Response<ApiResponse>,
         next: NextFunction
     ): Promise<void> {
         try {
-            if (!req.user) {
-                res.status(401).json({
-                    success: false,
-                    error: 'User not authenticated',
-                    data: null
-                });
-                return;
-            }
+            // ✅ Sử dụng helper function  
+            if (!requireAuth(res, req.user)) return;
 
-            const user = await AuthService.getUserById(req.user._id);
+            // TypeScript assertion - req.user guaranteed to exist after requireAuth
+            const user = await AuthService.getUserById(req.user!._id);
 
             if (!user) {
-                res.status(404).json({
-                    success: false,
-                    error: 'User not found',
-                    data: null
-                });
+                ResponseHelper.notFound(res, 'User not found');
                 return;
             }
 
             // 🔹 Transform user data để loại bỏ sensitive info
             const safeResponse = AuthMapper.toCurrentUserResponse(user);
 
-            res.status(200).json({
-                success: true,
-                data: safeResponse,
-                message: 'User profile retrieved successfully'
-            });
+            ResponseHelper.success(res, safeResponse, 'User profile retrieved successfully');
         } catch (error) {
             next(error);
         }
@@ -109,29 +88,17 @@ export class AuthController {
     /**
      * Cập nhật profile user
      * @route PUT /api/v1/auth/profile
-     */
-    static async updateProfile(
+     */    static async updateProfile(
         req: RequestWithUser,
         res: Response<ApiResponse>,
         next: NextFunction
     ): Promise<void> {
         try {
-            if (!req.user) {
-                res.status(401).json({
-                    success: false,
-                    error: 'User not authenticated',
-                    data: null
-                });
-                return;
-            }
+            if (!requireAuth(res, req.user)) return;
 
-            const updatedUser = await AuthService.updateProfile(req.user._id, req.body);
+            const updatedUser = await AuthService.updateProfile(req.user!._id, req.body);
 
-            res.status(200).json({
-                success: true,
-                data: { user: updatedUser },
-                message: 'Profile updated successfully'
-            });
+            ResponseHelper.success(res, { user: updatedUser }, 'Profile updated successfully');
         } catch (error) {
             next(error);
         }
@@ -140,29 +107,17 @@ export class AuthController {
     /**
      * Đổi mật khẩu
      * @route PUT /api/v1/auth/change-password
-     */
-    static async changePassword(
+     */    static async changePassword(
         req: RequestWithUser,
         res: Response<ApiResponse>,
         next: NextFunction
     ): Promise<void> {
         try {
-            if (!req.user) {
-                res.status(401).json({
-                    success: false,
-                    error: 'User not authenticated',
-                    data: null
-                });
-                return;
-            }
+            if (!requireAuth(res, req.user)) return;
 
-            await AuthService.changePassword(req.user._id, req.body);
+            await AuthService.changePassword(req.user!._id, req.body);
 
-            res.status(200).json({
-                success: true,
-                data: null,
-                message: 'Password changed successfully'
-            });
+            ResponseHelper.success(res, null, 'Password changed successfully');
         } catch (error) {
             next(error);
         }
@@ -171,8 +126,7 @@ export class AuthController {
     /**
      * Kiểm tra email có tồn tại không
      * @route POST /api/v1/auth/check-email
-     */
-    static async checkEmail(
+     */    static async checkEmail(
         req: Request<{}, ApiResponse, { email: string }>,
         res: Response<ApiResponse>,
         next: NextFunction
@@ -181,11 +135,8 @@ export class AuthController {
             const { email } = req.body;
             const exists = await AuthService.checkEmailExists(email);
 
-            res.status(200).json({
-                success: true,
-                data: { exists },
-                message: exists ? 'Email already exists' : 'Email available'
-            });
+            // ✅ Sử dụng helper function  
+            checkEmailExists(res, exists);
         } catch (error) {
             next(error);
         }
@@ -194,8 +145,7 @@ export class AuthController {
     /**
      * Kiểm tra username có tồn tại không
      * @route POST /api/v1/auth/check-username
-     */
-    static async checkUsername(
+     */    static async checkUsername(
         req: Request<{}, ApiResponse, { username: string }>,
         res: Response<ApiResponse>,
         next: NextFunction
@@ -204,11 +154,8 @@ export class AuthController {
             const { username } = req.body;
             const exists = await AuthService.checkUsernameExists(username);
 
-            res.status(200).json({
-                success: true,
-                data: { exists },
-                message: exists ? 'Username already taken' : 'Username available'
-            });
+            // ✅ Sử dụng helper function
+            checkUsernameExists(res, exists);
         } catch (error) {
             next(error);
         }
@@ -217,8 +164,7 @@ export class AuthController {
     /**
      * Verify email với token
      * @route POST /api/v1/auth/verify-email
-     */
-    static async verifyEmail(
+     */    static async verifyEmail(
         req: Request<{}, ApiResponse, { token: string }>,
         res: Response<ApiResponse>,
         next: NextFunction
@@ -227,11 +173,7 @@ export class AuthController {
             const { token } = req.body;
             const user = await AuthService.verifyEmail(token);
 
-            res.status(200).json({
-                success: true,
-                data: { user },
-                message: 'Email verified successfully'
-            });
+            ResponseHelper.success(res, { user }, 'Email verified successfully');
         } catch (error) {
             next(error);
         }
@@ -268,8 +210,7 @@ export class AuthController {
     /**
      * Logout user (client-side token invalidation)
      * @route POST /api/v1/auth/logout
-     */
-    static async logout(
+     */    static async logout(
         req: RequestWithUser,
         res: Response<ApiResponse>,
         next: NextFunction
@@ -279,11 +220,7 @@ export class AuthController {
             // For now, we'll just return a success message
             // The client should remove the token from storage
 
-            res.status(200).json({
-                success: true,
-                data: null,
-                message: 'Logged out successfully'
-            });
+            ResponseHelper.success(res, null, 'Logged out successfully');
         } catch (error) {
             next(error);
         }
@@ -354,8 +291,7 @@ export class AuthController {
     /**
      * Refresh access token using refresh token
      * @route POST /api/v1/auth/refresh
-     */
-    static async refreshToken(
+     */    static async refreshToken(
         req: Request<{}, ApiResponse, { refreshToken: string }>,
         res: Response<ApiResponse>,
         next: NextFunction
@@ -364,27 +300,15 @@ export class AuthController {
             const { refreshToken } = req.body;
 
             if (!refreshToken) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Refresh token is required',
-                    data: null
-                });
+                ResponseHelper.badRequest(res, 'Refresh token is required');
                 return;
             }
 
             const tokens = await AuthService.refreshToken(refreshToken);
 
-            res.status(200).json({
-                success: true,
-                data: { tokens },
-                message: 'Token refreshed successfully'
-            });
+            ResponseHelper.success(res, { tokens }, 'Token refreshed successfully');
         } catch (error) {
-            res.status(401).json({
-                success: false,
-                error: error instanceof Error ? error.message : 'Invalid refresh token',
-                data: null
-            });
+            ResponseHelper.unauthorized(res, error instanceof Error ? error.message : 'Invalid refresh token');
         }
     }
 

@@ -58,6 +58,59 @@ background: linear-gradient(45deg, rgba(25,118,210,0.1) 0%, rgba(255,152,0,0.1) 
 
 /* Text Gradient (for headings) */
 background: linear-gradient(45deg, #fff 30%, #f0f0f0 90%)
+
+/* 🆕 PROFILE SECTION GRADIENTS */
+/* Main header gradient */
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
+
+/* Card background gradients by category */
+.green-card { background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%) }
+.orange-card { background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%) }
+.purple-card { background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%) }
+.pink-card { background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%) }
+.blue-card { background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%) }
+```
+
+### Color-Coded Card System
+```typescript
+// ✅ NEW STANDARD: Color-coded thematic cards
+const cardThemes = {
+  contact: {
+    background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+    border: '1px solid rgba(76, 175, 80, 0.2)',
+    iconColor: '#4caf50',
+    textColor: '#388e3c',
+    accentColor: '#2e7d32'
+  },
+  personal: {
+    background: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)',
+    border: '1px solid rgba(255, 152, 0, 0.2)',
+    iconColor: '#ff9800',
+    textColor: '#f57c00',
+    accentColor: '#ef6c00'
+  },
+  activity: {
+    background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
+    border: '1px solid rgba(156, 39, 176, 0.2)',
+    iconColor: '#9c27b0',
+    textColor: '#7b1fa2',
+    accentColor: '#6a1b9a'
+  },
+  bio: {
+    background: 'linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%)',
+    border: '1px solid rgba(233, 30, 99, 0.2)',
+    iconColor: '#e91e63',
+    textColor: '#c2185b',
+    accentColor: '#ad1457'
+  },
+  profile: {
+    background: 'linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%)',
+    border: '1px solid rgba(33, 150, 243, 0.1)',
+    iconColor: '#2196f3',
+    textColor: '#1976d2',
+    accentColor: '#1565c0'
+  }
+}
 ```
 
 ---
@@ -258,6 +311,403 @@ const NavigationBar = () => (
 );
 ```
 
+### 5. 🆕 PROFILE SECTION PATTERNS
+
+#### 5.1 Profile Header with Gradient
+```tsx
+// ✅ NEW STANDARD: Profile section header với gradient background
+const ProfileSectionHeader = ({ title, subtitle, icon: IconComponent, onEdit }) => (
+  <Box
+    sx={{
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      color: 'white',
+      p: 3,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between'
+    }}
+  >
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 48, height: 48 }}>
+        <IconComponent sx={{ color: 'white', fontSize: 28 }} />
+      </Avatar>
+      <Box>
+        <Typography variant="h5" component="h2" fontWeight="bold">
+          {title}
+        </Typography>
+        <Typography variant="body2" sx={{ opacity: 0.9 }}>
+          {subtitle}
+        </Typography>
+      </Box>
+    </Box>
+    {onEdit && (
+      <Button
+        variant="contained"
+        startIcon={<EditIcon />}
+        onClick={onEdit}
+        sx={{
+          bgcolor: 'rgba(255,255,255,0.2)',
+          color: 'white',
+          border: '1px solid rgba(255,255,255,0.3)',
+          '&:hover': {
+            bgcolor: 'rgba(255,255,255,0.3)',
+            transform: 'translateY(-1px)',
+          }
+        }}
+      >
+        Chỉnh sửa
+      </Button>
+    )}
+  </Box>
+);
+```
+
+#### 5.2 Color-Coded Information Cards
+```tsx
+// ✅ NEW STANDARD: Thematic information cards với consistent theming
+const ThematicInfoCard = ({ 
+  theme, // 'contact', 'personal', 'activity', 'bio', 'profile'
+  icon: IconComponent, 
+  title, 
+  children 
+}) => {
+  const cardTheme = cardThemes[theme];
+  
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 3,
+        height: 'fit-content',
+        background: cardTheme.background,
+        borderRadius: 2,
+        border: cardTheme.border
+      }}
+    >
+      <Box display="flex" alignItems="center" mb={2}>
+        <Avatar sx={{ bgcolor: cardTheme.iconColor, width: 32, height: 32, mr: 1.5 }}>
+          <IconComponent sx={{ fontSize: 18 }} />
+        </Avatar>
+        <Typography variant="h6" fontWeight="600" color={cardTheme.textColor}>
+          {title}
+        </Typography>
+      </Box>
+      
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {children}
+      </Box>
+    </Paper>
+  );
+};
+```
+
+#### 5.3 Profile Tabs Navigation
+```tsx
+// ✅ NEW STANDARD: Enhanced tabs navigation với modern styling
+const ProfileTabsNavigation = ({ tabValue, handleTabChange, isMobile }) => (
+  <Paper
+    sx={{
+      mb: 3,
+      background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
+      borderRadius: 3,
+      border: '1px solid rgba(102, 126, 234, 0.1)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+      overflow: 'hidden'
+    }}
+  >
+    {/* Header section for tabs */}
+    <Box
+      sx={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: 'white',
+        p: 2,
+        textAlign: 'center'
+      }}
+    >
+      <Typography variant="h5" component="h1" fontWeight="bold">
+        Hồ sơ cá nhân
+      </Typography>
+      <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+        Quản lý thông tin và theo dõi tiến độ của bạn
+      </Typography>
+    </Box>
+
+    <Tabs
+      value={tabValue}
+      onChange={handleTabChange}
+      variant={isMobile ? "scrollable" : "fullWidth"}
+      scrollButtons="auto"
+      allowScrollButtonsMobile
+      aria-label="profile-tabs"
+      sx={{
+        '& .MuiTab-root': {
+          minHeight: 60,
+          fontWeight: 600,
+          fontSize: '0.9rem',
+          textTransform: 'none',
+          px: 3,
+          py: 2,
+          color: 'text.secondary',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)',
+            transform: 'translateY(-1px)',
+          },
+          '&.Mui-selected': {
+            background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)',
+            color: '#667eea',
+            fontWeight: 700,
+            '& .MuiSvgIcon-root': {
+              color: '#667eea',
+            },
+          },
+        },
+        '& .MuiTabs-indicator': {
+          height: 3,
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          borderRadius: '2px 2px 0 0',
+        },
+        '& .MuiTabs-flexContainer': {
+          background: 'white',
+        },
+      }}
+    >
+      {/* Tab items with icons */}
+      <Tab
+        icon={<AccountCircleIcon sx={{ fontSize: 24, mb: 0.5 }} />}
+        label="Thông tin cá nhân"
+        sx={{ borderRight: isMobile ? 'none' : '1px solid rgba(0,0,0,0.06)' }}
+      />
+      {/* Add more tabs as needed */}
+    </Tabs>
+  </Paper>
+);
+```
+
+#### 5.4 Profile Avatar Section
+```tsx
+// ✅ NEW STANDARD: Large avatar display với verification badges
+const ProfileAvatarSection = ({ user, fullName }) => (
+  <Paper
+    elevation={0}
+    sx={{
+      p: 3,
+      mb: 3,
+      background: 'linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%)',
+      borderRadius: 2,
+      border: '1px solid rgba(33, 150, 243, 0.1)'
+    }}
+  >
+    <Box display="flex" alignItems="center" gap={3}>
+      <Avatar
+        src={user.avatar}
+        alt={fullName}
+        sx={{
+          width: 80,
+          height: 80,
+          border: '3px solid rgba(102, 126, 234, 0.2)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+        }}
+      />
+      <Box sx={{ flexGrow: 1 }}>
+        <Box display="flex" alignItems="center" gap={2} mb={1}>
+          <Typography variant="h4" component="h1" fontWeight="bold" color="#1565c0">
+            {fullName}
+          </Typography>
+          {user.isEmailVerified ? (
+            <Chip
+              icon={<VerifiedUserIcon />}
+              label="Đã xác thực"
+              color="success"
+              size="medium"
+              sx={{ fontWeight: 600 }}
+            />
+          ) : (
+            <Chip
+              label="Chưa xác thực"
+              color="warning"
+              size="medium"
+              sx={{ fontWeight: 600 }}
+            />
+          )}
+        </Box>
+        <Typography variant="h6" color="text.secondary" gutterBottom>
+          @{user.username}
+        </Typography>
+        <Chip
+          icon={<BadgeIcon />}
+          label={user.role === 'admin' ? 'Quản trị viên' : 
+                user.role === 'trainer' ? 'Huấn luyện viên' : 'Thành viên'}
+          color={user.role === 'admin' ? 'error' : user.role === 'trainer' ? 'warning' : 'primary'}
+          sx={{ fontWeight: 600 }}
+        />
+      </Box>
+    </Box>
+  </Paper>
+);
+```
+
+#### 5.5 BMI & Health Metrics Display
+```tsx
+// ✅ NEW STANDARD: BMI display component với health-themed styling
+const BMIDisplay = ({ bmi, category, color }) => {
+  const getGradientBackground = () => {
+    switch (color) {
+      case 'success':
+        return 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)';
+      case 'warning':
+        return 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)';
+      case 'error':
+        return 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)';
+      default:
+        return 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)';
+    }
+  };
+
+  return (
+    <Paper 
+      elevation={0}
+      sx={{ 
+        p: 3, 
+        textAlign: 'center',
+        background: getGradientBackground(),
+        borderRadius: 3,
+        border: `1px solid ${getBorderColor()}`,
+        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          transform: 'translateY(-2px)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)'
+        }
+      }}
+    >
+      {/* Header with Icon */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+        <Avatar sx={{ bgcolor: getIconColor(), width: 40, height: 40, mr: 1.5 }}>
+          <HealthIcon sx={{ fontSize: 20, color: 'white' }} />
+        </Avatar>
+        <Typography variant="h6" fontWeight="600" color={getCategoryColor()}>
+          Chỉ số BMI
+        </Typography>
+      </Box>
+
+      {/* Large BMI Value */}
+      <Typography 
+        variant="h2" 
+        sx={{ 
+          fontWeight: 'bold',
+          color: getIconColor(),
+          textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          mb: 2
+        }}
+      >
+        {bmi.toFixed(1)}
+      </Typography>
+
+      {/* Progress Bar with gradient */}
+      <Box sx={{ mb: 3, px: 2 }}>
+        <LinearProgress
+          variant="determinate"
+          value={progressValue}
+          sx={{
+            height: 12,
+            borderRadius: 6,
+            backgroundColor: 'rgba(0,0,0,0.06)',
+            '& .MuiLinearProgress-bar': {
+              borderRadius: 6,
+              background: getProgressGradient(color)
+            }
+          }}
+        />
+      </Box>
+
+      {/* Category Badge */}
+      <Box 
+        sx={{ 
+          display: 'inline-block',
+          px: 3,
+          py: 1,
+          borderRadius: 20,
+          background: getCategoryBackground(color),
+          border: `1px solid ${getBorderColor()}`,
+          mb: 2
+        }}
+      >
+        <Typography variant="body1" fontWeight="600" sx={{ color: getCategoryColor() }}>
+          {category}
+        </Typography>
+      </Box>
+
+      {/* BMI Scale Reference */}
+      <Box sx={{ 
+        mt: 2, 
+        pt: 2,
+        borderTop: `1px solid ${getBorderColor()}`,
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: 1
+      }}>
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="caption" color="error.main" fontWeight="500">
+            Thiếu cân
+          </Typography>
+          <Typography variant="caption" display="block" color="text.secondary">
+            &lt; 18.5
+          </Typography>
+        </Box>
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="caption" color="success.main" fontWeight="500">
+            Bình thường
+          </Typography>
+          <Typography variant="caption" display="block" color="text.secondary">
+            18.5 - 24.9
+          </Typography>
+        </Box>
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="caption" color="warning.main" fontWeight="500">
+            Thừa cân
+          </Typography>
+          <Typography variant="caption" display="block" color="text.secondary">
+            ≥ 25
+          </Typography>
+        </Box>
+      </Box>
+    </Paper>
+  );
+};
+```
+
+#### 5.6 Health Metrics Card Themes
+```tsx
+// ✅ NEW STANDARD: Health-themed card styling
+const healthCardThemes = {
+  bmi: {
+    background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)', // Green for healthy metrics
+    border: '1px solid rgba(76, 175, 80, 0.2)',
+    iconColor: '#4caf50',
+    textColor: '#388e3c'
+  },
+  weight: {
+    background: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)', // Orange for weight
+    border: '1px solid rgba(255, 152, 0, 0.2)',
+    iconColor: '#ff9800',
+    textColor: '#f57c00'
+  },
+  height: {
+    background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)', // Blue for measurements
+    border: '1px solid rgba(33, 150, 243, 0.2)',
+    iconColor: '#2196f3',
+    textColor: '#1565c0'
+  },
+  heart: {
+    background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)', // Red for heart rate
+    border: '1px solid rgba(244, 67, 54, 0.2)',
+    iconColor: '#f44336',
+    textColor: '#d32f2f'
+  }
+};
+```
+
 ---
 
 ## 📏 Spacing & Layout Rules
@@ -365,6 +815,56 @@ const buttonHover = {
 <Fade in timeout={300}>
   <Box>{content}</Box>
 </Fade>
+
+// ✅ NEW: Tab panel animation cho profile sections
+<Box
+  sx={{
+    py: 3,
+    animation: 'fadeIn 0.5s ease-in-out',
+    '@keyframes fadeIn': {
+      '0%': {
+        opacity: 0,
+        transform: 'translateY(20px)',
+      },
+      '100%': {
+        opacity: 1,
+        transform: 'translateY(0)',
+      },
+    },
+  }}
+>
+  {content}
+</Box>
+```
+
+### 🆕 Profile-Specific Animations
+```tsx
+// ✅ NEW STANDARD: Profile section hover effects
+const profileCardHover = {
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    transform: 'translateY(-2px)',
+    boxShadow: '0 12px 28px rgba(0,0,0,0.12)',
+  }
+}
+
+// ✅ NEW: Tab hover effect
+const tabHoverEffect = {
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)',
+    transform: 'translateY(-1px)',
+  }
+}
+
+// ✅ NEW: Edit button hover effect
+const editButtonHover = {
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    bgcolor: 'rgba(255,255,255,0.3)',
+    transform: 'translateY(-1px)',
+  }
+}
 ```
 
 ---
@@ -494,6 +994,13 @@ const centerContent = {
 - **Responsive navigation** cho mobile
 - **Logo + brand** consistency
 
+### 5. 🆕 PROFILE COMPONENTS
+- **Color-coded thematic cards** theo chức năng (contact, personal, activity, bio, profile)
+- **Gradient headers** với icon và edit button
+- **Large avatar display** với verification badges
+- **Enhanced tabs navigation** với hover effects và responsive design
+- **Grid layout** sử dụng CSS Grid thay vì MUI Grid cho type safety
+- **Consistent card theming** với predefined color schemes
 ---
 
 ## ✅ Design Checklist
@@ -511,6 +1018,10 @@ const centerContent = {
 - [ ] Responsive design implemented correctly
 - [ ] Loading states và error handling
 - [ ] Consistent typography hierarchy
+- [ ] 🆕 **Profile sections**: Color-coded cards với proper theming
+- [ ] 🆕 **Tabs navigation**: Enhanced styling với gradient backgrounds
+- [ ] 🆕 **CSS Grid layout**: Thay vì MUI Grid cho better type safety
+- [ ] 🆕 **Avatar sections**: Large display với verification badges
 
 ### Page Review:
 - [ ] Full-height gradient background
@@ -543,3 +1054,43 @@ const centerContent = {
 ---
 
 **🎨 Summary**: Design system tập trung vào trải nghiệm người dùng fitness với Material UI, React 19 patterns, và accessibility standards. Luôn prioritize user experience và performance trong mọi design decisions.
+
+---
+
+## 🆕 PROFILE SECTION DESIGN RULES
+
+### Gradient & Color Standards
+1. **Header Gradient**: `linear-gradient(135deg, #667eea 0%, #764ba2 100%)` cho tất cả profile headers
+2. **Card Background Gradients**: Sử dụng predefined color themes theo chức năng
+3. **Border Colors**: Matching với background gradient nhưng với opacity thấp hơn
+4. **Text Colors**: Darker shade của background color cho readability
+
+### Layout Standards
+1. **CSS Grid over MUI Grid**: Sử dụng `display: 'grid'` với `gridTemplateColumns` cho better TypeScript support
+2. **Responsive Grid**: `{ xs: '1fr', md: '1fr 1fr' }` pattern cho 2-column layout
+3. **Card Heights**: `height: 'fit-content'` để avoid stretching issues
+4. **Consistent Spacing**: 3 (24px) cho card padding, 2 (16px) cho internal gaps
+
+### Icon & Avatar Standards
+1. **Avatar Sizes**: 32x32 cho card headers, 80x80 cho profile display
+2. **Icon Colors**: Match với card theme colors
+3. **Border Styling**: `3px solid rgba(color, 0.2)` cho profile avatars
+4. **Shadow Effects**: `0 4px 20px rgba(0,0,0,0.1)` cho depth
+
+### Typography Standards
+1. **Card Titles**: `variant="h6"` với `fontWeight="600"`
+2. **Profile Name**: `variant="h4"` với `fontWeight="bold"`
+3. **Username**: `variant="h6"` với `color="text.secondary"`
+4. **Card Content**: `variant="body1"` hoặc `variant="body2"`
+
+### Interactive Elements
+1. **Edit Buttons**: Transparent white background với gradient hover
+2. **Tab Hover**: Gradient background với `translateY(-1px)` effect
+3. **Card Hover**: Subtle `translateY(-2px)` với enhanced shadow
+4. **Transition Duration**: `0.3s ease` cho tất cả animations
+
+### Accessibility Requirements
+1. **Color Contrast**: Minimum 4.5:1 ratio cho text trên gradient backgrounds
+2. **Focus States**: Visible focus indicators cho tất cả interactive elements
+3. **Screen Reader**: Proper ARIA labels cho avatars và icons
+4. **Keyboard Navigation**: Tab order phải logical và intuitive

@@ -6,15 +6,15 @@ const router = Router();
 
 /**
  * @swagger
- * /account/stats:
+ * /account/profile:
  *   get:
- *     summary: Get user statistics
+ *     summary: Get user profile
  *     tags: [Account]
  *     security:
  *       - BearerAuth: []
  *     responses:
  *       200:
- *         description: User stats retrieved successfully
+ *         description: User profile retrieved successfully
  *         content:
  *           application/json:
  *             schema:
@@ -45,13 +45,13 @@ const router = Router();
  *                           example: "active"
  *                         bmi:
  *                           type: number
- *                           example: 23.1
- *                         experienceLevel:
- *                           type: string
- *                           example: "intermediate"
- *       401:
- *         $ref: '#/components/responses/Unauthorized'
+    *                           example: 23.1
+    *                         experienceLevel:
+    *                           type: string
+    *                           example: "intermediate"
+    *       401:
+    *         $ref: '#/components/responses/Unauthorized'
  */
-router.get('/stats', authenticate, AccountController.getAccountStats);
+router.get('/profile', authenticate, AccountController.getAccountProfile);
 
 export default router;

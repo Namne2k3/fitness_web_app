@@ -1,4 +1,6 @@
+import { FitnessGoal } from '@/models/User';
 import { Request } from 'express';
+import { ObjectId } from 'mongoose';
 /**
  * 🏋️ Fitness Web App - Core TypeScript Type Definitions
  * Following React 19 and coding standards best practices
@@ -15,14 +17,14 @@ export interface User {
     role: UserRole;
     password?: string; // Optional for responses
     isEmailVerified: boolean;
-    emailVerificationToken?: string; // For email verification
+    emailVerificationToken?: string;
+    passwordResetToken?: string;
+    passwordResetExpires?: Date | null;
+    lastLoginAt?: Date;
+    isActive: boolean;
     profile: UserProfile;
-    lastLoginAt?: Date; // Last login timestamp
     preferences: UserPreferences;
     subscription: UserSubscription;
-    isActive: boolean; // Account status
-    passwordResetToken?: string; // For password reset
-    passwordResetExpires?: Date | null; // For password reset expiration
     createdAt: Date;
     updatedAt: Date;
 }
@@ -37,30 +39,36 @@ export interface UserProfile {
     firstName: string;
     lastName: string;
     age: number;
+    gender: Gender;
     weight: number; // kg
     height: number; // cm
-    gender: Gender;
-    fitnessGoals: FitnessGoal[];
+    fitnessGoals: FitnessGoal[]; // fitness objectives
     experienceLevel: ExperienceLevel;
     avatar?: string; // Cloudinary URL
-    bio?: string;
+    bio?: string; // max 500 chars
+    medicalConditions?: string[];
     // Virtual properties (calculated)
     bmi?: number; // Calculated from weight and height
     fullName?: string; // firstName + lastName
 }
 
 export interface UserPreferences {
-    contentTypes: ContentType[];
+    contentTypes: string[];
     notifications: NotificationSettings;
     privacy: PrivacySettings;
     theme: 'light' | 'dark' | 'auto';
+    language?: 'vi' | 'en';
+    units?: 'metric' | 'imperial';
 }
 
 export interface UserSubscription {
-    plan: SubscriptionPlan;
-    status: SubscriptionStatus;
+    plan: 'free' | 'premium' | 'pro';
+    status: 'active' | 'cancelled' | 'expired';
     startDate: Date;
     endDate?: Date;
+    stripeCustomerId?: string;
+    stripeSubscriptionId?: string;
+    cancelAtPeriodEnd?: boolean;
     features: string[];
 }
 
@@ -69,33 +77,103 @@ export interface UserSubscription {
 // ================================
 
 export interface Workout {
-    readonly _id: string;
-    userId: string;
-    name: string;
-    description?: string;
-    exercises: Exercise[];
-    duration: number; // minutes
-    caloriesBurned: number;
-    difficulty: DifficultyLevel;
-    tags: string[];
-    isPublic: boolean;
-    likes: WorkoutLike[];
-    reviews: WorkoutReview[];
+    _id: ObjectId;
+    userId: ObjectId; // ref: 'User', indexed
+    name: string; // required, max 100
+    description?: string; // max 500
+    category?: string; // ['strength', 'cardio', 'flexibility', etc.]
+    difficulty: 'beginner' | 'intermediate' | 'advanced';
+    estimatedDuration?: number; // minutes
+    tags: string[]; // indexed
+    isPublic: boolean; // default: false
+
+    // Embedded Exercises Array
+    exercises: WorkoutExercise[];
+
+    // Monetization
+    isSponsored?: boolean; // default: false
+    sponsorData?: {
+        sponsorId: string; // ref: 'Sponsor'
+        campaignId: string; // ref: 'Campaign'
+        rate: number; // payment rate
+        type: 'review' | 'guide' | 'promotion';
+        disclosure: string; // required disclosure text
+    };
+
+    // Social Features
+    likes?: string[]; // user IDs who liked
+    likeCount?: number; // denormalized for performance
+    saves?: string[]; // user IDs who saved
+    saveCount?: number;
+    shares?: number; // share count
+
+    // Analytics
+    views?: number; // view count
+    completions?: number; // completion count
+    averageRating?: number; // calculated from reviews
+    totalRatings?: number;
+
+    // Metadata
+    muscleGroups?: string[]; // targeted muscle groups
+    equipment?: string[]; // required equipment
+    caloriesBurned?: number; // estimated calories
+
     createdAt: Date;
     updatedAt: Date;
 }
 
+export interface WorkoutExercise {
+    exerciseId: ObjectId; // ref: 'Exercise'
+    order: number; // sequence in workout
+    sets: number; // required
+    reps?: number;
+    duration?: number; // seconds for time-based
+    weight?: number; // kg
+    restTime?: number; // seconds between sets
+    notes?: string;
+    completed?: boolean; // for workout tracking
+}
+
 export interface Exercise {
     _id?: string;
-    name: string;
+    name: string; // unique, required
     description?: string;
-    muscle_groups: MuscleGroup[];
-    equipment: Equipment[];
-    sets: ExerciseSet[];
-    instructions: string[];
-    tips?: string[];
+    instructions: string[]; // step-by-step
+    category: 'strength' | 'cardio' | 'flexibility';
+    primaryMuscleGroups: string[]; // main muscles
+    secondaryMuscleGroups?: string[]; // supporting muscles
+    equipment: string[]; // required equipment
+    difficulty: 'beginner' | 'intermediate' | 'advanced';
+
+    // Media
     images?: string[]; // Cloudinary URLs
-    videos?: string[]; // Cloudinary URLs
+    videoUrl?: string; // demo video
+    gifUrl?: string; // animated demonstration
+
+    // Metrics
+    caloriesPerMinute?: number; // average calories burned
+    averageIntensity?: number; // 1-10 scale
+
+    // Variations
+    variations?: ExerciseVariation[];
+
+    // Safety
+    precautions?: string[]; // safety warnings
+    contraindications?: string[]; // medical conditions to avoid
+
+    // Admin
+    isApproved?: boolean; // admin approval
+    createdBy?: string; // ref: 'User'
+
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+
+export interface ExerciseVariation {
+    name: string;
+    description: string;
+    difficultyModifier: 'easier' | 'harder' | 'variation';
+    instructions: string[];
 }
 
 export interface ExerciseSet {
@@ -131,86 +209,131 @@ export interface WorkoutReview {
 
 export interface SponsoredContent {
     readonly _id: string;
-    title: string;
-    content: string;
-    excerpt?: string;
-    author: string; // User ID
-    sponsor: SponsorData;
-    metadata: ContentMetadata;
-    analytics: ContentAnalytics;
-    status: ContentStatus;
-    publishDate: Date;
+    title: string; // required, max 200
+    content: string; // rich text content
+    excerpt?: string; // short description
+    author: string; // ref: 'User', indexed
+
+    // Content Type
+    type: 'review' | 'guide' | 'promotion' | 'comparison';
+    status: 'draft' | 'pending' | 'published' | 'archived';
+    category: string; // content category
+    tags: string[]; // searchable tags
+
+    // Monetization
+    sponsor: {
+        company: string; // sponsor company name
+        contactEmail: string;
+        website: string;
+        logo: string; // Cloudinary URL
+    };
+    campaign: {
+        campaignId: string; // ref: 'Campaign'
+        rate: number; // payment per post
+        paymentStatus: 'pending' | 'paid' | 'cancelled';
+        contractUrl: string; // signed contract
+    };
+
+    // Target & Performance
+    targetAudience: {
+        ageRange: [number, number]; // [min, max]
+        fitnessLevels: string[];
+        interests: string[];
+        geoLocation: string[]; // country/city codes
+    };
+
+    // Media
+    featuredImage?: string; // Cloudinary URL
+    gallery?: string[]; // additional images
+    videoUrl?: string;
+
+    // SEO
+    slug: string; // URL-friendly, unique
+    metaTitle?: string;
+    metaDescription?: string;
+    keywords: string[];
+
+    // Analytics (embedded for performance)
+    analytics: {
+        views: number;
+        clicks: number; // clicks on sponsor links
+        shares: number;
+        likes: number;
+        comments: number;
+        conversionRate: number; // calculated metric
+        revenue: number; // generated revenue
+        ctr: number; // click-through rate
+        engagement: number; // overall engagement score
+    };
+
+    // Publishing
+    publishedAt?: Date;
+    scheduledAt?: Date; // for scheduled posts
+    expiresAt?: Date; // auto-archive date
+
     createdAt: Date;
     updatedAt: Date;
 }
 
-export interface SponsorData {
-    company: string;
-    campaign: string;
-    contactEmail: string;
-    rate: number; // USD
-    type: SponsoredContentType;
-    tier: SponsorTier;
-    contract: {
-        startDate: Date;
-        endDate: Date;
-        terms: string;
-    };
-}
-
-export interface ContentMetadata {
-    tags: string[];
-    category: ContentCategory;
-    targetAudience: {
-        ageRange: [number, number];
-        experienceLevel: ExperienceLevel[];
-        interests: string[];
-    };
-    seoKeywords: string[];
-    featuredImage?: string;
-}
-
-export interface ContentAnalytics {
-    views: number;
-    clicks: number;
-    shares: number;
-    likes: number;
-    comments: number;
-    engagement: number; // calculated metric
-    revenue: number;
-    conversionRate: number;
-}
-
 // ================================
-// 📊 Review System Types
+// 📊 Review System Types (Updated to match DATABASE_SCHEMA_COMPLETE.md)
 // ================================
 
 export interface Review {
     readonly _id: string;
-    targetId: string; // gym, trainer, product ID
-    targetType: ReviewTarget;
-    userId: string;
-    rating: ReviewRating;
-    title: string;
-    content: string;
-    images?: string[];
-    videos?: string[];
-    helpful: number;
-    notHelpful: number;
-    sponsored: boolean;
-    verifiedPurchase: boolean;
-    status: ReviewStatus;
+    userId: string; // ref: 'User', indexed
+    targetType: 'workout' | 'exercise' | 'gym' | 'trainer' | 'product';
+    targetId: string; // reference to reviewed item
+
+    // Rating
+    rating: {
+        overall: number; // 1-5, required
+        quality?: number; // 1-5
+        value?: number; // 1-5 (value for money)
+        difficulty?: number; // 1-5 (accuracy of difficulty rating)
+        instructions?: number; // 1-5 (clarity of instructions)
+    };
+
+    // Content
+    title: string; // review title, max 100
+    content: string; // review text, max 1000
+    pros: string[]; // positive points
+    cons: string[]; // negative points
+
+    // Media
+    images: string[]; // Cloudinary URLs
+    videoUrl?: string;
+
+    // Verification
+    verified: boolean; // verified purchase/completion
+    verificationData?: {
+        type: 'purchase' | 'completion' | 'attendance';
+        date: Date;
+        proof: string; // verification document URL
+    };
+
+    // Social
+    helpful: string[]; // users who marked as helpful
+    helpfulCount: number; // denormalized count
+    reported: string[]; // users who reported
+    reportCount: number;
+
+    // Monetization
+    isSponsored: boolean;
+    sponsorDisclosure?: string; // required if sponsored
+    compensation?: {
+        type: 'paid' | 'free_product' | 'discount';
+        amount: number;
+        description: string;
+    };
+
+    // Moderation
+    isApproved: boolean;
+    moderatedBy?: string; // ref: 'User' (admin)
+    moderationNotes?: string;
+
     createdAt: Date;
     updatedAt: Date;
-}
-
-export interface ReviewRating {
-    overall: number; // 1-5
-    quality: number;
-    value: number;
-    service: number;
-    atmosphere?: number; // for gyms
-    cleanliness?: number; // for gyms
 }
 
 // ================================
@@ -279,7 +402,7 @@ export interface FileUpload {
 }
 
 // ================================
-// 📝 Enums
+// 📝 Enums (Updated to match DATABASE_SCHEMA_COMPLETE.md)
 // ================================
 
 export enum UserRole {
@@ -292,36 +415,29 @@ export enum UserRole {
 export enum ExperienceLevel {
     BEGINNER = 'beginner',
     INTERMEDIATE = 'intermediate',
-    ADVANCED = 'advanced',
-    EXPERT = 'expert'
+    ADVANCED = 'advanced'
 }
 
-export enum DifficultyLevel {
-    EASY = 'easy',
-    MODERATE = 'moderate',
-    HARD = 'hard',
-    EXTREME = 'extreme'
-}
-
-export enum FitnessGoal {
-    WEIGHT_LOSS = 'weight_loss',
-    MUSCLE_GAIN = 'muscle_gain',
-    STRENGTH = 'strength',
-    ENDURANCE = 'endurance',
-    FLEXIBILITY = 'flexibility',
-    GENERAL_FITNESS = 'general_fitness'
-}
-
+// Muscle Groups enum (expanded from database schema)
 export enum MuscleGroup {
     CHEST = 'chest',
     BACK = 'back',
     SHOULDERS = 'shoulders',
-    ARMS = 'arms',
-    LEGS = 'legs',
+    BICEPS = 'biceps',
+    TRICEPS = 'triceps',
+    FOREARMS = 'forearms',
     CORE = 'core',
-    CARDIO = 'cardio'
+    ABS = 'abs',
+    OBLIQUES = 'obliques',
+    QUADRICEPS = 'quadriceps',
+    HAMSTRINGS = 'hamstrings',
+    GLUTES = 'glutes',
+    CALVES = 'calves',
+    CARDIO = 'cardio',
+    FULL_BODY = 'full_body'
 }
 
+// Equipment enum (expanded from database schema)
 export enum Equipment {
     BODYWEIGHT = 'bodyweight',
     DUMBBELLS = 'dumbbells',
@@ -329,75 +445,79 @@ export enum Equipment {
     MACHINE = 'machine',
     RESISTANCE_BANDS = 'resistance_bands',
     KETTLEBELL = 'kettlebell',
-    CABLE = 'cable'
+    CABLE = 'cable',
+    PULL_UP_BAR = 'pull_up_bar',
+    MEDICINE_BALL = 'medicine_ball',
+    FOAM_ROLLER = 'foam_roller'
 }
 
-export enum ContentType {
-    WORKOUT = 'workout',
-    NUTRITION = 'nutrition',
-    REVIEW = 'review',
-    GUIDE = 'guide',
-    NEWS = 'news'
-}
-
+// Content types for sponsored content
 export enum SponsoredContentType {
     REVIEW = 'review',
     GUIDE = 'guide',
     PROMOTION = 'promotion',
-    TUTORIAL = 'tutorial'
+    COMPARISON = 'comparison'
 }
 
-export enum ContentCategory {
-    GYM_REVIEW = 'gym_review',
-    EQUIPMENT_REVIEW = 'equipment_review',
-    SUPPLEMENT_REVIEW = 'supplement_review',
-    TRAINER_REVIEW = 'trainer_review',
-    WORKOUT_GUIDE = 'workout_guide',
-    NUTRITION_GUIDE = 'nutrition_guide'
-}
-
+// Content status
 export enum ContentStatus {
     DRAFT = 'draft',
     PENDING = 'pending',
-    APPROVED = 'approved',
     PUBLISHED = 'published',
-    ARCHIVED = 'archived',
-    REJECTED = 'rejected'
+    ARCHIVED = 'archived'
 }
 
-export enum SponsorTier {
-    TIER1 = 'tier1', // Premium: $300-500/post
-    TIER2 = 'tier2', // Standard: $150-300/post
-    TIER3 = 'tier3'  // Entry: $50-150/post
-}
-
-export enum ReviewTarget {
-    GYM = 'gym',
-    TRAINER = 'trainer',
-    EQUIPMENT = 'equipment',
-    SUPPLEMENT = 'supplement',
-    APP = 'app'
-}
-
-export enum ReviewStatus {
-    PENDING = 'pending',
-    APPROVED = 'approved',
-    REJECTED = 'rejected',
-    FLAGGED = 'flagged'
-}
-
+// Subscription plans
 export enum SubscriptionPlan {
     FREE = 'free',
     PREMIUM = 'premium',
-    TRAINER = 'trainer',
-    BUSINESS = 'business'
+    PRO = 'pro'
 }
 
+// Subscription status
 export enum SubscriptionStatus {
     ACTIVE = 'active',
-    INACTIVE = 'inactive',
     CANCELLED = 'cancelled',
     EXPIRED = 'expired'
+}
+
+// Exercise categories
+export enum ExerciseCategory {
+    STRENGTH = 'strength',
+    CARDIO = 'cardio',
+    FLEXIBILITY = 'flexibility'
+}
+
+// Workout categories
+export enum WorkoutCategory {
+    STRENGTH = 'strength',
+    CARDIO = 'cardio',
+    FLEXIBILITY = 'flexibility',
+    HIIT = 'hiit',
+    CROSSTRAINING = 'crosstraining',
+    SPORTS = 'sports',
+    RECOVERY = 'recovery'
+}
+
+// Payment status for campaigns
+export enum PaymentStatus {
+    PENDING = 'pending',
+    PAID = 'paid',
+    CANCELLED = 'cancelled'
+}
+
+// Verification types for reviews
+export enum VerificationType {
+    PURCHASE = 'purchase',
+    COMPLETION = 'completion',
+    ATTENDANCE = 'attendance'
+}
+
+// Compensation types for sponsored reviews
+export enum CompensationType {
+    PAID = 'paid',
+    FREE_PRODUCT = 'free_product',
+    DISCOUNT = 'discount'
 }
 
 // ================================
@@ -415,9 +535,10 @@ export interface NotificationSettings {
 
 export interface PrivacySettings {
     profileVisibility: 'public' | 'friends' | 'private';
-    workoutVisibility: 'public' | 'friends' | 'private';
-    showInLeaderboards: boolean;
-    allowDirectMessages: boolean;
+    showRealName?: boolean;
+    allowMessages?: boolean;
+    shareWorkouts?: boolean;
+    trackingConsent?: boolean;
 }
 
 export interface DatabaseConfig {
@@ -439,41 +560,86 @@ export interface CloudinaryConfig {
 }
 
 // ================================
-// 🎯 Form Data Types (for React 19 Actions)
+// 🎯 Form Data Types (for React 19 Actions) - Updated
 // ================================
 
 export interface WorkoutFormData {
     name: string;
     description?: string;
-    exercises: Exercise[];
-    duration: number;
-    difficulty: DifficultyLevel;
+    category?: string;
+    difficulty: 'beginner' | 'intermediate' | 'advanced';
+    estimatedDuration?: number;
+    exercises: WorkoutExercise[];
     tags: string[];
     isPublic: boolean;
+    muscleGroups?: string[];
+    equipment?: string[];
 }
 
 export interface SponsoredContentFormData {
     title: string;
     content: string;
     excerpt?: string;
-    sponsor: Partial<SponsorData>;
-    metadata: Partial<ContentMetadata>;
+    type: 'review' | 'guide' | 'promotion' | 'comparison';
+    category: string;
+    tags: string[];
+    sponsor: {
+        company: string;
+        contactEmail: string;
+        website?: string;
+        logo?: string;
+    };
+    campaign: {
+        campaignId: string;
+        rate: number;
+    };
+    targetAudience?: {
+        ageRange: [number, number];
+        fitnessLevels: string[];
+        interests: string[];
+        geoLocation: string[];
+    };
+    featuredImage?: string;
+    videoUrl?: string;
+    metaTitle?: string;
+    metaDescription?: string;
+    keywords: string[];
 }
 
 export interface ReviewFormData {
     targetId: string;
-    targetType: ReviewTarget;
-    rating: Partial<ReviewRating>;
+    targetType: 'workout' | 'exercise' | 'gym' | 'trainer' | 'product';
+    rating: {
+        overall: number;
+        quality?: number;
+        value?: number;
+        difficulty?: number;
+        instructions?: number;
+    };
     title: string;
     content: string;
+    pros?: string[];
+    cons?: string[];
     images?: string[];
+    videoUrl?: string;
+    isSponsored?: boolean;
+    sponsorDisclosure?: string;
 }
 
 export interface UserRegistrationData {
     email: string;
     username: string;
     password: string;
-    profile: Partial<UserProfile>;
+    profile: {
+        firstName: string;
+        lastName: string;
+        age: number;
+        gender: Gender;
+        weight: number;
+        height: number;
+        fitnessGoals?: string[];
+        experienceLevel: ExperienceLevel;
+    };
 }
 
 export interface UserLoginData {

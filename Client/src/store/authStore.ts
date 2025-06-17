@@ -392,7 +392,8 @@ export const useAuthStore = create<AuthState>()(
                  * Reset store state completely
                  * Completely clears all store state, including local storage persistence
                  * This is a critical method for ensuring proper logout
-                 */                resetStore: () => {
+                 */
+                resetStore: () => {
                     // Reset the store state (without the true parameter which causes errors)
                     set({
                         user: null,

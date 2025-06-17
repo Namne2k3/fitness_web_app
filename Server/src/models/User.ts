@@ -11,7 +11,6 @@ import {
     UserSubscription,
     UserRole,
     ExperienceLevel,
-    FitnessGoal,
     SubscriptionPlan,
     SubscriptionStatus,
     Gender
@@ -25,6 +24,15 @@ export interface IUser extends Omit<User, '_id'>, Document {
     hasRole(role: UserRole): boolean;
     canAccessPremium(): boolean;
     updateLastLogin(): Promise<IUser>;
+}
+
+export enum FitnessGoal {
+    WEIGHT_LOSS = 'weight_loss',
+    MUSCLE_GAIN = 'muscle_gain',
+    STRENGTH = 'strength',
+    ENDURANCE = 'endurance',
+    FLEXIBILITY = 'flexibility',
+    GENERAL_FITNESS = 'general_fitness'
 }
 
 /**
@@ -65,10 +73,8 @@ const UserProfileSchema = new Schema<UserProfile>({
         required: [true, 'Height is required'],
         min: [100, 'Height must be at least 100cm'],
         max: [250, 'Height cannot exceed 250cm']
-    },
-    fitnessGoals: [{
+    }, fitnessGoals: [{
         type: String,
-        enum: Object.values(FitnessGoal),
         required: true
     }],
     experienceLevel: {
@@ -76,8 +82,7 @@ const UserProfileSchema = new Schema<UserProfile>({
         enum: Object.values(ExperienceLevel),
         required: [true, 'Experience level is required'],
         default: ExperienceLevel.BEGINNER
-    },
-    avatar: {
+    }, avatar: {
         type: String,
         validate: {
             validator: function (v: string) {
@@ -85,11 +90,13 @@ const UserProfileSchema = new Schema<UserProfile>({
             },
             message: 'Avatar must be a valid URL'
         }
-    },
-    bio: {
+    }, bio: {
         type: String,
         maxlength: [500, 'Bio cannot exceed 500 characters']
-    }
+    },
+    medicalConditions: [{
+        type: String
+    }]
 }, { _id: false });
 
 /**
@@ -114,18 +121,25 @@ const UserPreferencesSchema = new Schema({
             enum: ['public', 'friends', 'private'],
             default: 'public'
         },
-        workoutVisibility: {
-            type: String,
-            enum: ['public', 'friends', 'private'],
-            default: 'public'
-        },
-        showInLeaderboards: { type: Boolean, default: true },
-        allowDirectMessages: { type: Boolean, default: true }
+        showRealName: { type: Boolean, default: true },
+        allowMessages: { type: Boolean, default: true },
+        shareWorkouts: { type: Boolean, default: true },
+        trackingConsent: { type: Boolean, default: false }
     },
     theme: {
         type: String,
         enum: ['light', 'dark', 'auto'],
         default: 'auto'
+    },
+    language: {
+        type: String,
+        enum: ['vi', 'en'],
+        default: 'vi'
+    },
+    units: {
+        type: String,
+        enum: ['metric', 'imperial'],
+        default: 'metric'
     }
 }, { _id: false });
 
@@ -135,13 +149,13 @@ const UserPreferencesSchema = new Schema({
 const UserSubscriptionSchema = new Schema<UserSubscription>({
     plan: {
         type: String,
-        enum: Object.values(SubscriptionPlan),
-        default: SubscriptionPlan.FREE
+        enum: ['free', 'premium', 'pro'],
+        default: 'free'
     },
     status: {
         type: String,
-        enum: Object.values(SubscriptionStatus),
-        default: SubscriptionStatus.ACTIVE
+        enum: ['active', 'cancelled', 'expired'],
+        default: 'active'
     },
     startDate: {
         type: Date,
@@ -149,6 +163,16 @@ const UserSubscriptionSchema = new Schema<UserSubscription>({
     },
     endDate: {
         type: Date
+    },
+    stripeCustomerId: {
+        type: String
+    },
+    stripeSubscriptionId: {
+        type: String
+    },
+    cancelAtPeriodEnd: {
+        type: Boolean,
+        default: false
     },
     features: [{
         type: String
@@ -197,18 +221,6 @@ const UserSchema = new Schema<IUser>({
         enum: Object.values(UserRole),
         default: UserRole.USER
     },
-    profile: {
-        type: UserProfileSchema,
-        required: true
-    },
-    preferences: {
-        type: UserPreferencesSchema,
-        default: () => ({})
-    },
-    subscription: {
-        type: UserSubscriptionSchema,
-        default: () => ({})
-    },
     isEmailVerified: {
         type: Boolean,
         default: false
@@ -216,7 +228,8 @@ const UserSchema = new Schema<IUser>({
     emailVerificationToken: {
         type: String,
         select: false
-    }, passwordResetToken: {
+    },
+    passwordResetToken: {
         type: String,
         select: false
     },
@@ -230,6 +243,20 @@ const UserSchema = new Schema<IUser>({
     isActive: {
         type: Boolean,
         default: true
+    },
+
+    // Embedded schemas
+    profile: {
+        type: UserProfileSchema,
+        required: true
+    },
+    preferences: {
+        type: UserPreferencesSchema,
+        default: () => ({})
+    },
+    subscription: {
+        type: UserSubscriptionSchema,
+        default: () => ({})
     }
 }, {
     timestamps: true,

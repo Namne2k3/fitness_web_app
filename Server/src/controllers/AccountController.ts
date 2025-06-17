@@ -1,34 +1,27 @@
 import { AccountService } from '../services/AccountService';
 import { RequestWithUser, ApiResponse } from "@/types";
 import { Request, Response, NextFunction } from 'express';
+import { ResponseHelper, requireAuth } from '../utils/responseHelper';
 
 export class AccountController {
     /**
-        * Get user stats
-        * @route GET /api/v1/account/stats
+        * Get user profile
+        * @route GET /api/v1/account/profile
     */
-    static async getAccountStats(
+    static async getAccountProfile(
         req: RequestWithUser,
         res: Response<ApiResponse>,
         next: NextFunction
     ): Promise<void> {
         try {
-            if (!req.user) {
-                res.status(401).json({
-                    success: false,
-                    error: 'User not authenticated',
-                    data: null
-                });
-                return;
-            }
+            // ✅ Sử dụng helper function
+            if (!requireAuth(res, req.user)) return;
 
-            const stats = await AccountService.getUserStats(req.user._id);
+            // TypeScript assertion - req.user guaranteed to exist after requireAuth
+            const stats = await AccountService.getUserProfile(req.user!._id);
 
-            res.status(200).json({
-                success: true,
-                data: stats,
-                message: 'User stats retrieved successfully'
-            });
+            // ✅ Sử dụng ResponseHelper thay vì manual res.status
+            ResponseHelper.success(res, stats, 'User stats retrieved successfully');
         } catch (error) {
             next(error);
         }

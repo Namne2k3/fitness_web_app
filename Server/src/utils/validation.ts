@@ -4,7 +4,8 @@
  */
 
 import joi from 'joi';
-import { FitnessGoal, ExperienceLevel, Gender } from '../types';
+import { ExperienceLevel, Gender } from '../types';
+import { FitnessGoal } from '../models/User';
 
 /**
  * Validation result interface
