@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import {
     Container,
     Box,
@@ -21,12 +21,12 @@ import {
 } from '@mui/icons-material';
 
 // Import the components
-import PersonalInfoSection from '../components/profile/PersonalInfoSection';
-import FitnessStatsSection from '../components/profile/FitnessStatsSection';
-import EditPersonalInfoForm from '../components/profile/EditPersonalInfoForm';
-import UserWorkoutsSection from '../components/profile/UserWorkoutsSection';
-import { User, ExperienceLevel, FitnessGoal } from '../types';
-import { AccountService, AccountProfile } from '../services/accountService';
+import PersonalInfoSection from '../../components/account/PersonalInfoSection';
+import FitnessStatsSection from '../../components/account/FitnessStatsSection';
+import EditPersonalInfoForm from '../../components/account/EditPersonalInfoForm';
+import UserWorkoutsSection from '../../components/account/UserWorkoutsSection';
+import { User, ExperienceLevel, FitnessGoal } from '../../types';
+import { AccountService, AccountProfile } from '../../services/accountService';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -394,12 +394,10 @@ export default function ProfilePage() {
                         </Box>
                     </Box>
                 )}
-            </TabPanel>
-
-            {/* Workout Stats Tab */}
+            </TabPanel>            {/* Workout Stats Tab */}
             <TabPanel value={tabValue} index={1}>
-                {updatedUser && <UserWorkoutsSection userId={updatedUser.id} />}
-            </TabPanel>            {/* Reviews Tab */}
+                <UserWorkoutsSection />
+            </TabPanel>{/* Reviews Tab */}
             <TabPanel value={tabValue} index={2}>
                 <Paper
                     sx={{
