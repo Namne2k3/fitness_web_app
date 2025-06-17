@@ -3,7 +3,8 @@
  * BMI, BMR, TDEE và các tính toán sức khỏe khác
  */
 
-import { FitnessGoal, Gender } from '../types';
+import { Gender } from '../types';
+import { FitnessGoal } from '../models/User';
 
 // ================================
 // 📊 Core Health Calculations

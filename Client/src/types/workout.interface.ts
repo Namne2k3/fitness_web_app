@@ -1,23 +1,43 @@
-import { Rating } from "./review.interface";
-import { SponsorData } from "./sponsor.interface";
+import { SponsorInfo, CampaignInfo } from "./sponsor.interface";
+import { ExerciseCategory, ExerciseVariation } from "./exercise.interface";
 
 export interface Workout {
-    readonly id: string;
+    readonly _id: string;
     userId: string;
     name: string;
     description?: string;
-    exercises: Exercise[];
-    duration: number; // minutes
+    category?: string; // ['strength', 'cardio', 'flexibility', etc.]
     difficulty: DifficultyLevel;
+    estimatedDuration?: number; // minutes
     tags: string[];
-    category: WorkoutCategory;
-    caloriesBurned?: number;
     isPublic: boolean;
+
+    // Embedded Exercises Array
+    exercises: WorkoutExercise[];
+
+    // Monetization
     isSponsored: boolean;
-    sponsorData?: SponsorData;
-    ratings: Rating[];
-    averageRating: number;
-    totalRatings: number;
+    sponsorData?: {
+        sponsor: SponsorInfo;
+        campaign: CampaignInfo;
+    };    // Social Features
+    likes?: string[]; // user IDs who liked - OPTIONAL to match Server
+    likeCount?: number; // denormalized for performance - OPTIONAL
+    saves?: string[]; // user IDs who saved - OPTIONAL  
+    saveCount?: number; // OPTIONAL
+    shares?: number; // share count - OPTIONAL
+
+    // Analytics
+    views?: number; // view count - OPTIONAL
+    completions?: number; // completion count - OPTIONAL
+    averageRating?: number; // calculated from reviews - OPTIONAL
+    totalRatings?: number; // OPTIONAL
+
+    // Metadata
+    muscleGroups?: string[]; // targeted muscle groups - OPTIONAL
+    equipment?: string[]; // required equipment - OPTIONAL
+    caloriesBurned?: number; // estimated calories - OPTIONAL
+
     createdAt: Date;
     updatedAt: Date;
 }
@@ -25,7 +45,7 @@ export interface Workout {
 export interface WorkoutFormData {
     name: string;
     description?: string;
-    exercises: Omit<Exercise, 'id'>[];
+    exercises: WorkoutExercise[]; // Changed from Omit<Exercise, 'id'>[]
     duration: number;
     difficulty: DifficultyLevel;
     category: WorkoutCategory;
@@ -33,20 +53,53 @@ export interface WorkoutFormData {
     isPublic: boolean;
 }
 
-export interface Exercise {
-    id: string;
-    name: string;
+// Exercise Definition - theo DATABASE_SCHEMA_COMPLETE.md  
+export interface WorkoutExerciseTemplate {
+    readonly id: string;
+    name: string; // unique, required
     description?: string;
-    instructions: string[];
-    sets: number;
+    instructions: string[]; // step-by-step
+    category: ExerciseCategory;
+    primaryMuscleGroups: MuscleGroup[]; // main muscles
+    secondaryMuscleGroups?: MuscleGroup[]; // supporting muscles
+    equipment: Equipment[]; // required equipment
+    difficulty: DifficultyLevel;
+
+    // Media
+    images?: string[]; // Cloudinary URLs
+    videoUrl?: string; // demo video
+    gifUrl?: string; // animated demonstration
+
+    // Metrics
+    caloriesPerMinute?: number; // average calories burned
+    averageIntensity?: number; // 1-10 scale
+
+    // Variations
+    variations?: ExerciseVariation[];
+
+    // Safety
+    precautions?: string[]; // safety warnings
+    contraindications?: string[]; // medical conditions to avoid
+
+    // Admin
+    isApproved?: boolean; // admin approval
+    createdBy?: string; // ref: 'User'
+
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+
+// WorkoutExercise - instance của exercise trong workout
+export interface WorkoutExercise {
+    exerciseId: string; // ref to Exercise
+    order: number; // sequence in workout
+    sets: number; // required
     reps?: number;
-    duration?: number; // seconds
+    duration?: number; // seconds for time-based
     weight?: number; // kg
-    restTime: number; // seconds
-    muscleGroups: MuscleGroup[];
-    equipment?: Equipment[];
-    imageUrl?: string;
-    videoUrl?: string;
+    restTime?: number; // seconds between sets
+    notes?: string;
+    completed?: boolean; // for workout tracking
 }
 
 export enum DifficultyLevel {
@@ -66,24 +119,57 @@ export enum WorkoutCategory {
 }
 
 export enum MuscleGroup {
+    // Upper Body
     CHEST = 'chest',
     BACK = 'back',
     SHOULDERS = 'shoulders',
     BICEPS = 'biceps',
     TRICEPS = 'triceps',
+    FOREARMS = 'forearms',
+    TRAPS = 'traps',
+    LATS = 'lats',
+
+    // Core
     CORE = 'core',
-    LEGS = 'legs',
+    RECTUS_ABDOMINIS = 'rectus_abdominis',
+    OBLIQUES = 'obliques',
+    TRANSVERSE_ABDOMINIS = 'transverse_abdominis',
+    ERECTOR_SPINAE = 'erector_spinae',
+
+    // Lower Body
+    QUADRICEPS = 'quadriceps',
+    HAMSTRINGS = 'hamstrings',
     GLUTES = 'glutes',
-    CALVES = 'calves'
+    CALVES = 'calves',
+    HIP_FLEXORS = 'hip_flexors',
+
+    // Full Body / System
+    FULL_BODY = 'full_body',
+    CARDIOVASCULAR = 'cardiovascular',
+
+    // Legacy for backward compatibility
+    LEGS = 'legs'
 }
 
 export enum Equipment {
+    // Free Weights
     BARBELL = 'barbell',
     DUMBBELL = 'dumbbell',
     KETTLEBELL = 'kettlebell',
-    RESISTANCE_BAND = 'resistance_band',
+    WEIGHT_PLATES = 'weight_plates',
+
+    // Machines & Racks
+    SQUAT_RACK = 'squat_rack',
+    BENCH = 'bench',
     PULL_UP_BAR = 'pull_up_bar',
+
+    // Accessories
+    RESISTANCE_BAND = 'resistance_band',
     YOGA_MAT = 'yoga_mat',
+    YOGA_BLOCK = 'yoga_block',
+
+    // Bodyweight
+    BODYWEIGHT = 'bodyweight',
     NONE = 'none'
 }
 
