@@ -535,7 +535,7 @@ export class AuthService {
         await user.save();
 
         // TODO: Send email với reset link
-        await EmailService.sendPasswordResetEmail(user.email, resetToken, user.username);
+        EmailService.sendPasswordResetEmail(user.email, resetToken, user.username);
         // console.log(`🔗 Password reset token for ${email}: ${resetToken}`);
         // console.log(`🔗 Reset link: ${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`);
 
