@@ -32,13 +32,20 @@ import {
     ExpandLess,
     ExpandMore,
     Home,
-    Close
+    Close,
+    DirectionsRun,
+    AddCircleOutline,
+    Favorite,
+    FitnessCenterOutlined,
+    Inventory,
+    ShoppingBasket
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 
 /**
  * Mobile navigation menu component with drawer
+ * ✅ Updated với labels tiếng Việt đồng bộ với desktop
  */
 const MobileNavMenu: React.FC = () => {
     const navigate = useNavigate();
@@ -83,12 +90,14 @@ const MobileNavMenu: React.FC = () => {
                 >
                     <MenuIcon />
                 </IconButton>
-            </Box>            <Drawer
+            </Box>
+
+            <Drawer
                 anchor="left"
                 open={open}
                 onClose={toggleDrawer(false)}
                 sx={{
-                    zIndex: 1400, // Cao hơn navbar (1300) để không bị đè
+                    zIndex: 1400,
                     '& .MuiDrawer-paper': {
                         width: 280,
                         backgroundColor: 'background.paper',
@@ -98,15 +107,16 @@ const MobileNavMenu: React.FC = () => {
                         height: '100vh',
                     },
                 }}
-            >                <Box
-                sx={{
-                    width: 280,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: '100%',
-                }}
-                role="presentation"
             >
+                <Box
+                    sx={{
+                        width: 280,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: '100%',
+                    }}
+                    role="presentation"
+                >
                     {/* Header với Logo */}
                     <Box
                         sx={{
@@ -168,6 +178,7 @@ const MobileNavMenu: React.FC = () => {
                     </Box>
 
                     <List sx={{ flex: 1, overflow: 'auto' }}>
+                        {/* Trang chủ */}
                         <ListItemButton onClick={() => handleNavigate('/')}>
                             <ListItemIcon><Home /></ListItemIcon>
                             <ListItemText primary="Trang chủ" />
@@ -175,7 +186,7 @@ const MobileNavMenu: React.FC = () => {
 
                         <Divider />
 
-                        {/* Workouts Section */}
+                        {/* ✅ Bài tập Section - Updated */}
                         <ListItemButton onClick={toggleWorkouts}>
                             <ListItemIcon><FitnessCenter /></ListItemIcon>
                             <ListItemText primary="Bài tập" />
@@ -188,11 +199,11 @@ const MobileNavMenu: React.FC = () => {
                                     <ListItemText primary="Khám phá bài tập" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/workouts/my-workouts')}>
-                                    <ListItemIcon><FitnessCenter /></ListItemIcon>
+                                    <ListItemIcon><DirectionsRun /></ListItemIcon>
                                     <ListItemText primary="Bài tập của tôi" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/workouts/create')}>
-                                    <ListItemIcon><SportsGymnastics /></ListItemIcon>
+                                    <ListItemIcon><AddCircleOutline /></ListItemIcon>
                                     <ListItemText primary="Tạo bài tập" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/workouts/progress')}>
@@ -202,7 +213,7 @@ const MobileNavMenu: React.FC = () => {
                             </List>
                         </Collapse>
 
-                        {/* Exercises Section */}
+                        {/* ✅ Động tác Section - Updated */}
                         <ListItemButton onClick={toggleExercises}>
                             <ListItemIcon><SportsGymnastics /></ListItemIcon>
                             <ListItemText primary="Động tác" />
@@ -219,13 +230,13 @@ const MobileNavMenu: React.FC = () => {
                                     <ListItemText primary="Video hướng dẫn" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/exercises/favorites')}>
-                                    <ListItemIcon><Star /></ListItemIcon>
+                                    <ListItemIcon><Favorite /></ListItemIcon>
                                     <ListItemText primary="Yêu thích" />
                                 </ListItemButton>
                             </List>
                         </Collapse>
 
-                        {/* Nutrition Section */}
+                        {/* ✅ Dinh dưỡng Section - Updated */}
                         <ListItemButton onClick={toggleNutrition}>
                             <ListItemIcon><Restaurant /></ListItemIcon>
                             <ListItemText primary="Dinh dưỡng" />
@@ -248,7 +259,7 @@ const MobileNavMenu: React.FC = () => {
                             </List>
                         </Collapse>
 
-                        {/* Reviews Section */}
+                        {/* ✅ Đánh giá Section - Updated */}
                         <ListItemButton onClick={toggleReviews}>
                             <ListItemIcon><Star /></ListItemIcon>
                             <ListItemText primary="Đánh giá" />
@@ -257,11 +268,11 @@ const MobileNavMenu: React.FC = () => {
                         <Collapse in={reviewsOpen} timeout="auto" unmountOnExit>
                             <List component="div" disablePadding>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/reviews/gyms')}>
-                                    <ListItemIcon><FitnessCenter /></ListItemIcon>
+                                    <ListItemIcon><FitnessCenterOutlined /></ListItemIcon>
                                     <ListItemText primary="Đánh giá phòng gym" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/reviews/equipment')}>
-                                    <ListItemIcon><SportsGymnastics /></ListItemIcon>
+                                    <ListItemIcon><Inventory /></ListItemIcon>
                                     <ListItemText primary="Đánh giá thiết bị" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/reviews/supplements')}>
@@ -279,7 +290,7 @@ const MobileNavMenu: React.FC = () => {
                             </List>
                         </Collapse>
 
-                        {/* Sponsored Content Section */}
+                        {/* ✅ Nội dung tài trợ Section - Updated */}
                         <ListItemButton onClick={toggleSponsored}>
                             <ListItemIcon><Money /></ListItemIcon>
                             <ListItemText primary="Nội dung tài trợ" />
@@ -306,7 +317,7 @@ const MobileNavMenu: React.FC = () => {
                             </List>
                         </Collapse>
 
-                        {/* Community Section */}
+                        {/* ✅ Cộng đồng Section - Updated */}
                         <ListItemButton onClick={toggleCommunity}>
                             <ListItemIcon><Group /></ListItemIcon>
                             <ListItemText primary="Cộng đồng" />
@@ -329,7 +340,7 @@ const MobileNavMenu: React.FC = () => {
                             </List>
                         </Collapse>
 
-                        {/* Marketplace Section */}
+                        {/* ✅ Chợ fitness Section - Updated */}
                         <ListItemButton onClick={toggleMarketplace}>
                             <ListItemIcon><ShoppingCart /></ListItemIcon>
                             <ListItemText primary="Chợ fitness" />
@@ -342,7 +353,7 @@ const MobileNavMenu: React.FC = () => {
                                     <ListItemText primary="Tìm huấn luyện viên" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/marketplace/equipment')}>
-                                    <ListItemIcon><SportsGymnastics /></ListItemIcon>
+                                    <ListItemIcon><ShoppingBasket /></ListItemIcon>
                                     <ListItemText primary="Cửa hàng thiết bị" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/marketplace/supplements')}>
@@ -353,7 +364,8 @@ const MobileNavMenu: React.FC = () => {
                                     <ListItemIcon><Money /></ListItemIcon>
                                     <ListItemText primary="Ưu đãi đặc biệt" />
                                 </ListItemButton>
-                            </List>                        </Collapse>
+                            </List>
+                        </Collapse>
                     </List>
 
                     {/* Footer */}
@@ -370,7 +382,7 @@ const MobileNavMenu: React.FC = () => {
                             color="text.secondary"
                             sx={{ fontSize: '0.75rem' }}
                         >
-                            FitApp © 2025
+                            TrackMe © 2025
                         </Typography>
                         <Typography
                             variant="body2"

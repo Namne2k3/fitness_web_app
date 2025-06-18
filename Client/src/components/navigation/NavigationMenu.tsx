@@ -12,6 +12,7 @@ import {
     Inventory,
     LocalCafe,
     MenuBook,
+    Money,
     Person,
     RateReview,
     Restaurant,
@@ -19,6 +20,7 @@ import {
     ShoppingCart,
     SportsGymnastics,
     Star,
+    Storefront,
     Videocam
 } from '@mui/icons-material';
 import {
@@ -48,40 +50,49 @@ type NavMenu = {
     key: string;
     icon: React.ReactNode;
     label: string;
-    path?: string; // Optional path for main menu items
+    path?: string; // Default path khi click vào main menu
     subItems: (NavSubItem | 'divider')[];
 };
 
+// ✅ Updated Navigation Menu với tiếng Việt và default paths
 const NAV_MENUS: NavMenu[] = [
     {
         key: 'home',
-        icon: <Home />, label: 'Trang chủ',
+        icon: <Home />,
+        label: 'Trang chủ',
+        path: '/', // Direct path
         subItems: []
     },
     {
         key: 'workouts',
-        icon: <FitnessCenter />, label: 'Workouts',
+        icon: <FitnessCenter />,
+        label: 'Bài tập',
+        path: '/workouts/browse', // Default to browse page
         subItems: [
-            { icon: <MenuBook fontSize="small" />, label: 'Khám phá Workouts', path: '/workouts/browse' },
-            { icon: <DirectionsRun fontSize="small" />, label: 'Workouts của tôi', path: '/workouts/my-workouts' },
-            { icon: <AddCircleOutline fontSize="small" />, label: 'Tạo Workout', path: '/workouts/create' },
+            { icon: <MenuBook fontSize="small" />, label: 'Khám phá bài tập', path: '/workouts/browse' },
+            { icon: <DirectionsRun fontSize="small" />, label: 'Bài tập của tôi', path: '/workouts/my-workouts' },
+            { icon: <AddCircleOutline fontSize="small" />, label: 'Tạo bài tập', path: '/workouts/create' },
             'divider',
             { icon: <BarChart fontSize="small" />, label: 'Theo dõi tiến độ', path: '/workouts/progress' },
         ]
     },
     {
         key: 'exercises',
-        icon: <SportsGymnastics />, label: 'Exercises',
+        icon: <SportsGymnastics />,
+        label: 'Động tác',
+        path: '/exercises/library', // Default to library
         subItems: [
-            { icon: <MenuBook fontSize="small" />, label: 'Thư viện bài tập', path: '/exercises/library' },
-            { icon: <Videocam fontSize="small" />, label: 'Hướng dẫn video', path: '/exercises/videos' },
+            { icon: <MenuBook fontSize="small" />, label: 'Thư viện động tác', path: '/exercises/library' },
+            { icon: <Videocam fontSize="small" />, label: 'Video hướng dẫn', path: '/exercises/videos' },
             'divider',
-            { icon: <Favorite fontSize="small" />, label: 'Yêu thích của tôi', path: '/exercises/favorites' },
+            { icon: <Favorite fontSize="small" />, label: 'Yêu thích', path: '/exercises/favorites' },
         ]
     },
     {
         key: 'nutrition',
-        icon: <Restaurant />, label: 'Nutrition',
+        icon: <Restaurant />,
+        label: 'Dinh dưỡng',
+        path: '/nutrition/guides', // Default to guides
         subItems: [
             { icon: <MenuBook fontSize="small" />, label: 'Hướng dẫn dinh dưỡng', path: '/nutrition/guides' },
             { icon: <LocalCafe fontSize="small" />, label: 'Thực phẩm bổ sung', path: '/nutrition/supplements' },
@@ -90,7 +101,9 @@ const NAV_MENUS: NavMenu[] = [
     },
     {
         key: 'reviews',
-        icon: <Star />, label: 'Reviews',
+        icon: <Star />,
+        label: 'Đánh giá',
+        path: '/reviews/gyms', // Default to gym reviews
         subItems: [
             { icon: <FitnessCenterOutlined fontSize="small" />, label: 'Đánh giá phòng gym', path: '/reviews/gyms' },
             { icon: <Inventory fontSize="small" />, label: 'Đánh giá thiết bị', path: '/reviews/equipment' },
@@ -101,8 +114,22 @@ const NAV_MENUS: NavMenu[] = [
         ]
     },
     {
+        key: 'sponsored',
+        icon: <Money />,
+        label: 'Nội dung tài trợ',
+        path: '/sponsored/featured', // Default to featured content
+        subItems: [
+            { icon: <Star fontSize="small" />, label: 'Nội dung nổi bật', path: '/sponsored/featured' },
+            { icon: <Money fontSize="small" />, label: 'Ưu đãi đặc biệt', path: '/sponsored/promotions' },
+            { icon: <MenuBook fontSize="small" />, label: 'Hướng dẫn tài trợ', path: '/sponsored/guides' },
+            { icon: <Storefront fontSize="small" />, label: 'Đối tác của chúng tôi', path: '/sponsored/partners' },
+        ]
+    },
+    {
         key: 'community',
-        icon: <Group />, label: 'Community',
+        icon: <Group />,
+        label: 'Cộng đồng',
+        path: '/community/forum', // Default to forum
         subItems: [
             { icon: <Group fontSize="small" />, label: 'Diễn đàn', path: '/community/forum' },
             { icon: <EmojiEvents fontSize="small" />, label: 'Thử thách', path: '/community/challenges' },
@@ -111,12 +138,14 @@ const NAV_MENUS: NavMenu[] = [
     },
     {
         key: 'marketplace',
-        icon: <ShoppingCart />, label: 'Marketplace',
+        icon: <ShoppingCart />,
+        label: 'Chợ fitness',
+        path: '/marketplace/trainers', // Default to trainers
         subItems: [
             { icon: <Person fontSize="small" />, label: 'Tìm huấn luyện viên', path: '/marketplace/trainers' },
             { icon: <ShoppingBasket fontSize="small" />, label: 'Cửa hàng thiết bị', path: '/marketplace/equipment' },
             { icon: <LocalCafe fontSize="small" />, label: 'Thực phẩm bổ sung', path: '/marketplace/supplements' },
-            { icon: <BarChart fontSize="small" />, label: 'Ưu đãi đặc biệt', path: '/marketplace/deals' },
+            { icon: <Money fontSize="small" />, label: 'Ưu đãi đặc biệt', path: '/marketplace/deals' },
         ]
     },
 ];
@@ -133,7 +162,26 @@ const NavigationMenu: React.FC = () => {
     const handleNavigate = (path: string) => {
         setOpenMenu(null);
         navigate(path);
-    }; return (
+    };
+
+    // ✅ NEW: Handle main menu click
+    const handleMainMenuClick = (menu: NavMenu) => {
+        if (menu.subItems.length === 0) {
+            // No submenu - navigate directly
+            handleNavigate(menu.path || '/');
+        } else {
+            // Has submenu - check if already open
+            if (openMenu === menu.key) {
+                // If open, navigate to default path
+                handleNavigate(menu.path || '/');
+            } else {
+                // If closed, open the menu
+                handleMenuOpen(menu.key);
+            }
+        }
+    };
+
+    return (
         <Box sx={{
             flexGrow: 1,
             display: { xs: 'none', md: 'flex' },
@@ -173,32 +221,20 @@ const NavigationMenu: React.FC = () => {
                                 boxShadow: '0 4px 12px rgba(103, 126, 234, 0.2)',
                             },
                         }}
-                        onClick={() => {
-                            if (menu.subItems.length === 0) {
-                                // Nếu không có subItems, navigate trực tiếp
-                                if (menu.key === 'home') {
-                                    handleNavigate('/');
-                                }
-                            } else {
-                                // Nếu có subItems, toggle menu
-                                if (openMenu === menu.key) {
-                                    handleMenuClose();
-                                } else {
-                                    handleMenuOpen(menu.key);
-                                }
-                            }
-                        }}
+                        onClick={() => handleMainMenuClick(menu)}
                     >
                         {menu.icon}
                     </Button>
+
+                    {/* Submenu Popper */}
                     {menu.subItems.length > 0 && (
                         <Popper
                             open={openMenu === menu.key}
                             anchorEl={anchorRefs.current[menu.key]}
                             placement="bottom-start"
                             transition
-                            disablePortal={false} // Changed to false to render in portal
-                            style={{ zIndex: 1400 }} // Increased z-index
+                            disablePortal={false}
+                            style={{ zIndex: 1400 }}
                             onMouseEnter={() => handleMenuOpen(menu.key)}
                             onMouseLeave={handleMenuClose}
                         >
@@ -207,24 +243,25 @@ const NavigationMenu: React.FC = () => {
                                     {...TransitionProps}
                                     style={{ transformOrigin: 'top left' }}
                                     timeout={300}
-                                >                                    <Paper
-                                    sx={{
-                                        mt: 1,
-                                        minWidth: 280,
-                                        maxWidth: 320,
-                                        boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-                                        borderRadius: 2,
-                                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                                        bgcolor: 'rgba(255, 255, 255, 0.98)',
-                                        color: 'text.primary',
-                                        backdropFilter: 'blur(20px)',
-                                        // Dark mode support
-                                        ...(theme => theme.palette.mode === 'dark' && {
-                                            bgcolor: 'rgba(18, 18, 18, 0.98)',
-                                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                                        }),
-                                    }}
                                 >
+                                    <Paper
+                                        sx={{
+                                            mt: 1,
+                                            minWidth: 280,
+                                            maxWidth: 320,
+                                            boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+                                            borderRadius: 2,
+                                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                                            bgcolor: 'rgba(255, 255, 255, 0.98)',
+                                            color: 'text.primary',
+                                            backdropFilter: 'blur(20px)',
+                                            // Dark mode support
+                                            ...(theme => theme.palette.mode === 'dark' && {
+                                                bgcolor: 'rgba(18, 18, 18, 0.98)',
+                                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            }),
+                                        }}
+                                    >
                                         <ClickAwayListener onClickAway={handleMenuClose}>
                                             <MenuList
                                                 autoFocusItem={openMenu === menu.key}

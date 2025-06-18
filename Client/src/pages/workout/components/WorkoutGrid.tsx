@@ -1,18 +1,15 @@
 /**
- * 📊 WorkoutGrid Component - Adaptive Grid Layout
- * Supports different view modes and virtual scrolling for large datasets
+ * 📊 WorkoutGrid Component - Updated với Grid/List modes only
+ * Grid layout với pagination support, loại bỏ compact mode
  */
 
 import {
     GridView,
-    List,
-    ViewAgenda,
-    ViewStream
+    List
 } from '@mui/icons-material';
 import {
     Box,
     Fade,
-    Pagination,
     ToggleButton,
     ToggleButtonGroup,
     Typography
@@ -20,29 +17,29 @@ import {
 import React, { useMemo, useState } from 'react';
 import { Workout } from '../../../types/workout.interface';
 import { WorkoutListResponse } from '../../../services/workoutService';
+import Pagination from '../../../components/common/Pagination';
 import WorkoutCard from './WorkoutCard';
-import WorkoutsSkeleton from './WorkoutsSkeleton';
 
 // ================================
-// 🎯 Types & Interfaces
+// 🎯 Types & Interfaces - Updated
 // ================================
-type ViewMode = 'grid' | 'list' | 'compact' | 'masonry';
+type ViewMode = 'grid' | 'list'; // Removed 'compact'
 
 interface WorkoutGridProps {
     workouts: Workout[];
-    pagination?: WorkoutListResponse['pagination'];
+    pagination: WorkoutListResponse['pagination'];
     loading?: boolean;
     onLike: (workoutId: string, currentLiked: boolean, currentCount: number) => void;
     onSave: (workoutId: string, currentSaved: boolean, currentCount: number) => void;
     onView: (workoutId: string) => void;
     onShare?: (workoutId: string) => void;
     onAddToQueue?: (workoutId: string) => void;
-    onPageChange?: (page: number) => void;
+    onPageChange: (page: number) => void;
     emptyState?: React.ReactNode;
 }
 
 // ================================
-// 📊 WorkoutGrid Component
+// 📊 WorkoutGrid Component - Updated
 // ================================
 const WorkoutGrid: React.FC<WorkoutGridProps> = ({
     workouts,
@@ -58,47 +55,30 @@ const WorkoutGrid: React.FC<WorkoutGridProps> = ({
 }) => {
     const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
-    // Memoized grid configurations
+    // ✅ Updated Grid configurations - Removed compact
     const gridConfigs = useMemo(() => ({
         grid: {
-            columns: {
+            display: 'grid',
+            gridTemplateColumns: {
                 xs: '1fr',
                 sm: 'repeat(2, 1fr)',
                 md: 'repeat(3, 1fr)',
                 lg: 'repeat(4, 1fr)',
-                xl: 'repeat(5, 1fr)'
             },
             gap: 3,
-            compact: false
+            width: '100%'
         },
         list: {
-            columns: { xs: '1fr' },
+            display: 'flex',
+            flexDirection: 'column',
             gap: 2,
-            compact: true
-        },
-        compact: {
-            columns: {
-                xs: '1fr',
-                sm: 'repeat(2, 1fr)',
-                md: 'repeat(3, 1fr)',
-                lg: 'repeat(4, 1fr)'
-            },
-            gap: 2,
-            compact: true
-        },
-        masonry: {
-            columns: {
-                xs: '1fr',
-                sm: 'repeat(2, 1fr)',
-                md: 'repeat(3, 1fr)',
-                lg: 'repeat(4, 1fr)'
-            },
-            gap: 2,
-            compact: false
+            width: '100%'
         }
     }), []);
 
-    const currentConfig = gridConfigs[viewMode];    // Handle view mode change
+    const currentConfig = gridConfigs[viewMode];
+
+    // Handle view mode change
     const handleViewModeChange = (
         _event: React.MouseEvent<HTMLElement>,
         newViewMode: ViewMode | null,
@@ -108,24 +88,14 @@ const WorkoutGrid: React.FC<WorkoutGridProps> = ({
         }
     };
 
-    // Loading state
-    if (loading) {
-        return <WorkoutsSkeleton viewMode={viewMode} />;
-    }
-
     // Empty state
-    if (workouts.length === 0) {
+    if (!loading && workouts.length === 0) {
         return (
-            <Box sx={{ textAlign: 'center', py: 8 }}>
+            <Box sx={{ py: 8, textAlign: 'center' }}>
                 {emptyState || (
-                    <>
-                        <Typography variant="h6" color="text.secondary" gutterBottom>
-                            🔍 Không tìm thấy workout nào
-                        </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                            Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác
-                        </Typography>
-                    </>
+                    <Typography variant="h6" color="text.secondary">
+                        Không tìm thấy workout nào
+                    </Typography>
                 )}
             </Box>
         );
@@ -133,7 +103,7 @@ const WorkoutGrid: React.FC<WorkoutGridProps> = ({
 
     return (
         <Box>
-            {/* View Mode Controls */}
+            {/* Header với View Mode Controls */}
             <Box sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -142,19 +112,32 @@ const WorkoutGrid: React.FC<WorkoutGridProps> = ({
                 flexWrap: 'wrap',
                 gap: 2
             }}>
-                <Typography variant="h6" fontWeight={700}>
-                    {workouts.length} workout{workouts.length !== 1 ? 's' : ''}
+                {/* Results Count */}
+                <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                    {pagination.totalItems.toLocaleString()} workouts
                 </Typography>
 
+                {/* ✅ Updated View Mode Controls - Chỉ Grid và List */}
                 <ToggleButtonGroup
                     value={viewMode}
                     exclusive
                     onChange={handleViewModeChange}
+                    aria-label="view mode"
                     size="small"
                     sx={{
+                        backgroundColor: 'background.paper',
+                        borderRadius: 2,
                         '& .MuiToggleButton-root': {
-                            border: '1px solid rgba(0,0,0,0.12)',
-                            borderRadius: 1,
+                            border: 'none',
+                            borderRadius: 2,
+                            px: 2,
+                            py: 1,
+                            color: 'text.secondary',
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                                backgroundColor: 'primary.light',
+                                color: 'white',
+                            },
                             '&.Mui-selected': {
                                 backgroundColor: 'primary.main',
                                 color: 'white',
@@ -165,113 +148,44 @@ const WorkoutGrid: React.FC<WorkoutGridProps> = ({
                         },
                     }}
                 >
-                    <ToggleButton value="grid" aria-label="Grid view">
-                        <GridView fontSize="small" />
+                    <ToggleButton value="grid" aria-label="grid view">
+                        <GridView sx={{ mr: 1, fontSize: 18 }} />
+                        Grid
                     </ToggleButton>
-                    <ToggleButton value="list" aria-label="List view">
-                        <List fontSize="small" />
-                    </ToggleButton>
-                    <ToggleButton value="compact" aria-label="Compact view">
-                        <ViewAgenda fontSize="small" />
-                    </ToggleButton>
-                    <ToggleButton value="masonry" aria-label="Masonry view">
-                        <ViewStream fontSize="small" />
+                    <ToggleButton value="list" aria-label="list view">
+                        <List sx={{ mr: 1, fontSize: 18 }} />
+                        List
                     </ToggleButton>
                 </ToggleButtonGroup>
             </Box>
 
-            {/* Workout Grid */}
-            <Fade in timeout={500}>
-                <Box
-                    sx={{
-                        display: 'grid',
-                        gridTemplateColumns: currentConfig.columns,
-                        gap: currentConfig.gap,
-                        // Masonry layout for masonry view
-                        ...(viewMode === 'masonry' && {
-                            gridAutoRows: 'max-content',
-                        }),
-                        // List view specific styling
-                        ...(viewMode === 'list' && {
-                            '& > *': {
-                                maxWidth: '100%',
-                            },
-                        }),
-                    }}
-                >
-                    {workouts.map((workout, index) => (
-                        <Box
+            {/* ✅ Updated Workout Grid/List - Fixed styling */}
+            <Fade in timeout={300}>
+                <Box sx={currentConfig}>
+                    {workouts.map((workout) => (
+                        <WorkoutCard
                             key={workout._id}
-                            sx={{
-                                // Staggered animation
-                                animation: 'fadeInUp 0.6s ease forwards',
-                                animationDelay: `${index * 0.1}s`,
-                                opacity: 0,
-                                '@keyframes fadeInUp': {
-                                    '0%': {
-                                        opacity: 0,
-                                        transform: 'translateY(20px)',
-                                    },
-                                    '100%': {
-                                        opacity: 1,
-                                        transform: 'translateY(0)',
-                                    },
-                                },
-                                // Masonry specific styling
-                                ...(viewMode === 'masonry' && {
-                                    breakInside: 'avoid',
-                                    pageBreakInside: 'avoid',
-                                }),
-                            }}
-                        >                            <WorkoutCard
-                                workout={workout}
-                                onLike={(workoutId) => onLike(workoutId, false, workout.likeCount || 0)}
-                                onSave={(workoutId) => onSave(workoutId, false, workout.saveCount || 0)}
-                                onView={onView}
-                                onShare={onShare}
-                                onAddToQueue={onAddToQueue}
-                                compact={currentConfig.compact}
-                            />
-                        </Box>
+                            workout={workout}
+                            variant={viewMode} // Pass view mode to card
+                            onLike={() => onLike(workout._id, false, workout.likeCount || 0)}
+                            onSave={() => onSave(workout._id, false, workout.saveCount || 0)}
+                            onView={() => onView(workout._id)}
+                            onShare={onShare ? () => onShare(workout._id) : undefined}
+                            onAddToQueue={onAddToQueue ? () => onAddToQueue(workout._id) : undefined}
+                        />
                     ))}
                 </Box>
-            </Fade>            {/* Performance Info for Development */}
-            {/* {import.meta.env.DEV && (
-                <Box sx={{ mt: 4, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
-                    <Typography variant="caption" color="text.secondary">
-                        Debug: Rendering {workouts.length} workouts in {viewMode} mode
-                    </Typography>
-                </Box>
-            )} */}
+            </Fade>
 
             {/* Pagination */}
-            {pagination && pagination.totalPages > 1 && onPageChange && (
-                <Box sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    mt: 4,
-                    py: 2
-                }}>
+            {pagination.totalPages > 1 && (
+                <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
                     <Pagination
-                        count={pagination.totalPages}
-                        page={pagination.currentPage}
-                        onChange={(_, page) => onPageChange(page)}
-                        size="large"
-                        showFirstButton
-                        showLastButton
-                        sx={{
-                            '& .MuiPaginationItem-root': {
-                                fontSize: '1rem',
-                                fontWeight: 500,
-                            },
-                            '& .Mui-selected': {
-                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                color: 'white',
-                                '&:hover': {
-                                    background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-                                },
-                            },
-                        }}
+                        currentPage={pagination.currentPage}
+                        totalPages={pagination.totalPages}
+                        onPageChange={onPageChange}
+                        showPageInfo
+                        color="primary"
                     />
                 </Box>
             )}
