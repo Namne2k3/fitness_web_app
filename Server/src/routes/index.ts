@@ -8,6 +8,7 @@ import authRoutes from './auth';
 import systemRoutes from './system';
 import accountRoutes from './account';
 import workoutRoutes from './workout';
+import exerciseRoutes from './exercise';
 import { ResponseHelper } from '../utils/responseHelper';
 
 const router = Router();
@@ -31,8 +32,9 @@ router.get('/health', (req, res) => {
  */
 router.use('/auth', authRoutes);
 router.use('/system', systemRoutes);
-router.use('/account', accountRoutes)
-router.use('/workouts', workoutRoutes)
+router.use('/account', accountRoutes);
+router.use('/workouts', workoutRoutes);
+router.use('/exercises', exerciseRoutes);
 
 /**
  * 404 Handler cho undefined routes
