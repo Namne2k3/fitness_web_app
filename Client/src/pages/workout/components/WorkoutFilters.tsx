@@ -1,6 +1,6 @@
 /**
- * 🔍 WorkoutFilters Component - Advanced & Compact
- * Collapsible filters with smart defaults and quick actions
+ * 🔍 WorkoutFilters Component - Auto-Collapse Optimized Design
+ * Compact filter interface với smart collapsing để tiết kiệm không gian tối đa
  */
 
 import {
@@ -9,24 +9,23 @@ import {
     ExpandMore,
     FilterList,
     Search,
-    Tune
+    TuneOutlined
 } from '@mui/icons-material';
 import {
     Box,
     Button,
     Chip,
     Collapse,
-    FormControl,
     IconButton,
     InputAdornment,
-    InputLabel,
-    MenuItem,
     Paper,
-    Select,
+    Stack,
     TextField,
-    Typography
+    Typography,
+    useMediaQuery,
+    useTheme
 } from '@mui/material';
-import React, { useState } from 'react';
+import React, { useState, useTransition, useEffect } from 'react';
 
 // ================================
 // 🎯 Types & Interfaces
@@ -43,303 +42,491 @@ interface WorkoutFiltersProps {
     filters: FilterState;
     onFiltersChange: (filters: FilterState) => void;
     totalResults: number;
-    compact?: boolean;
 }
 
 // ================================
-// 🔍 WorkoutFilters Component
+// 🎨 Filter Categories Data
+// ================================
+const filterOptions = {
+    categories: [
+        { value: '', label: 'Tất cả', icon: '🏃' },
+        { value: 'strength', label: 'Strength', icon: '💪' },
+        { value: 'cardio', label: 'Cardio', icon: '❤️' },
+        { value: 'flexibility', label: 'Flexibility', icon: '🧘' },
+        { value: 'hiit', label: 'HIIT', icon: '⚡' },
+        { value: 'yoga', label: 'Yoga', icon: '🕉️' },
+        { value: 'pilates', label: 'Pilates', icon: '🤸' }
+    ],
+    difficulties: [
+        { value: '', label: 'Tất cả', color: '#666', bgColor: '#f5f5f5' },
+        { value: 'beginner', label: 'Beginner', color: '#4caf50', bgColor: '#e8f5e8' },
+        { value: 'intermediate', label: 'Intermediate', color: '#ff9800', bgColor: '#fff3e0' },
+        { value: 'advanced', label: 'Advanced', color: '#f44336', bgColor: '#ffebee' }
+    ],
+    durations: [
+        { value: '', label: 'Bất kỳ', icon: '⏰' },
+        { value: '15', label: '≤ 15p', icon: '⚡' },
+        { value: '30', label: '≤ 30p', icon: '🕐' },
+        { value: '45', label: '≤ 45p', icon: '🕜' },
+        { value: '60', label: '≤ 1h', icon: '🕔' }
+    ],
+    equipment: [
+        { value: '', label: 'Tất cả', icon: '🏋️' },
+        { value: 'bodyweight', label: 'Không TB', icon: '🤸' },
+        { value: 'dumbbell', label: 'Tạ đơn', icon: '🏋️' },
+        { value: 'barbell', label: 'Tạ đòn', icon: '🔗' },
+        { value: 'resistance_band', label: 'Dây kháng', icon: '🎗️' },
+        { value: 'kettlebell', label: 'Kettlebell', icon: '⚫' },
+        { value: 'machine', label: 'Máy tập', icon: '🤖' }
+    ]
+};
+
+// ================================
+// 🔍 Main WorkoutFilters Component - Auto-Collapse
 // ================================
 const WorkoutFilters: React.FC<WorkoutFiltersProps> = ({
     filters,
     onFiltersChange,
-    totalResults,
-    compact = false
+    totalResults
 }) => {
-    const [isExpanded, setIsExpanded] = useState(!compact);
-    const [quickFilter, setQuickFilter] = useState('');
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-    // Handle filter changes
+    // ✅ CHANGED: Default collapsed states
+    const [showAdvanced, setShowAdvanced] = useState(false);
+    const [showCategories, setShowCategories] = useState(false); // Default closed
+    const [isPending, startTransition] = useTransition();
+
+    // ✅ NEW: Auto-expand when filters are active
+    const hasActiveFilters = Object.values(filters).some(value => value !== '');
+    const hasNonSearchFilters = Object.entries(filters).some(([key, value]) =>
+        key !== 'search' && value !== ''
+    );
+
+    // Auto-expand categories if user has selected category/difficulty filters
+    useEffect(() => {
+        if (filters.category || filters.difficulty) {
+            setShowCategories(true);
+        }
+    }, [filters.category, filters.difficulty]);
+
+    // Auto-expand advanced if user has selected duration/equipment filters
+    useEffect(() => {
+        if (filters.maxDuration || filters.equipment) {
+            setShowAdvanced(true);
+        }
+    }, [filters.maxDuration, filters.equipment]);
+
+    // Handle filter changes with React 19 transitions
     const handleFilterChange = (key: keyof FilterState, value: string) => {
-        onFiltersChange({ ...filters, [key]: value });
+        startTransition(() => {
+            onFiltersChange({ ...filters, [key]: value });
+        });
     };
 
     // Clear all filters
     const clearAllFilters = () => {
-        onFiltersChange({
-            search: '',
-            category: '',
-            difficulty: '',
-            maxDuration: '',
-            equipment: '',
+        startTransition(() => {
+            onFiltersChange({
+                search: '',
+                category: '',
+                difficulty: '',
+                maxDuration: '',
+                equipment: '',
+            });
+            // Collapse all sections when clearing
+            setShowAdvanced(false);
+            setShowCategories(false);
         });
-        setQuickFilter('');
     };
 
-    // Quick filter presets
-    const quickFilters = [
-        { label: 'Beginner', filters: { difficulty: 'beginner', maxDuration: '30' } },
-        { label: 'Quick (< 15m)', filters: { maxDuration: '15' } },
-        { label: 'No Equipment', filters: { equipment: 'bodyweight' } },
-        { label: 'Strength', filters: { category: 'strength' } },
-        { label: 'Cardio', filters: { category: 'cardio' } },
-    ];
-
-    // Apply quick filter
-    const applyQuickFilter = (preset: typeof quickFilters[0]) => {
-        const newFilters = { ...filters };
-        Object.entries(preset.filters).forEach(([key, value]) => {
-            newFilters[key as keyof FilterState] = value;
-        });
-        onFiltersChange(newFilters);
-        setQuickFilter(preset.label);
-    };
-
-    // Check if any filters are active
-    const hasActiveFilters = Object.values(filters).some(value => value !== '');
+    const activeFiltersCount = Object.values(filters).filter(value => value !== '').length;
 
     return (
         <Paper
             elevation={0}
             sx={{
-                borderRadius: 2,
+                borderRadius: 3,
                 border: '1px solid rgba(0,0,0,0.06)',
+                mb: 2,
                 overflow: 'hidden',
-                mb: 3,
+                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.02) 0%, transparent 100%)',
+                transition: 'all 0.3s ease',
+                ...(isPending && {
+                    opacity: 0.7,
+                    pointerEvents: 'none'
+                })
             }}
         >
-            {/* Header */}
-            <Box
-                sx={{
-                    p: 2,
-                    pb: compact ? 2 : 1,
-                    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
-                    borderBottom: isExpanded ? '1px solid rgba(0,0,0,0.06)' : 'none',
-                }}
-            >
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <FilterList sx={{ color: 'primary.main', fontSize: 20 }} />
-                        <Typography variant="h6" fontWeight={700} color="primary.main">
-                            Bộ lọc
-                        </Typography>
-                        <Chip
-                            label={`${totalResults} kết quả`}
-                            size="small"
-                            color="primary"
-                            variant="outlined"
-                            sx={{ fontSize: '0.7rem', height: 22 }}
-                        />
-                    </Box>
-
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {hasActiveFilters && (
-                            <Button
-                                size="small"
-                                startIcon={<Clear />}
-                                onClick={clearAllFilters}
-                                sx={{
-                                    textTransform: 'none',
-                                    fontSize: '0.8rem',
-                                    color: 'text.secondary',
-                                }}
-                            >
-                                Xóa bộ lọc
-                            </Button>
-                        )}
-
-                        {compact && (
-                            <IconButton
-                                size="small"
-                                onClick={() => setIsExpanded(!isExpanded)}
-                                sx={{ ml: 1 }}
-                            >
-                                {isExpanded ? <ExpandLess /> : <ExpandMore />}
-                            </IconButton>
-                        )}
-                    </Box>
-                </Box>
-
-                {/* Quick Search - Always visible */}
-                <Box sx={{ mt: 1.5 }}>
-                    <TextField
-                        fullWidth
-                        size="small"
-                        placeholder="Tìm kiếm workouts..."
-                        value={filters.search}
-                        onChange={(e) => handleFilterChange('search', e.target.value)}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <Search sx={{ fontSize: 20 }} />
-                                </InputAdornment>
-                            ),
-                            ...(filters.search && {
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => handleFilterChange('search', '')}
-                                        >
-                                            <Clear fontSize="small" />
-                                        </IconButton>
-                                    </InputAdornment>
-                                )
-                            })
-                        }}
-                        sx={{
-                            '& .MuiOutlinedInput-root': {
-                                borderRadius: 1.5,
-                                backgroundColor: 'white',
+            {/* ✅ COMPACT: Search Bar + Quick Controls */}
+            <Box sx={{ p: { xs: 2, md: 2.5 } }}>
+                {/* Compact Search Bar */}
+                <TextField
+                    fullWidth
+                    placeholder="🔍 Tìm kiếm workouts..."
+                    value={filters.search}
+                    onChange={(e) => handleFilterChange('search', e.target.value)}
+                    size="medium"
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <Search sx={{ color: 'primary.main', fontSize: 20 }} />
+                            </InputAdornment>
+                        ),
+                        endAdornment: filters.search && (
+                            <InputAdornment position="end">
+                                <IconButton
+                                    size="small"
+                                    onClick={() => handleFilterChange('search', '')}
+                                    sx={{
+                                        color: 'text.secondary',
+                                        '&:hover': { color: 'error.main' }
+                                    }}
+                                >
+                                    <Clear fontSize="small" />
+                                </IconButton>
+                            </InputAdornment>
+                        )
+                    }}
+                    sx={{
+                        mb: 2,
+                        '& .MuiOutlinedInput-root': {
+                            borderRadius: 3,
+                            fontSize: '1rem',
+                            fontWeight: 500,
+                            background: 'white',
+                            height: 48,
+                            '&:hover': {
+                                boxShadow: '0 2px 12px rgba(102, 126, 234, 0.1)',
                             },
-                        }}
-                    />
+                            '&.Mui-focused': {
+                                boxShadow: '0 2px 12px rgba(102, 126, 234, 0.2)',
+                            }
+                        },
+                    }}
+                />
+
+                {/* ✅ NEW: Compact Control Bar with Smart Buttons */}
+                <Box sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: 1.5
+                }}>
+                    {/* Left - Smart Filter Toggles */}
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                        {/* Categories Toggle */}
+                        <Button
+                            size="small"
+                            startIcon={showCategories ? <ExpandLess /> : <ExpandMore />}
+                            onClick={() => setShowCategories(!showCategories)}
+                            variant={showCategories || filters.category || filters.difficulty ? "contained" : "outlined"}
+                            sx={{
+                                borderRadius: 2,
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                fontSize: '0.8rem',
+                                px: 1.5,
+                                py: 0.5,
+                                minWidth: 'auto',
+                                ...((showCategories || filters.category || filters.difficulty) && {
+                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                }),
+                                // Badge for active filters
+                                position: 'relative',
+                                ...(filters.category || filters.difficulty ? {
+                                    '&::after': {
+                                        content: '""',
+                                        position: 'absolute',
+                                        top: -2,
+                                        right: -2,
+                                        width: 8,
+                                        height: 8,
+                                        borderRadius: '50%',
+                                        backgroundColor: '#ff4444',
+                                    }
+                                } : {})
+                            }}
+                        >
+                            Danh mục
+                        </Button>
+
+                        {/* Advanced Toggle */}
+                        <Button
+                            size="small"
+                            startIcon={<TuneOutlined />}
+                            onClick={() => setShowAdvanced(!showAdvanced)}
+                            variant={showAdvanced || filters.maxDuration || filters.equipment ? "contained" : "outlined"}
+                            sx={{
+                                borderRadius: 2,
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                fontSize: '0.8rem',
+                                px: 1.5,
+                                py: 0.5,
+                                minWidth: 'auto',
+                                borderColor: 'secondary.main',
+                                color: (showAdvanced || filters.maxDuration || filters.equipment) ? 'white' : 'secondary.main',
+                                ...((showAdvanced || filters.maxDuration || filters.equipment) && {
+                                    backgroundColor: 'secondary.main',
+                                }),
+                                // Badge for active filters
+                                position: 'relative',
+                                ...(filters.maxDuration || filters.equipment ? {
+                                    '&::after': {
+                                        content: '""',
+                                        position: 'absolute',
+                                        top: -2,
+                                        right: -2,
+                                        width: 8,
+                                        height: 8,
+                                        borderRadius: '50%',
+                                        backgroundColor: '#ff4444',
+                                    }
+                                } : {})
+                            }}
+                        >
+                            Nâng cao
+                        </Button>
+                    </Box>
+
+                    {/* Right - Results & Clear */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                                fontWeight: 600,
+                                color: 'primary.main',
+                                fontSize: '0.875rem'
+                            }}
+                        >
+                            {totalResults.toLocaleString()} kết quả
+                        </Typography>
+
+                        {hasActiveFilters && (
+                            <>
+                                <Chip
+                                    icon={<FilterList />}
+                                    label={activeFiltersCount}
+                                    size="small"
+                                    color="primary"
+                                    variant="filled"
+                                    sx={{
+                                        fontWeight: 600,
+                                        fontSize: '0.75rem',
+                                        height: 24,
+                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    }}
+                                />
+                                <Button
+                                    size="small"
+                                    startIcon={<Clear />}
+                                    onClick={clearAllFilters}
+                                    sx={{
+                                        textTransform: 'none',
+                                        color: 'error.main',
+                                        fontWeight: 600,
+                                        fontSize: '0.75rem',
+                                        px: 1,
+                                        py: 0.25,
+                                        minWidth: 'auto',
+                                        '&:hover': {
+                                            backgroundColor: 'error.light',
+                                            color: 'white',
+                                        },
+                                    }}
+                                >
+                                    Xóa
+                                </Button>
+                            </>
+                        )}
+                    </Box>
                 </Box>
             </Box>
 
-            {/* Collapsible Content */}
-            <Collapse in={isExpanded}>
-                <Box sx={{ p: 2 }}>
-                    {/* Quick Filter Chips */}
-                    <Box sx={{ mb: 3 }}>
-                        <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-                            BỘ LỌC NHANH:
+            {/* ✅ COLLAPSIBLE: Categories & Difficulty */}
+            <Collapse in={showCategories}>
+                <Box sx={{
+                    px: { xs: 2, md: 2.5 },
+                    pb: 2,
+                    borderTop: '1px solid rgba(0,0,0,0.04)',
+                    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%)',
+                }}>
+                    {/* Categories - Compact */}
+                    <Box sx={{ mb: 2, mt: 2 }}>
+                        <Typography
+                            variant="subtitle2"
+                            sx={{
+                                mb: 1.5,
+                                fontWeight: 600,
+                                color: 'text.primary',
+                                fontSize: '0.9rem'
+                            }}
+                        >
+                            🏃 Danh mục
                         </Typography>
-                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                            {quickFilters.map((preset) => (
+                        <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+                            {filterOptions.categories.map((option) => (
                                 <Chip
-                                    key={preset.label}
-                                    label={preset.label}
-                                    variant={quickFilter === preset.label ? 'filled' : 'outlined'}
-                                    color={quickFilter === preset.label ? 'primary' : 'default'}
+                                    key={option.value}
+                                    label={`${option.icon} ${option.label}`}
+                                    onClick={() => handleFilterChange('category', option.value)}
+                                    variant={filters.category === option.value ? 'filled' : 'outlined'}
+                                    color={filters.category === option.value ? 'primary' : 'default'}
                                     size="small"
-                                    onClick={() => applyQuickFilter(preset)}
                                     sx={{
+                                        borderRadius: 2,
+                                        fontWeight: 600,
+                                        fontSize: '0.8rem',
+                                        height: 32,
+                                        transition: 'all 0.2s ease',
                                         cursor: 'pointer',
-                                        fontSize: '0.75rem',
                                         '&:hover': {
-                                            backgroundColor: quickFilter === preset.label ? 'primary.dark' : 'action.hover',
+                                            transform: 'translateY(-1px)',
+                                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                                         },
+                                        ...(filters.category === option.value && {
+                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                            color: 'white',
+                                        })
                                     }}
                                 />
                             ))}
-                        </Box>
+                        </Stack>
                     </Box>
 
-                    {/* Detailed Filters */}
-                    <Box sx={{
-                        display: 'grid',
-                        gridTemplateColumns: {
-                            xs: '1fr',
-                            sm: '1fr 1fr',
-                            md: '1fr 1fr 1fr 1fr'
-                        },
-                        gap: 2
-                    }}>
-                        {/* Category */}
-                        <FormControl size="small" fullWidth>
-                            <InputLabel>Danh mục</InputLabel>
-                            <Select
-                                value={filters.category}
-                                label="Danh mục"
-                                onChange={(e) => handleFilterChange('category', e.target.value)}
-                                sx={{ borderRadius: 1.5 }}
-                            >
-                                <MenuItem value="">Tất cả danh mục</MenuItem>
-                                <MenuItem value="strength">💪 Strength Training</MenuItem>
-                                <MenuItem value="cardio">🏃 Cardio</MenuItem>
-                                <MenuItem value="flexibility">🧘 Flexibility</MenuItem>
-                                <MenuItem value="hiit">⚡ HIIT</MenuItem>
-                                <MenuItem value="yoga">🕉️ Yoga</MenuItem>
-                            </Select>
-                        </FormControl>
+                    {/* Difficulty - Compact */}
+                    <Box>
+                        <Typography
+                            variant="subtitle2"
+                            sx={{
+                                mb: 1.5,
+                                fontWeight: 600,
+                                color: 'text.primary',
+                                fontSize: '0.9rem'
+                            }}
+                        >
+                            📊 Độ khó
+                        </Typography>
+                        <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+                            {filterOptions.difficulties.map((option) => (
+                                <Chip
+                                    key={option.value}
+                                    label={option.label}
+                                    onClick={() => handleFilterChange('difficulty', option.value)}
+                                    variant={filters.difficulty === option.value ? 'filled' : 'outlined'}
+                                    size="small"
+                                    sx={{
+                                        borderRadius: 2,
+                                        fontWeight: 600,
+                                        fontSize: '0.8rem',
+                                        height: 32,
+                                        transition: 'all 0.2s ease',
+                                        cursor: 'pointer',
+                                        borderColor: option.color,
+                                        color: filters.difficulty === option.value ? 'white' : option.color,
+                                        backgroundColor: filters.difficulty === option.value ? option.color : option.bgColor,
+                                        '&:hover': {
+                                            transform: 'translateY(-1px)',
+                                            boxShadow: `0 2px 8px ${option.color}40`,
+                                            backgroundColor: option.color,
+                                            color: 'white',
+                                        }
+                                    }}
+                                />
+                            ))}
+                        </Stack>
+                    </Box>
+                </Box>
+            </Collapse>
 
-                        {/* Difficulty */}
-                        <FormControl size="small" fullWidth>
-                            <InputLabel>Độ khó</InputLabel>
-                            <Select
-                                value={filters.difficulty}
-                                label="Độ khó"
-                                onChange={(e) => handleFilterChange('difficulty', e.target.value)}
-                                sx={{ borderRadius: 1.5 }}
-                            >
-                                <MenuItem value="">Tất cả cấp độ</MenuItem>
-                                <MenuItem value="beginner">🟢 Beginner</MenuItem>
-                                <MenuItem value="intermediate">🟡 Intermediate</MenuItem>
-                                <MenuItem value="advanced">🔴 Advanced</MenuItem>
-                            </Select>
-                        </FormControl>
-
-                        {/* Duration */}
-                        <FormControl size="small" fullWidth>
-                            <InputLabel>Thời lượng</InputLabel>
-                            <Select
-                                value={filters.maxDuration}
-                                label="Thời lượng"
-                                onChange={(e) => handleFilterChange('maxDuration', e.target.value)}
-                                sx={{ borderRadius: 1.5 }}
-                            >
-                                <MenuItem value="">Bất kỳ thời gian</MenuItem>
-                                <MenuItem value="10">⚡ Dưới 10 phút</MenuItem>
-                                <MenuItem value="20">🕐 Dưới 20 phút</MenuItem>
-                                <MenuItem value="30">🕑 Dưới 30 phút</MenuItem>
-                                <MenuItem value="45">🕓 Dưới 45 phút</MenuItem>
-                                <MenuItem value="60">🕔 Dưới 1 giờ</MenuItem>
-                            </Select>
-                        </FormControl>
-
-                        {/* Equipment */}
-                        <FormControl size="small" fullWidth>
-                            <InputLabel>Thiết bị</InputLabel>
-                            <Select
-                                value={filters.equipment}
-                                label="Thiết bị"
-                                onChange={(e) => handleFilterChange('equipment', e.target.value)}
-                                sx={{ borderRadius: 1.5 }}
-                            >
-                                <MenuItem value="">Tất cả thiết bị</MenuItem>
-                                <MenuItem value="bodyweight">🤸 Không thiết bị</MenuItem>
-                                <MenuItem value="dumbbell">🏋️ Tạ đơn</MenuItem>
-                                <MenuItem value="barbell">🔗 Tạ đòn</MenuItem>
-                                <MenuItem value="kettlebell">⚖️ Kettlebell</MenuItem>
-                                <MenuItem value="resistance-band">🎗️ Dây kháng lực</MenuItem>
-                                <MenuItem value="machine">🤖 Máy tập</MenuItem>
-                            </Select>
-                        </FormControl>
+            {/* ✅ COLLAPSIBLE: Advanced Filters */}
+            <Collapse in={showAdvanced}>
+                <Box sx={{
+                    px: { xs: 2, md: 2.5 },
+                    pb: 2,
+                    pt: 1,
+                    background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.03) 0%, rgba(233, 30, 99, 0.03) 100%)',
+                    borderTop: '1px solid rgba(0,0,0,0.06)'
+                }}>
+                    {/* Duration Filter - Compact */}
+                    <Box sx={{ mb: 2 }}>
+                        <Typography
+                            variant="subtitle2"
+                            sx={{
+                                mb: 1.5,
+                                fontWeight: 600,
+                                color: 'text.primary',
+                                fontSize: '0.9rem'
+                            }}
+                        >
+                            ⏱️ Thời lượng
+                        </Typography>
+                        <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+                            {filterOptions.durations.map((option) => (
+                                <Chip
+                                    key={option.value}
+                                    label={`${option.icon} ${option.label}`}
+                                    onClick={() => handleFilterChange('maxDuration', option.value)}
+                                    variant={filters.maxDuration === option.value ? 'filled' : 'outlined'}
+                                    color={filters.maxDuration === option.value ? 'secondary' : 'default'}
+                                    size="small"
+                                    sx={{
+                                        borderRadius: 2,
+                                        fontWeight: 600,
+                                        fontSize: '0.8rem',
+                                        height: 32,
+                                        transition: 'all 0.2s ease',
+                                        cursor: 'pointer',
+                                        '&:hover': {
+                                            transform: 'translateY(-1px)',
+                                            boxShadow: '0 2px 8px rgba(255, 152, 0, 0.3)',
+                                        }
+                                    }}
+                                />
+                            ))}
+                        </Stack>
                     </Box>
 
-                    {/* Active Filters Display */}
-                    {hasActiveFilters && (
-                        <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-                            <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-                                BỘ LỌC ĐANG ÁPLỰNG:
-                            </Typography>
-                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                                {Object.entries(filters).map(([key, value]) => {
-                                    if (!value) return null;
-
-                                    const labels: Record<string, string> = {
-                                        search: `Tìm kiếm: ${value}`,
-                                        category: `Danh mục: ${value}`,
-                                        difficulty: `Độ khó: ${value}`,
-                                        maxDuration: `Dưới ${value} phút`,
-                                        equipment: `Thiết bị: ${value}`,
-                                    };
-
-                                    return (
-                                        <Chip
-                                            key={key}
-                                            label={labels[key]}
-                                            size="small"
-                                            onDelete={() => handleFilterChange(key as keyof FilterState, '')}
-                                            color="primary"
-                                            variant="outlined"
-                                            sx={{ fontSize: '0.7rem' }}
-                                        />
-                                    );
-                                })}
-                            </Box>
-                        </Box>
-                    )}
+                    {/* Equipment Filter - Compact */}
+                    <Box>
+                        <Typography
+                            variant="subtitle2"
+                            sx={{
+                                mb: 1.5,
+                                fontWeight: 600,
+                                color: 'text.primary',
+                                fontSize: '0.9rem'
+                            }}
+                        >
+                            🏋️ Thiết bị
+                        </Typography>
+                        <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+                            {filterOptions.equipment.map((option) => (
+                                <Chip
+                                    key={option.value}
+                                    label={`${option.icon} ${option.label}`}
+                                    onClick={() => handleFilterChange('equipment', option.value)}
+                                    variant={filters.equipment === option.value ? 'filled' : 'outlined'}
+                                    color={filters.equipment === option.value ? 'info' : 'default'}
+                                    size="small"
+                                    sx={{
+                                        borderRadius: 2,
+                                        fontWeight: 600,
+                                        fontSize: '0.8rem',
+                                        height: 32,
+                                        transition: 'all 0.2s ease',
+                                        cursor: 'pointer',
+                                        '&:hover': {
+                                            transform: 'translateY(-1px)',
+                                            boxShadow: '0 2px 8px rgba(33, 150, 243, 0.3)',
+                                        }
+                                    }}
+                                />
+                            ))}
+                        </Stack>
+                    </Box>
                 </Box>
             </Collapse>
         </Paper>

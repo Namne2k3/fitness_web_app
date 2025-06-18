@@ -1,6 +1,6 @@
 /**
- * 🏋️ Workout Browse Page - Traditional useEffect Approach
- * Sử dụng useEffect + useState pattern thay vì React 19 use() hook
+ * 🏋️ Workout Browse Page - Updated với Embedded Filters
+ * Loại bỏ filter component riêng, nhúng vào header để tiết kiệm không gian
  */
 
 import {
@@ -31,7 +31,6 @@ import React, {
 import { WorkoutListParams, WorkoutListResponse, WorkoutService } from '../../services/workoutService';
 import { Workout } from '../../types/workout.interface';
 import {
-    WorkoutFilters,
     WorkoutGrid,
     WorkoutHeader,
     WorkoutsSkeleton
@@ -50,9 +49,6 @@ interface FilterState {
 
 interface WorkoutPageState {
     filters: FilterState;
-    viewMode: 'grid' | 'list' | 'compact';
-    showFavorites: boolean;
-    showSaved: boolean;
     page: number;
 }
 
@@ -64,14 +60,14 @@ interface OptimisticWorkoutUpdate {
 }
 
 // ================================
-// 🏠 Main WorkoutPage Component
+// 🏠 Main WorkoutPage Component - Updated
 // ================================
 const WorkoutPage: React.FC = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const [isPending, startTransition] = useTransition();
 
-    // State management
+    // State management - Simplified
     const [state, setState] = useState<WorkoutPageState>({
         filters: {
             search: '',
@@ -80,28 +76,41 @@ const WorkoutPage: React.FC = () => {
             maxDuration: '',
             equipment: '',
         },
-        viewMode: 'grid',
-        showFavorites: false,
-        showSaved: false,
         page: 1,
     });
 
-    // ✅ TRADITIONAL: Data state với useEffect approach
+    // Data state với useEffect approach
     const [workoutData, setWorkoutData] = useState<WorkoutListResponse | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    // ✅ React 19: useOptimistic cho social interactions (vẫn giữ để demo)
+    // Optimistic updates for social interactions
     const [optimisticUpdates, addOptimisticUpdate] = useOptimistic(
         [] as OptimisticWorkoutUpdate[],
         (state, newUpdate: OptimisticWorkoutUpdate) => {
-            // Remove existing update for this workout and type
             const filtered = state.filter(
                 update => !(update.workoutId === newUpdate.workoutId && update.type === newUpdate.type)
             );
             return [...filtered, newUpdate];
         }
     );
+
+    // ✅ NEW: Mock user data for enhanced header
+    const currentUser = {
+        avatar: 'https://via.placeholder.com/40x40',
+        username: 'fitness_enthusiast',
+        weeklyGoal: 5,
+        weeklyProgress: 3,
+        streak: 12
+    };
+
+    // ✅ NEW: Mock quick stats
+    const quickStats = {
+        thisWeekWorkouts: 3,
+        totalCalories: 1250,
+        avgRating: 4.6,
+        trending: ['HIIT', 'Strength', 'Yoga']
+    };
 
     // Build API params từ filters
     const apiParams = useMemo((): WorkoutListParams => {
@@ -113,14 +122,6 @@ const WorkoutPage: React.FC = () => {
         if (state.filters.equipment) filters.equipment = state.filters.equipment;
         if (state.filters.maxDuration) {
             filters.duration = { max: parseInt(state.filters.maxDuration) };
-        }
-
-        // Handle favorites/saved views
-        if (state.showFavorites) {
-            // TODO: Add user-specific favorites filter
-        }
-        if (state.showSaved) {
-            // TODO: Add user-specific saved filter
         }
 
         return {
@@ -135,20 +136,17 @@ const WorkoutPage: React.FC = () => {
         };
     }, [state]);
 
-    // ✅ TRADITIONAL: Fetch data với useEffect
+    // Fetch data với useEffect
     const fetchWorkouts = useCallback(async () => {
         try {
             setIsLoading(true);
             setError(null);
 
-            console.log('Fetching workouts with params:', apiParams);
             const result = await WorkoutService.getWorkouts(apiParams);
-            console.log('Workouts fetched successfully:', result);
-
             setWorkoutData(result);
         } catch (err) {
             console.error('Failed to fetch workouts:', err);
-            setError('Failed to load workouts. Please try again.');
+            setError('Không thể tải workouts. Vui lòng thử lại.');
         } finally {
             setIsLoading(false);
         }
@@ -170,9 +168,27 @@ const WorkoutPage: React.FC = () => {
         });
     };
 
-    // ✅ React 19: Optimistic likes
+    const handlePageChange = (newPage: number) => {
+        startTransition(() => {
+            setState(prev => ({ ...prev, page: newPage }));
+            // Scroll to top when page changes
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    };
+
+    // ✅ NEW: Handler functions for enhanced features
+    const handleSortChange = (sortBy: string) => {
+        console.log('Sort by:', sortBy);
+        // TODO: Implement sorting logic
+    };
+
+    const handleViewModeChange = (mode: 'grid' | 'list') => {
+        console.log('View mode:', mode);
+        // TODO: Integrate with WorkoutGrid viewMode
+    };
+
+    // Optimistic interactions
     const handleLike = (workoutId: string, currentLiked: boolean, currentCount: number) => {
-        // Optimistic update
         const newLiked = !currentLiked;
         const newCount = newLiked ? currentCount + 1 : currentCount - 1;
 
@@ -183,21 +199,17 @@ const WorkoutPage: React.FC = () => {
             count: newCount
         });
 
-        // Actual API call
         startTransition(async () => {
             try {
                 await WorkoutService.toggleLike(workoutId);
             } catch (error) {
                 console.error('Failed to toggle like:', error);
-                // React automatically reverts optimistic update on error
-                setError('Failed to update like. Please try again.');
+                setError('Không thể cập nhật like. Vui lòng thử lại.');
             }
         });
     };
 
-    // ✅ React 19: Optimistic saves
     const handleSave = (workoutId: string, currentSaved: boolean, currentCount: number) => {
-        // Optimistic update
         const newSaved = !currentSaved;
         const newCount = newSaved ? currentCount + 1 : currentCount - 1;
 
@@ -208,13 +220,12 @@ const WorkoutPage: React.FC = () => {
             count: newCount
         });
 
-        // Actual API call
         startTransition(async () => {
             try {
                 await WorkoutService.toggleSave(workoutId);
             } catch (error) {
                 console.error('Failed to toggle save:', error);
-                setError('Failed to save workout. Please try again.');
+                setError('Không thể lưu workout. Vui lòng thử lại.');
             }
         });
     };
@@ -222,7 +233,6 @@ const WorkoutPage: React.FC = () => {
     const handleView = (workoutId: string) => {
         console.log('View workout:', workoutId);
         // TODO: Navigate to workout detail page
-        // navigate(`/workouts/${workoutId}`);
     };
 
     const handleShare = (workoutId: string) => {
@@ -238,40 +248,11 @@ const WorkoutPage: React.FC = () => {
     const handleCreateWorkout = () => {
         console.log('Create new workout');
         // TODO: Navigate to workout creation page
-        // navigate('/workouts/create');
     };
 
     const handleViewAnalytics = () => {
         console.log('View analytics');
         // TODO: Open analytics modal/page
-    };
-
-    const handleViewFavorites = () => {
-        startTransition(() => {
-            setState(prev => ({
-                ...prev,
-                showFavorites: !prev.showFavorites,
-                showSaved: false,
-                page: 1
-            }));
-        });
-    };
-
-    const handleViewSaved = () => {
-        startTransition(() => {
-            setState(prev => ({
-                ...prev,
-                showSaved: !prev.showSaved,
-                showFavorites: false,
-                page: 1
-            }));
-        });
-    };
-
-    const handlePageChange = (newPage: number) => {
-        startTransition(() => {
-            setState(prev => ({ ...prev, page: newPage }));
-        });
     };
 
     // Stats calculations from real data
@@ -319,12 +300,12 @@ const WorkoutPage: React.FC = () => {
         {
             icon: <FavoriteBorder />,
             name: 'Yêu thích',
-            onClick: handleViewFavorites,
+            onClick: () => console.log('Favorites'),
         },
         {
             icon: <BookmarkBorder />,
             name: 'Đã lưu',
-            onClick: handleViewSaved,
+            onClick: () => console.log('Saved'),
         },
         {
             icon: <Analytics />,
@@ -338,7 +319,7 @@ const WorkoutPage: React.FC = () => {
             minHeight: '100vh',
             pt: { xs: 2, md: 4 },
             pb: 4,
-            marginTop: { xs: '8rem', md: '10rem' },
+            marginTop: { xs: '6rem' },
             background: 'linear-gradient(to bottom, rgba(102, 126, 234, 0.02) 0%, transparent 100%)',
         }}>
             <Container maxWidth="xl">
@@ -353,7 +334,7 @@ const WorkoutPage: React.FC = () => {
                     </Alert>
                 )}
 
-                {/* Loading Overlay */}
+                {/* Loading Progress Bar */}
                 {(isPending || isLoading) && (
                     <Box sx={{
                         position: 'fixed',
@@ -380,46 +361,45 @@ const WorkoutPage: React.FC = () => {
                     }} />
                 )}
 
-                {/* ✅ TRADITIONAL: Conditional rendering thay vì Suspense */}
+                {/* Main Content */}
                 {isLoading ? (
                     <Box>
                         <WorkoutHeader
                             totalWorkouts={0}
                             totalBeginner={0}
                             totalSponsored={0}
-                            compact={isMobile}
-                        />
-                        <WorkoutFilters
                             filters={state.filters}
                             onFiltersChange={handleFiltersChange}
                             totalResults={0}
-                            compact={isMobile}
+                            currentUser={currentUser}
+                            quickStats={quickStats}
+                            onSortChange={handleSortChange}
+                            onViewModeChange={handleViewModeChange}
                         />
                         <WorkoutsSkeleton />
                     </Box>
                 ) : workoutData ? (
                     <Box>
-                        {/* Header Section */}
+                        {/* ✅ UPDATED: Header với Embedded Filters */}
                         <WorkoutHeader
                             totalWorkouts={stats.totalWorkouts}
                             totalBeginner={stats.totalBeginner}
                             totalSponsored={stats.totalSponsored}
                             onCreateWorkout={!isMobile ? handleCreateWorkout : undefined}
                             onViewAnalytics={!isMobile ? handleViewAnalytics : undefined}
-                            onViewFavorites={!isMobile ? handleViewFavorites : undefined}
-                            onViewSaved={!isMobile ? handleViewSaved : undefined}
-                            compact={isMobile}
-                        />
-
-                        {/* Filters Section */}
-                        <WorkoutFilters
                             filters={state.filters}
                             onFiltersChange={handleFiltersChange}
                             totalResults={workoutData.pagination.totalItems}
-                            compact={isMobile}
+                            currentUser={currentUser}
+                            quickStats={quickStats}
+                            onSortChange={handleSortChange}
+                            onViewModeChange={handleViewModeChange}
                         />
 
-                        {/* Main Content Grid */}
+                        {/* ✅ REMOVED: Separate WorkoutFilters component */}
+                        {/* WorkoutFilters is now embedded in WorkoutHeader */}
+
+                        {/* ✅ UPDATED: Grid với Pagination */}
                         <WorkoutGrid
                             workouts={optimizedWorkouts}
                             pagination={workoutData.pagination}
@@ -433,7 +413,7 @@ const WorkoutPage: React.FC = () => {
                     </Box>
                 ) : (
                     <Alert severity="info">
-                        No workouts found. Try adjusting your filters.
+                        Không tìm thấy workout nào. Thử điều chỉnh bộ lọc.
                     </Alert>
                 )}
 

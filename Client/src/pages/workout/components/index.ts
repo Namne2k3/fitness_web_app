@@ -4,9 +4,9 @@
  */
 
 export { default as WorkoutCard } from './WorkoutCard';
-export { default as WorkoutFilters } from './WorkoutFilters';
-export { default as WorkoutGrid } from './WorkoutGrid';
-export { default as WorkoutHeader } from './WorkoutHeader';
+export { default as WorkoutFilters } from './WorkoutFilters';  // ✅ Simplified version
+export { default as WorkoutGrid } from './WorkoutGrid';        // ✅ Updated with Pagination
+export { default as WorkoutHeader } from './WorkoutHeader';    // ✅ Simplified version
 export { default as WorkoutsSkeleton } from './WorkoutsSkeleton';
 
 // Type exports for component props
