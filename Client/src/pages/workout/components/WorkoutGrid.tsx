@@ -12,13 +12,14 @@ import {
 import {
     Box,
     Fade,
-    IconButton,
+    Pagination,
     ToggleButton,
     ToggleButtonGroup,
     Typography
 } from '@mui/material';
 import React, { useMemo, useState } from 'react';
-import { Workout } from '../../types/workout.interface';
+import { Workout } from '../../../types/workout.interface';
+import { WorkoutListResponse } from '../../../services/workoutService';
 import WorkoutCard from './WorkoutCard';
 import WorkoutsSkeleton from './WorkoutsSkeleton';
 
@@ -29,12 +30,14 @@ type ViewMode = 'grid' | 'list' | 'compact' | 'masonry';
 
 interface WorkoutGridProps {
     workouts: Workout[];
+    pagination?: WorkoutListResponse['pagination'];
     loading?: boolean;
-    onLike: (workoutId: string) => void;
-    onSave: (workoutId: string) => void;
+    onLike: (workoutId: string, currentLiked: boolean, currentCount: number) => void;
+    onSave: (workoutId: string, currentSaved: boolean, currentCount: number) => void;
     onView: (workoutId: string) => void;
     onShare?: (workoutId: string) => void;
     onAddToQueue?: (workoutId: string) => void;
+    onPageChange?: (page: number) => void;
     emptyState?: React.ReactNode;
 }
 
@@ -43,12 +46,14 @@ interface WorkoutGridProps {
 // ================================
 const WorkoutGrid: React.FC<WorkoutGridProps> = ({
     workouts,
+    pagination,
     loading = false,
     onLike,
     onSave,
     onView,
     onShare,
     onAddToQueue,
+    onPageChange,
     emptyState
 }) => {
     const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -93,11 +98,9 @@ const WorkoutGrid: React.FC<WorkoutGridProps> = ({
         }
     }), []);
 
-    const currentConfig = gridConfigs[viewMode];
-
-    // Handle view mode change
+    const currentConfig = gridConfigs[viewMode];    // Handle view mode change
     const handleViewModeChange = (
-        event: React.MouseEvent<HTMLElement>,
+        _event: React.MouseEvent<HTMLElement>,
         newViewMode: ViewMode | null,
     ) => {
         if (newViewMode !== null) {
@@ -220,11 +223,10 @@ const WorkoutGrid: React.FC<WorkoutGridProps> = ({
                                     pageBreakInside: 'avoid',
                                 }),
                             }}
-                        >
-                            <WorkoutCard
+                        >                            <WorkoutCard
                                 workout={workout}
-                                onLike={onLike}
-                                onSave={onSave}
+                                onLike={(workoutId) => onLike(workoutId, false, workout.likeCount || 0)}
+                                onSave={(workoutId) => onSave(workoutId, false, workout.saveCount || 0)}
                                 onView={onView}
                                 onShare={onShare}
                                 onAddToQueue={onAddToQueue}
@@ -233,14 +235,44 @@ const WorkoutGrid: React.FC<WorkoutGridProps> = ({
                         </Box>
                     ))}
                 </Box>
-            </Fade>
-
-            {/* Performance Info for Development */}
-            {process.env.NODE_ENV === 'development' && (
+            </Fade>            {/* Performance Info for Development */}
+            {import.meta.env.DEV && (
                 <Box sx={{ mt: 4, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
                     <Typography variant="caption" color="text.secondary">
                         Debug: Rendering {workouts.length} workouts in {viewMode} mode
                     </Typography>
+                </Box>
+            )}
+
+            {/* Pagination */}
+            {pagination && pagination.totalPages > 1 && onPageChange && (
+                <Box sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    mt: 4,
+                    py: 2
+                }}>
+                    <Pagination
+                        count={pagination.totalPages}
+                        page={pagination.currentPage}
+                        onChange={(_, page) => onPageChange(page)}
+                        size="large"
+                        showFirstButton
+                        showLastButton
+                        sx={{
+                            '& .MuiPaginationItem-root': {
+                                fontSize: '1rem',
+                                fontWeight: 500,
+                            },
+                            '& .Mui-selected': {
+                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                color: 'white',
+                                '&:hover': {
+                                    background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+                                },
+                            },
+                        }}
+                    />
                 </Box>
             )}
         </Box>

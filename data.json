@@ -1,0 +1,205 @@
+{
+    "sampleWorkout": {
+        "userId": "6847da67350c8db575f8b682",
+        "name": "Upper Body Strength Training",
+        "description": "Complete upper body workout focusing on chest, back, and arms. Perfect for building muscle and strength.",
+        "category": "strength",
+        "difficulty": "intermediate",
+        "estimatedDuration": 60,
+        "tags": [
+            "strength",
+            "upper-body",
+            "gym",
+            "muscle-building"
+        ],
+        "isPublic": true,
+        "exercises": [
+            {
+                "exerciseId": "685124448002d2984fc548e7",
+                "order": 1,
+                "sets": 3,
+                "reps": 12,
+                "weight": 20,
+                "restTime": 60,
+                "notes": "Focus on form, control the weight",
+                "completed": false
+            },
+            {
+                "exerciseId": "685124dc8002d2984fc548ea",
+                "order": 2,
+                "sets": 4,
+                "reps": 10,
+                "weight": 80,
+                "restTime": 90,
+                "notes": "Keep back straight, engage core",
+                "completed": false
+            },
+            {
+                "exerciseId": "685124dc8002d2984fc548eb",
+                "order": 3,
+                "sets": 3,
+                "duration": 60,
+                "restTime": 45,
+                "notes": "Hold steady position",
+                "completed": false
+            },
+            {
+                "exerciseId": "685125428002d2984fc548ed",
+                "order": 4,
+                "sets": 3,
+                "reps": 15,
+                "restTime": 30,
+                "notes": "Full range of motion",
+                "completed": false
+            }
+        ],
+        "likeCount": 25,
+        "saveCount": 12,
+        "shares": 5,
+        "views": 150,
+        "completions": 23,
+        "averageRating": 4.5,
+        "totalRatings": 8,
+        "muscleGroups": [
+            "chest",
+            "back",
+            "shoulders",
+            "triceps",
+            "biceps"
+        ],
+        "equipment": [
+            "dumbbell",
+            "bench",
+            "barbell"
+        ],
+        "caloriesBurned": 300,
+        "isSponsored": false,
+        "createdAt": "2024-12-05T10:00:00.000Z",
+        "updatedAt": "2024-12-05T10:00:00.000Z"
+    },
+    "additionalSampleWorkouts": [
+        {
+            "userId": "6847da67350c8db575f8b682",
+            "name": "Morning Cardio Blast",
+            "description": "High-intensity cardio workout to start your day with energy and burn calories effectively.",
+            "category": "cardio",
+            "difficulty": "beginner",
+            "estimatedDuration": 30,
+            "tags": [
+                "cardio",
+                "morning",
+                "HIIT",
+                "fat-burn"
+            ],
+            "isPublic": true,
+            "exercises": [
+                {
+                    "exerciseId": "685124448002d2984fc548e7",
+                    "order": 1,
+                    "sets": 1,
+                    "duration": 300,
+                    "restTime": 60,
+                    "notes": "Moderate pace to warm up",
+                    "completed": false
+                },
+                {
+                    "exerciseId": "685124dc8002d2984fc548ea",
+                    "order": 2,
+                    "sets": 4,
+                    "reps": 20,
+                    "restTime": 30,
+                    "notes": "Explosive movement",
+                    "completed": false
+                },
+                {
+                    "exerciseId": "685124dc8002d2984fc548eb",
+                    "order": 3,
+                    "sets": 3,
+                    "duration": 45,
+                    "restTime": 15,
+                    "notes": "High knees, fast pace",
+                    "completed": false
+                }
+            ],
+            "likeCount": 42,
+            "saveCount": 28,
+            "shares": 12,
+            "views": 320,
+            "completions": 45,
+            "averageRating": 4.2,
+            "totalRatings": 15,
+            "muscleGroups": [
+                "full-body",
+                "cardiovascular"
+            ],
+            "equipment": [
+                "bodyweight"
+            ],
+            "caloriesBurned": 250,
+            "isSponsored": false,
+            "createdAt": "2024-12-04T06:00:00.000Z",
+            "updatedAt": "2024-12-04T06:00:00.000Z"
+        },
+        {
+            "userId": "684d50357a9b2db23cf33488",
+            "name": "Flexibility & Mobility",
+            "description": "Gentle stretching and mobility routine perfect for recovery days or morning routine.",
+            "category": "flexibility",
+            "difficulty": "beginner",
+            "estimatedDuration": 20,
+            "tags": [
+                "stretching",
+                "mobility",
+                "recovery",
+                "morning"
+            ],
+            "isPublic": true,
+            "exercises": [
+                {
+                    "exerciseId": "685125428002d2984fc548ed",
+                    "order": 1,
+                    "sets": 1,
+                    "duration": 30,
+                    "restTime": 10,
+                    "notes": "Gentle stretch, don't force",
+                    "completed": false
+                },
+                {
+                    "exerciseId": "685125428002d2984fc548ee",
+                    "order": 2,
+                    "sets": 2,
+                    "duration": 45,
+                    "restTime": 15,
+                    "notes": "Hold position, breathe deeply",
+                    "completed": false
+                },
+                {
+                    "exerciseId": "685125428002d2984fc548ef",
+                    "order": 3,
+                    "sets": 1,
+                    "duration": 60,
+                    "restTime": 0,
+                    "notes": "Relaxation pose",
+                    "completed": false
+                }
+            ],
+            "likeCount": 18,
+            "saveCount": 35,
+            "shares": 8,
+            "views": 180,
+            "completions": 62,
+            "averageRating": 4.7,
+            "totalRatings": 12,
+            "muscleGroups": [
+                "full-body"
+            ],
+            "equipment": [
+                "yoga_mat"
+            ],
+            "caloriesBurned": 80,
+            "isSponsored": false,
+            "createdAt": "2024-12-03T07:30:00.000Z",
+            "updatedAt": "2024-12-03T07:30:00.000Z"
+        }
+    ]
+}

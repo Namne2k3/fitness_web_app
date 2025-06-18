@@ -68,7 +68,7 @@ export const generateTokens = (
     const accessToken = jwt.sign(
         { userId, email, role },
         JWT_CONFIG.secret as string,
-        { expiresIn: '15m' } // Access token luôn có thời hạn ngắn
+        { expiresIn: '1d' } // Access token luôn có thời hạn ngắn
     );
 
     const refreshToken = jwt.sign(

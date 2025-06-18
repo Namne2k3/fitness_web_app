@@ -3,7 +3,7 @@
  * Dựa trên DATABASE_SCHEMA_COMPLETE.md và sampleExercises
  */
 
-import { Workout, WorkoutExercise } from '../types/workout.interface';
+import { DifficultyLevel, Workout, WorkoutExercise } from '../types/workout.interface';
 
 // Sample workout exercises - mapping to existing exercise data
 const createWorkoutExercise = (
@@ -36,7 +36,7 @@ export const mockWorkouts: Workout[] = [
         name: 'Upper Body Power',
         description: 'Comprehensive upper body strength workout focusing on chest, shoulders, and arms. Perfect for building muscle mass and strength.',
         category: 'strength',
-        difficulty: 'intermediate',
+        difficulty: DifficultyLevel.INTERMEDIATE,
         estimatedDuration: 75,
         tags: ['strength', 'upper-body', 'muscle-building', 'gym'],
         isPublic: true,
@@ -79,7 +79,7 @@ export const mockWorkouts: Workout[] = [
         name: 'HIIT Cardio Blast',
         description: 'High-intensity interval training workout designed to torch calories and improve cardiovascular fitness. No equipment needed!',
         category: 'cardio',
-        difficulty: 'advanced',
+        difficulty: DifficultyLevel.ADVANCED,
         estimatedDuration: 30,
         tags: ['hiit', 'cardio', 'fat-burning', 'bodyweight', 'home-workout'],
         isPublic: true,
@@ -126,7 +126,7 @@ export const mockWorkouts: Workout[] = [
         name: 'Beginner Yoga Flow',
         description: 'Gentle yoga sequence perfect for beginners. Focus on flexibility, balance, and mindfulness. Great for morning or evening routine.',
         category: 'flexibility',
-        difficulty: 'beginner',
+        difficulty: DifficultyLevel.BEGINNER,
         estimatedDuration: 45,
         tags: ['yoga', 'flexibility', 'beginner-friendly', 'stress-relief', 'mindfulness'],
         isPublic: true,
@@ -164,7 +164,7 @@ export const mockWorkouts: Workout[] = [
         name: 'Lower Body Strength',
         description: 'Intense lower body workout targeting glutes, quads, and hamstrings. Build powerful legs and improve athletic performance.',
         category: 'strength',
-        difficulty: 'intermediate',
+        difficulty: DifficultyLevel.INTERMEDIATE,
         estimatedDuration: 60,
         tags: ['legs', 'glutes', 'strength', 'squats', 'deadlifts'],
         isPublic: true,
@@ -202,7 +202,7 @@ export const mockWorkouts: Workout[] = [
         name: 'Core Crusher',
         description: 'Comprehensive core workout targeting all abdominal muscles. Build a strong, stable core for better performance in all activities.',
         category: 'strength',
-        difficulty: 'intermediate',
+        difficulty: DifficultyLevel.INTERMEDIATE,
         estimatedDuration: 25,
         tags: ['core', 'abs', 'obliques', 'bodyweight', 'quick-workout'],
         isPublic: true,
@@ -247,7 +247,7 @@ export const mockWorkouts: Workout[] = [
         name: 'Full Body Functional',
         description: 'Complete functional training workout using compound movements. Perfect for building real-world strength and coordination.',
         category: 'strength',
-        difficulty: 'advanced',
+        difficulty: DifficultyLevel.ADVANCED,
         estimatedDuration: 90,
         tags: ['functional', 'compound', 'full-body', 'advanced', 'kettlebell'],
         isPublic: true,
@@ -289,7 +289,7 @@ export const mockWorkouts: Workout[] = [
         name: 'Morning Energy Boost',
         description: 'Quick 15-minute energizing workout to start your day right. Perfect combination of movement and mindfulness.',
         category: 'cardio',
-        difficulty: 'beginner',
+        difficulty: DifficultyLevel.BEGINNER,
         estimatedDuration: 15,
         tags: ['morning', 'energy', 'quick', 'beginner', 'wake-up'],
         isPublic: true,
@@ -327,7 +327,7 @@ export const mockWorkouts: Workout[] = [
         name: 'Lunch Break Express',
         description: 'Efficient 20-minute workout perfect for your lunch break. Boost energy and productivity for the afternoon.',
         category: 'cardio',
-        difficulty: 'intermediate',
+        difficulty: DifficultyLevel.INTERMEDIATE,
         estimatedDuration: 20,
         tags: ['lunch-break', 'office', 'quick', 'energy', 'productive'],
         isPublic: true,

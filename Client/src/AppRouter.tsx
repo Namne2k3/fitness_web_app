@@ -12,7 +12,7 @@ import LogoutPage from './pages/auth/LogoutPage';
 import HomePage from './pages/home/HomePage';
 import fitnessTheme from './styles/theme';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
-import WorkoutPage from './pages/workout/WorkoutPage';
+import WorkoutPage from './pages/workout/WorkoutPage_traditional';
 
 /**
  * AppRouter - Định nghĩa các route chính cho ứng dụng với MUI Theme

@@ -7,6 +7,7 @@ import { Router } from 'express';
 import authRoutes from './auth';
 import systemRoutes from './system';
 import accountRoutes from './account';
+import workoutRoutes from './workout';
 import { ResponseHelper } from '../utils/responseHelper';
 
 const router = Router();
@@ -31,6 +32,7 @@ router.get('/health', (req, res) => {
 router.use('/auth', authRoutes);
 router.use('/system', systemRoutes);
 router.use('/account', accountRoutes)
+router.use('/workouts', workoutRoutes)
 
 /**
  * 404 Handler cho undefined routes

@@ -25,7 +25,7 @@ import {
     Typography
 } from '@mui/material';
 import React, { useState, useTransition } from 'react';
-import { Workout } from '../../types/workout.interface';
+import { Workout } from '../../../types/workout.interface';
 
 // ================================
 // 🎯 Types & Interfaces
