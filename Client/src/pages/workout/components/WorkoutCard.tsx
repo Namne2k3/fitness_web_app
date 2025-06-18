@@ -1,6 +1,6 @@
 /**
- * 🏋️ WorkoutCard Component - Compact & Feature-rich
- * Optimized for space efficiency and future extensibility
+ * 🏋️ WorkoutCard Component - Enhanced với đầy đủ thông tin
+ * Hiển thị comprehensive workout data từ server
  */
 
 import {
@@ -12,7 +12,9 @@ import {
     MoreVert,
     Schedule,
     Star,
-    Visibility
+    Visibility,
+    FitnessCenter,
+    Group
 } from '@mui/icons-material';
 import {
     Box,
@@ -22,7 +24,8 @@ import {
     IconButton,
     Menu,
     MenuItem,
-    Typography
+    Typography,
+    Tooltip
 } from '@mui/material';
 import React, { useState, useTransition } from 'react';
 import { Workout } from '../../../types/workout.interface';
@@ -76,7 +79,9 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
         startTransition(() => {
             onView(workout._id);
         });
-    }; const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    };
+
+    const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
         event.stopPropagation();
         setAnchorEl(event.currentTarget);
     };
@@ -100,9 +105,23 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
             case 'strength': return '💪';
             case 'cardio': return '🏃';
             case 'flexibility': return '🧘';
+            case 'hiit': return '⚡';
+            case 'crosstraining': return '🏋️‍♀️';
+            case 'sports': return '⚽';
+            case 'recovery': return '🛌';
             default: return '🏋️';
         }
-    }; return (
+    };
+
+    // Format large numbers
+    const formatNumber = (num: number): string => {
+        if (num >= 1000) {
+            return `${(num / 1000).toFixed(1)}k`;
+        }
+        return num.toString();
+    };
+
+    return (
         <Card
             onClick={handleView}
             sx={{
@@ -209,6 +228,25 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
                         />
                     </Box>
                 )}
+
+                {/* Exercise Count Badge */}
+                {workout.exercises && workout.exercises.length > 0 && (
+                    <Chip
+                        icon={<FitnessCenter sx={{ fontSize: 14 }} />}
+                        label={workout.exercises.length}
+                        size="small"
+                        sx={{
+                            position: 'absolute',
+                            top: 8,
+                            left: 8,
+                            height: 20,
+                            fontSize: '0.7rem',
+                            bgcolor: 'rgba(255,255,255,0.9)',
+                            color: 'primary.main',
+                            fontWeight: 600,
+                        }}
+                    />
+                )}
             </Box>
 
             {/* Content Section */}
@@ -258,16 +296,21 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
                                 }}
                             />
 
-                            {!compact && (
+                            {!compact && workout.averageRating && (
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                     <Star sx={{ fontSize: 14, color: 'warning.main' }} />
                                     <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                                        {workout.averageRating?.toFixed(1)}
+                                        {workout.averageRating.toFixed(1)}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                        ({workout.totalRatings})
                                     </Typography>
                                 </Box>
                             )}
                         </Box>
-                    </Box>                    <IconButton
+                    </Box>
+
+                    <IconButton
                         size="small"
                         onClick={handleMenuOpen}
                         sx={{
@@ -286,7 +329,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
                 </Box>
 
                 {/* Description - Only for non-compact */}
-                {!compact && (
+                {!compact && workout.description && (
                     <Typography
                         variant="body2"
                         color="text.secondary"
@@ -303,7 +346,40 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
                     </Typography>
                 )}
 
-                {/* Quick Stats Row */}
+                {/* Muscle Groups Tags - Only for non-compact */}
+                {!compact && workout.muscleGroups && workout.muscleGroups.length > 0 && (
+                    <Box sx={{ display: 'flex', gap: 0.5, mb: 1, flexWrap: 'wrap' }}>
+                        {workout.muscleGroups.slice(0, 3).map((muscle, index) => (
+                            <Chip
+                                key={index}
+                                label={muscle}
+                                size="small"
+                                variant="outlined"
+                                sx={{
+                                    fontSize: '0.65rem',
+                                    height: 20,
+                                    borderColor: 'primary.light',
+                                    color: 'primary.main',
+                                }}
+                            />
+                        ))}
+                        {workout.muscleGroups.length > 3 && (
+                            <Chip
+                                label={`+${workout.muscleGroups.length - 3}`}
+                                size="small"
+                                variant="outlined"
+                                sx={{
+                                    fontSize: '0.65rem',
+                                    height: 20,
+                                    borderColor: 'grey.300',
+                                    color: 'text.secondary',
+                                }}
+                            />
+                        )}
+                    </Box>
+                )}
+
+                {/* Stats Row */}
                 <Box sx={{
                     display: 'flex',
                     alignItems: 'center',
@@ -311,73 +387,111 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
                     mt: 'auto',
                     pt: compact ? 0.5 : 1,
                 }}>
-                    <Box sx={{ display: 'flex', gap: compact ? 1 : 1.5, alignItems: 'center' }}>
-                        {!compact && (
-                            <>
+                    <Box sx={{ display: 'flex', gap: compact ? 0.8 : 1.2, alignItems: 'center', flexWrap: 'wrap' }}>
+                        {/* Duration */}
+                        <Tooltip title="Duration">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Schedule sx={{ fontSize: 14, color: 'text.secondary' }} />
+                                <Typography variant="caption" color="text.secondary" fontWeight={500}>
+                                    {workout.estimatedDuration}m
+                                </Typography>
+                            </Box>
+                        </Tooltip>
+
+                        {/* Calories - Only for non-compact */}
+                        {!compact && workout.caloriesBurned && (
+                            <Tooltip title="Calories burned">
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                    <Schedule sx={{ fontSize: 14, color: 'text.secondary' }} />
-                                    <Typography variant="caption" color="text.secondary">
-                                        {workout.estimatedDuration}m
-                                    </Typography>
-                                </Box>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                    <LocalFireDepartment sx={{ fontSize: 14, color: 'text.secondary' }} />
-                                    <Typography variant="caption" color="text.secondary">
+                                    <LocalFireDepartment sx={{ fontSize: 14, color: 'warning.main' }} />
+                                    <Typography variant="caption" color="text.secondary" fontWeight={500}>
                                         {workout.caloriesBurned}
                                     </Typography>
                                 </Box>
-                            </>
+                            </Tooltip>
                         )}
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <Visibility sx={{ fontSize: 14, color: 'text.secondary' }} />
-                            <Typography variant="caption" color="text.secondary">
-                                {workout.views}
-                            </Typography>
-                        </Box>
-                    </Box>                    {/* Action Buttons */}
-                    <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', zIndex: 2 }}>
-                        <IconButton
-                            size="small"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleLike();
-                            }}
-                            disabled={isPending}
-                            sx={{
-                                color: isLiked ? 'error.main' : 'text.secondary',
-                                p: 0.5,
-                                '&:hover': {
-                                    backgroundColor: isLiked ? 'error.light' : 'action.hover',
-                                },
-                            }}
-                        >
-                            {isLiked ?
-                                <FavoriteOutlined fontSize="small" /> :
-                                <FavoriteBorder fontSize="small" />
-                            }
-                        </IconButton>
+                        {/* Views */}
+                        <Tooltip title="Views">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Visibility sx={{ fontSize: 14, color: 'text.secondary' }} />
+                                <Typography variant="caption" color="text.secondary" fontWeight={500}>
+                                    {formatNumber(workout.views || 0)}
+                                </Typography>
+                            </Box>
+                        </Tooltip>
 
-                        <IconButton
-                            size="small"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleSave();
-                            }}
-                            disabled={isPending}
-                            sx={{
-                                color: isSaved ? 'primary.main' : 'text.secondary',
-                                p: 0.5,
-                                '&:hover': {
-                                    backgroundColor: isSaved ? 'primary.light' : 'action.hover',
-                                },
-                            }}
-                        >
-                            {isSaved ?
-                                <BookmarkBorderOutlined fontSize="small" /> :
-                                <BookmarkBorder fontSize="small" />
-                            }
-                        </IconButton>
+                        {/* Completions - Only for non-compact */}
+                        {!compact && workout.completions && (
+                            <Tooltip title="Completions">
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <Group sx={{ fontSize: 14, color: 'success.main' }} />
+                                    <Typography variant="caption" color="text.secondary" fontWeight={500}>
+                                        {formatNumber(workout.completions)}
+                                    </Typography>
+                                </Box>
+                            </Tooltip>
+                        )}
+                    </Box>
+
+                    {/* Action Buttons với Counts */}
+                    <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', zIndex: 2 }}>
+                        {/* Like Button với Count */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <IconButton
+                                size="small"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleLike();
+                                }}
+                                disabled={isPending}
+                                sx={{
+                                    color: isLiked ? 'error.main' : 'text.secondary',
+                                    p: 0.5,
+                                    '&:hover': {
+                                        backgroundColor: isLiked ? 'error.light' : 'action.hover',
+                                    },
+                                }}
+                            >
+                                {isLiked ?
+                                    <FavoriteOutlined fontSize="small" /> :
+                                    <FavoriteBorder fontSize="small" />
+                                }
+                            </IconButton>
+                            {workout.likeCount > 0 && (
+                                <Typography variant="caption" color="text.secondary" fontWeight={500}>
+                                    {formatNumber(workout.likeCount)}
+                                </Typography>
+                            )}
+                        </Box>
+
+                        {/* Save Button với Count */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <IconButton
+                                size="small"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSave();
+                                }}
+                                disabled={isPending}
+                                sx={{
+                                    color: isSaved ? 'primary.main' : 'text.secondary',
+                                    p: 0.5,
+                                    '&:hover': {
+                                        backgroundColor: isSaved ? 'primary.light' : 'action.hover',
+                                    },
+                                }}
+                            >
+                                {isSaved ?
+                                    <BookmarkBorderOutlined fontSize="small" /> :
+                                    <BookmarkBorder fontSize="small" />
+                                }
+                            </IconButton>
+                            {workout.saveCount > 0 && (
+                                <Typography variant="caption" color="text.secondary" fontWeight={500}>
+                                    {formatNumber(workout.saveCount)}
+                                </Typography>
+                            )}
+                        </Box>
                     </Box>
                 </Box>
             </CardContent>

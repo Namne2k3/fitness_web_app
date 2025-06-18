@@ -236,13 +236,13 @@ const WorkoutGrid: React.FC<WorkoutGridProps> = ({
                     ))}
                 </Box>
             </Fade>            {/* Performance Info for Development */}
-            {import.meta.env.DEV && (
+            {/* {import.meta.env.DEV && (
                 <Box sx={{ mt: 4, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
                     <Typography variant="caption" color="text.secondary">
                         Debug: Rendering {workouts.length} workouts in {viewMode} mode
                     </Typography>
                 </Box>
-            )}
+            )} */}
 
             {/* Pagination */}
             {pagination && pagination.totalPages > 1 && onPageChange && (
