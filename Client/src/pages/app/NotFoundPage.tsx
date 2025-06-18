@@ -42,7 +42,8 @@ export default function NotFoundPage() {
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 display: 'flex',
                 alignItems: 'center',
-                py: 4,
+                paddingTop: '8rem',
+                // paddingBottom: '4rem',
             }}
         >
             <Box
@@ -54,7 +55,7 @@ export default function NotFoundPage() {
                 }}
             >
                 {/* Header Section */}
-                {/* <Box
+                <Box
                     sx={{
                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                         color: 'white',
@@ -75,7 +76,7 @@ export default function NotFoundPage() {
                     <Typography variant="body1" sx={{ opacity: 0.9, fontSize: { xs: '0.9rem', md: '1rem' } }}>
                         Hành trình fitness của bạn gặp một chút trở ngại
                     </Typography>
-                </Box> */}
+                </Box>
 
                 {/* Content Grid */}
                 <Box
@@ -136,7 +137,8 @@ export default function NotFoundPage() {
                                 borderRadius: '50%',
                                 bgcolor: 'rgba(255, 152, 0, 0.1)',
                                 color: '#ef6c00',
-                                mb: 2
+                                mb: 2,
+                                justifyContent: 'center',
                             }}
                         >
                             <SearchOff sx={{ fontSize: { xs: 32, md: 40 } }} />
@@ -176,7 +178,7 @@ export default function NotFoundPage() {
                         </Typography>
 
                         {/* Suggestions Box (Blue Theme) */}
-                        <Box
+                        {/* <Box
                             sx={{
                                 background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
                                 border: '1px solid rgba(33, 150, 243, 0.2)',
@@ -249,7 +251,7 @@ export default function NotFoundPage() {
                                     </Typography>
                                 </Box>
                             </Box>
-                        </Box>
+                        </Box> */}
 
                         {/* Action Buttons */}
                         <Box

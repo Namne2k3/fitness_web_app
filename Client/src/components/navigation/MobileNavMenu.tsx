@@ -54,7 +54,7 @@ const MobileNavMenu: React.FC = () => {
 
     // State for collapsible sections
     const [workoutsOpen, setWorkoutsOpen] = useState(false);
-    const [exercisesOpen, setExercisesOpen] = useState(false);
+    const [libraryOpen, setLibraryOpen] = useState(false); // ✅ Renamed from exercisesOpen
     const [nutritionOpen, setNutritionOpen] = useState(false);
     const [reviewsOpen, setReviewsOpen] = useState(false);
     const [sponsoredOpen, setSponsoredOpen] = useState(false);
@@ -72,7 +72,7 @@ const MobileNavMenu: React.FC = () => {
 
     // Toggle handlers for collapsible sections
     const toggleWorkouts = () => setWorkoutsOpen(!workoutsOpen);
-    const toggleExercises = () => setExercisesOpen(!exercisesOpen);
+    const toggleLibrary = () => setLibraryOpen(!libraryOpen); // ✅ Renamed
     const toggleNutrition = () => setNutritionOpen(!nutritionOpen);
     const toggleReviews = () => setReviewsOpen(!reviewsOpen);
     const toggleSponsored = () => setSponsoredOpen(!sponsoredOpen);
@@ -213,23 +213,31 @@ const MobileNavMenu: React.FC = () => {
                             </List>
                         </Collapse>
 
-                        {/* ✅ Động tác Section - Updated */}
-                        <ListItemButton onClick={toggleExercises}>
-                            <ListItemIcon><SportsGymnastics /></ListItemIcon>
-                            <ListItemText primary="Động tác" />
-                            {exercisesOpen ? <ExpandLess /> : <ExpandMore />}
+                        {/* ✅ Thư viện Section - Updated */}
+                        <ListItemButton onClick={toggleLibrary}>
+                            <ListItemIcon><MenuBook /></ListItemIcon>
+                            <ListItemText primary="Thư viện" />
+                            {libraryOpen ? <ExpandLess /> : <ExpandMore />}
                         </ListItemButton>
-                        <Collapse in={exercisesOpen} timeout="auto" unmountOnExit>
+                        <Collapse in={libraryOpen} timeout="auto" unmountOnExit>
                             <List component="div" disablePadding>
-                                <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/exercises/library')}>
-                                    <ListItemIcon><MenuBook /></ListItemIcon>
-                                    <ListItemText primary="Thư viện động tác" />
+                                <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/library/exercises')}>
+                                    <ListItemIcon><SportsGymnastics /></ListItemIcon>
+                                    <ListItemText primary="Tất cả động tác" />
                                 </ListItemButton>
-                                <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/exercises/videos')}>
+                                <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/library/muscle-groups')}>
+                                    <ListItemIcon><FitnessCenter /></ListItemIcon>
+                                    <ListItemText primary="Theo nhóm cơ" />
+                                </ListItemButton>
+                                <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/library/equipment')}>
+                                    <ListItemIcon><Inventory /></ListItemIcon>
+                                    <ListItemText primary="Theo thiết bị" />
+                                </ListItemButton>
+                                <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/library/videos')}>
                                     <ListItemIcon><Videocam /></ListItemIcon>
                                     <ListItemText primary="Video hướng dẫn" />
                                 </ListItemButton>
-                                <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/exercises/favorites')}>
+                                <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/library/favorites')}>
                                     <ListItemIcon><Favorite /></ListItemIcon>
                                     <ListItemText primary="Yêu thích" />
                                 </ListItemButton>

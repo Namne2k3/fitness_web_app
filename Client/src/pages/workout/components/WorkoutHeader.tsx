@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * 🎯 WorkoutHeader Component - Embedded Filters Design với Category Tabs
  * Header có tabs navigation và embedded filters
@@ -10,8 +11,7 @@ import {
     FitnessCenter,
     LocalFireDepartment,
     Star,
-    TrendingUp,
-    ViewModule
+    TrendingUp
 } from '@mui/icons-material';
 import {
     Avatar,
@@ -180,7 +180,7 @@ const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
                                     lineHeight: 1.2,
                                 }}
                             >
-                                Workout Hub
+                                Bài tập
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                                 {totalWorkouts.toLocaleString()} workouts • {totalResults.toLocaleString()} results
@@ -265,7 +265,7 @@ const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
                                         },
                                     }}
                                 >
-                                    {isMobile ? 'New' : 'Create Workout'}
+                                    {isMobile ? 'Mới' : 'Tạo bài tập'}
                                 </Button>
                             )}
                         </Box>
