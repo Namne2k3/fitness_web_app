@@ -60,14 +60,14 @@ const NAV_MENUS: NavMenu[] = [
         key: 'home',
         icon: <Home />,
         label: 'Trang chủ',
-        path: '/', // Direct path
+        path: '/',
         subItems: []
     },
     {
         key: 'workouts',
         icon: <FitnessCenter />,
         label: 'Bài tập',
-        path: '/workouts/browse', // Default to browse page
+        path: '/workouts/browse',
         subItems: [
             { icon: <MenuBook fontSize="small" />, label: 'Khám phá bài tập', path: '/workouts/browse' },
             { icon: <DirectionsRun fontSize="small" />, label: 'Bài tập của tôi', path: '/workouts/my-workouts' },
@@ -77,22 +77,25 @@ const NAV_MENUS: NavMenu[] = [
         ]
     },
     {
-        key: 'exercises',
-        icon: <SportsGymnastics />,
-        label: 'Động tác',
-        path: '/exercises/library', // Default to library
+        key: 'library', // ✅ NEW: Thay thế "exercises"
+        icon: <MenuBook />,
+        label: 'Thư viện',
+        path: '/library/exercises',
         subItems: [
-            { icon: <MenuBook fontSize="small" />, label: 'Thư viện động tác', path: '/exercises/library' },
-            { icon: <Videocam fontSize="small" />, label: 'Video hướng dẫn', path: '/exercises/videos' },
+            { icon: <SportsGymnastics fontSize="small" />, label: 'Tất cả động tác', path: '/library/exercises' },
+            { icon: <FitnessCenter fontSize="small" />, label: 'Theo nhóm cơ', path: '/library/muscle-groups' },
+            { icon: <Inventory fontSize="small" />, label: 'Theo thiết bị', path: '/library/equipment' },
+            { icon: <BarChart fontSize="small" />, label: 'Theo độ khó', path: '/library/difficulty' },
             'divider',
-            { icon: <Favorite fontSize="small" />, label: 'Yêu thích', path: '/exercises/favorites' },
+            { icon: <Videocam fontSize="small" />, label: 'Video hướng dẫn', path: '/library/videos' },
+            { icon: <Favorite fontSize="small" />, label: 'Yêu thích', path: '/library/favorites' },
         ]
     },
     {
         key: 'nutrition',
         icon: <Restaurant />,
         label: 'Dinh dưỡng',
-        path: '/nutrition/guides', // Default to guides
+        path: '/nutrition/guides',
         subItems: [
             { icon: <MenuBook fontSize="small" />, label: 'Hướng dẫn dinh dưỡng', path: '/nutrition/guides' },
             { icon: <LocalCafe fontSize="small" />, label: 'Thực phẩm bổ sung', path: '/nutrition/supplements' },
