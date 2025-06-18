@@ -375,6 +375,21 @@ export interface PaginationInfo {
     hasPrev: boolean;
 }
 
+// ✅ ADD: PaginatedResult interface để match với client
+export interface PaginatedResult<T> {
+    data: T[];
+    pagination: {
+        currentPage: number;
+        totalPages: number;
+        totalItems: number;
+        itemsPerPage: number;
+        hasNextPage: boolean;
+        hasPrevPage: boolean;
+    };
+    filters?: any; // Applied filters
+    sort?: { field: string; order: 'asc' | 'desc' };
+}
+
 export interface ValidationResult {
     isValid: boolean;
     errors: Record<string, string>;

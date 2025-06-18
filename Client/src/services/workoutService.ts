@@ -1,0 +1,369 @@
+/**
+ * 🏋️ Workout Service - React 19 Implementation
+ * API calls cho workout operations với advanced filtering
+ */
+
+import { ApiResponse } from '../types/app.interface';
+import { Workout } from '../types/workout.interface';
+import { api } from './api';
+
+export interface WorkoutFilters {
+    category?: string;
+    difficulty?: string;
+    includePrivate?: boolean;
+    duration?: { min?: number; max?: number };
+    equipment?: string | string[];
+    muscleGroups?: string | string[];
+    search?: string;
+    isSponsored?: boolean;
+    userId?: string;
+    minRating?: number;
+    tags?: string | string[];
+}
+
+export interface WorkoutListParams {
+    page?: number;
+    limit?: number;
+    filters?: WorkoutFilters;
+    sort?: { field: string; order: 'asc' | 'desc' };
+    options?: {
+        includeUserData?: boolean;
+        includeExerciseData?: boolean;
+    };
+}
+
+export interface WorkoutListResponse {
+    data: Workout[];
+    pagination: {
+        currentPage: number;
+        totalPages: number;
+        totalItems: number;
+        itemsPerPage: number;
+        hasNextPage: boolean;
+        hasPrevPage: boolean;
+    };
+    filters?: WorkoutFilters;
+    sort?: { field: string; order: 'asc' | 'desc' };
+}
+
+/**
+ * Workout Service Class với React 19 patterns
+ */
+export class WorkoutService {    /**
+     * Get workouts với advanced filtering và pagination
+     * Returns Promise cho use() hook
+     */
+    static async getWorkouts(params: WorkoutListParams = {}): Promise<WorkoutListResponse> {
+        try {
+            // ✅ In development, use mock data first để tránh API calls liên tục
+            // if (import.meta.env.DEV) {
+            //     console.log('🔗 WorkoutService.getWorkouts (DEV MODE - Using Mock Data):', params);
+            //     return this.getMockWorkouts(params);
+            // }
+
+            const requestBody: WorkoutListParams = {
+                page: 1,
+                limit: 12,
+                sort: { field: 'createdAt', order: 'desc' },
+                options: {
+                    includeUserData: true,
+                    includeExerciseData: false
+                },
+                ...params
+            };
+
+            const response = await api.post<ApiResponse<WorkoutListResponse>>('/workouts/list', requestBody);
+
+            // Type assertion for API response
+            const apiResponse = {
+                success: response.success,
+                error: response.error,
+                data: response.data.data as WorkoutListResponse
+            };
+
+            if (!apiResponse.success) {
+                throw new Error(apiResponse.error || 'Failed to fetch workouts');
+            }
+
+            // Transform server response to match client expectations
+            const serverData = apiResponse.data;
+            return {
+                data: serverData || [],
+                pagination: {
+                    currentPage: serverData.currentPage || 1,
+                    totalPages: serverData.totalPages || 1,
+                    totalItems: serverData.totalItems || 0,
+                    itemsPerPage: serverData.itemsPerPage || 12,
+                    hasNextPage: serverData.hasNextPage || false,
+                    hasPrevPage: serverData.hasPrevPage || false
+                }
+            };
+        } catch (error) {
+            console.error('❌ WorkoutService.getWorkouts failed:', error);
+
+            // Fallback to mock data in development
+            // if (import.meta.env.DEV) {
+            //     console.warn('API call failed, using mock data for development');
+            //     return this.getMockWorkouts(params);
+            // }
+
+            throw new Error(
+                error instanceof Error ? error.message : 'Failed to fetch workouts'
+            );
+        }
+    }
+
+    /**
+     * Get workout by ID
+     */
+    static async getWorkoutById(workoutId: string): Promise<Workout> {
+        try {
+            const response = await api.get<Workout>(`/workouts/${workoutId}`);
+
+            if (!response.success) {
+                throw new Error(response.error || 'Failed to fetch workout');
+            }
+
+            return response.data as Workout;
+        } catch (error) {
+            console.error('❌ WorkoutService.getWorkoutById failed:', error);
+            throw new Error(
+                error instanceof Error ? error.message : 'Failed to fetch workout'
+            );
+        }
+    }
+
+    /**
+     * Search workouts (for autocomplete/suggestions)
+     */
+    static async searchWorkouts(query: string, limit: number = 5): Promise<Workout[]> {
+        try {
+            const params: WorkoutListParams = {
+                page: 1,
+                limit,
+                filters: { search: query },
+                sort: { field: 'averageRating', order: 'desc' }
+            };
+
+            const response = await this.getWorkouts(params);
+            return response.data;
+        } catch (error) {
+            console.error('❌ WorkoutService.searchWorkouts failed:', error);
+            return []; // Return empty array on search failure
+        }
+    }
+
+    /**
+     * Get trending workouts
+     */
+    static async getTrendingWorkouts(limit: number = 6): Promise<Workout[]> {
+        try {
+            const params: WorkoutListParams = {
+                page: 1,
+                limit,
+                sort: { field: 'views', order: 'desc' },
+                filters: { isSponsored: false }
+            };
+
+            const response = await this.getWorkouts(params);
+            return response.data;
+        } catch (error) {
+            console.error('❌ WorkoutService.getTrendingWorkouts failed:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Get sponsored workouts
+     */
+    static async getSponsoredWorkouts(limit: number = 3): Promise<Workout[]> {
+        try {
+            const params: WorkoutListParams = {
+                page: 1,
+                limit,
+                sort: { field: 'createdAt', order: 'desc' },
+                filters: { isSponsored: true }
+            };
+
+            const response = await this.getWorkouts(params);
+            return response.data;
+        } catch (error) {
+            console.error('❌ WorkoutService.getSponsoredWorkouts failed:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Toggle workout like (for useOptimistic)
+     */
+    static async toggleLike(workoutId: string): Promise<{ liked: boolean; likeCount: number }> {
+        try {
+            const response = await api.post<{ liked: boolean; likeCount: number }>(
+                `/workouts/${workoutId}/like`
+            );
+
+            if (!response.success) {
+                throw new Error(response.error || 'Failed to toggle like');
+            }
+
+            return response.data as { liked: boolean; likeCount: number };
+        } catch (error) {
+            console.error('❌ WorkoutService.toggleLike failed:', error);
+            throw error;
+        }
+    }    /**
+     * Toggle workout save (for useOptimistic)
+     */
+    static async toggleSave(workoutId: string): Promise<{ saved: boolean; saveCount: number }> {
+        try {
+            const response = await api.post<{ saved: boolean; saveCount: number }>(
+                `/workouts/${workoutId}/save`
+            );
+
+            if (!response.success) {
+                throw new Error(response.error || 'Failed to toggle save');
+            }
+
+            return response.data as { saved: boolean; saveCount: number };
+        } catch (error) {
+            console.error('❌ WorkoutService.toggleSave failed:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Mock data for development fallback
+     */
+    // private static getMockWorkouts(params: WorkoutListParams): WorkoutListResponse {
+    //     const mockWorkouts: Workout[] = [
+    //         {
+    //             _id: 'mock-1',
+    //             name: 'Morning Cardio Blast',
+    //             description: 'High-intensity morning workout to kickstart your day',
+    //             category: 'cardio',
+    //             difficulty: 'intermediate' as DifficultyLevel,
+    //             estimatedDuration: 30,
+    //             exercises: [
+    //                 {
+    //                     exerciseId: 'ex-1',
+    //                     order: 1,
+    //                     sets: 3,
+    //                     reps: 15,
+    //                     duration: 0,
+    //                     weight: 0,
+    //                     restTime: 60,
+    //                     notes: 'Keep your core tight',
+    //                     completed: false
+    //                 }
+    //             ],
+    //             muscleGroups: ['cardio', 'full-body'],
+    //             equipment: ['none'],
+    //             tags: ['morning', 'cardio', 'beginner-friendly'],
+    //             isPublic: true,
+    //             isSponsored: false,
+    //             likes: [],
+    //             likeCount: 45,
+    //             saves: [],
+    //             saveCount: 23,
+    //             shares: 12,
+    //             views: 1250,
+    //             completions: 89,
+    //             averageRating: 4.5,
+    //             totalRatings: 67,
+    //             caloriesBurned: 280,
+    //             createdAt: new Date('2024-01-15'),
+    //             updatedAt: new Date('2024-01-15'),
+    //             userId: 'user-1'
+    //         },
+    //         {
+    //             _id: 'mock-2',
+    //             name: 'Strength Training Fundamentals',
+    //             description: 'Learn the basics of strength training with proper form',
+    //             category: 'strength',
+    //             difficulty: 'beginner' as DifficultyLevel,
+    //             estimatedDuration: 45,
+    //             exercises: [
+    //                 {
+    //                     exerciseId: 'ex-2',
+    //                     order: 1,
+    //                     sets: 3,
+    //                     reps: 10,
+    //                     duration: 0,
+    //                     weight: 20,
+    //                     restTime: 90,
+    //                     notes: 'Focus on form over weight',
+    //                     completed: false
+    //                 }
+    //             ],
+    //             muscleGroups: ['chest', 'arms', 'core'],
+    //             equipment: ['dumbbells', 'bench'],
+    //             tags: ['strength', 'beginner', 'fundamentals'],
+    //             isPublic: true,
+    //             isSponsored: true,
+    //             sponsorData: {
+    //                 sponsorId: 'sponsor-1',
+    //                 campaignId: 'campaign-1',
+    //                 rate: 250,
+    //                 type: 'guide',
+    //                 disclosure: 'This workout is sponsored by FitGear Pro'
+    //             },
+    //             likes: [],
+    //             likeCount: 78,
+    //             saves: [],
+    //             saveCount: 45,
+    //             shares: 23,
+    //             views: 2100,
+    //             completions: 156,
+    //             averageRating: 4.8,
+    //             totalRatings: 89,
+    //             caloriesBurned: 320,
+    //             createdAt: new Date('2024-01-10'),
+    //             updatedAt: new Date('2024-01-12'),
+    //             userId: 'user-2'
+    //         }
+    //     ];
+
+    //     // Apply filters to mock data
+    //     let filteredWorkouts = [...mockWorkouts];
+
+    //     if (params.filters?.search) {
+    //         const searchTerm = params.filters.search.toLowerCase(); filteredWorkouts = filteredWorkouts.filter(w =>
+    //             w.name.toLowerCase().includes(searchTerm) ||
+    //             (w.description?.toLowerCase().includes(searchTerm) || false)
+    //         );
+    //     }
+
+    //     if (params.filters?.category) {
+    //         filteredWorkouts = filteredWorkouts.filter(w => w.category === params.filters?.category);
+    //     }
+
+    //     if (params.filters?.difficulty) {
+    //         filteredWorkouts = filteredWorkouts.filter(w => w.difficulty === params.filters?.difficulty);
+    //     }
+
+    //     if (params.filters?.isSponsored !== undefined) {
+    //         filteredWorkouts = filteredWorkouts.filter(w => w.isSponsored === params.filters?.isSponsored);
+    //     }
+
+    //     // Apply pagination
+    //     const page = params.page || 1;
+    //     const limit = params.limit || 12;
+    //     const startIndex = (page - 1) * limit;
+    //     const endIndex = startIndex + limit;
+    //     const paginatedWorkouts = filteredWorkouts.slice(startIndex, endIndex);
+
+    //     return {
+    //         data: paginatedWorkouts,
+    //         pagination: {
+    //             currentPage: page,
+    //             totalPages: Math.ceil(filteredWorkouts.length / limit),
+    //             totalItems: filteredWorkouts.length,
+    //             itemsPerPage: limit,
+    //             hasNextPage: endIndex < filteredWorkouts.length,
+    //             hasPrevPage: page > 1
+    //         }
+    //     };
+    // }
+}
+
+export default WorkoutService;

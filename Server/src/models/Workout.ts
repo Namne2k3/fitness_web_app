@@ -10,6 +10,12 @@ import { Workout, WorkoutExercise } from '../types';
  * Workout document interface for Mongoose
  */
 export interface IWorkout extends Omit<Workout, '_id'>, Document {
+    // Virtual properties
+    exerciseCount: number;
+    totalEstimatedTime: number;
+    hasRatings: boolean;
+
+    // Instance methods
     isOwnedBy(userId: string): boolean;
     addLike(userId: string): Promise<IWorkout>;
     removeLike(userId: string): Promise<IWorkout>;
@@ -302,6 +308,9 @@ WorkoutSchema.methods.isOwnedBy = function (this: IWorkout, userId: string): boo
  * Add like from user
  */
 WorkoutSchema.methods.addLike = function (this: IWorkout, userId: string): Promise<IWorkout> {
+    if (!this.likes) {
+        this.likes = [];
+    }
     if (!this.likes.includes(userId as any)) {
         this.likes.push(userId as any);
         this.likeCount = this.likes.length;
@@ -313,6 +322,9 @@ WorkoutSchema.methods.addLike = function (this: IWorkout, userId: string): Promi
  * Remove like from user
  */
 WorkoutSchema.methods.removeLike = function (this: IWorkout, userId: string): Promise<IWorkout> {
+    if (!this.likes) {
+        this.likes = [];
+    }
     this.likes = this.likes.filter(id => id.toString() !== userId);
     this.likeCount = this.likes.length;
     return this.save();
@@ -322,6 +334,9 @@ WorkoutSchema.methods.removeLike = function (this: IWorkout, userId: string): Pr
  * Add save from user
  */
 WorkoutSchema.methods.addSave = function (this: IWorkout, userId: string): Promise<IWorkout> {
+    if (!this.saves) {
+        this.saves = [];
+    }
     if (!this.saves.includes(userId as any)) {
         this.saves.push(userId as any);
         this.saveCount = this.saves.length;
@@ -333,6 +348,9 @@ WorkoutSchema.methods.addSave = function (this: IWorkout, userId: string): Promi
  * Remove save from user
  */
 WorkoutSchema.methods.removeSave = function (this: IWorkout, userId: string): Promise<IWorkout> {
+    if (!this.saves) {
+        this.saves = [];
+    }
     this.saves = this.saves.filter(id => id.toString() !== userId);
     this.saveCount = this.saves.length;
     return this.save();
@@ -353,7 +371,7 @@ WorkoutSchema.methods.calculateTotalCalories = function (this: IWorkout): number
     if (!this.exercises || this.exercises.length === 0) return 0;
 
     // Basic calculation: ~5 calories per minute of exercise
-    const estimatedMinutes = this.totalEstimatedTime || this.estimatedDuration || 30;
+    const estimatedMinutes = (this as any).totalEstimatedTime || this.estimatedDuration || 30;
     return Math.round(estimatedMinutes * 5);
 };
 

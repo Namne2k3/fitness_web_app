@@ -149,7 +149,7 @@ const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
         <Box sx={{ mb: 4 }}>
             <Container maxWidth="xl">
                 {/* Main Title */}
-                <Box sx={{ textAlign: 'center', mb: 4 }}>
+                {/* <Box sx={{ textAlign: 'center', mb: 4 }}>
                     <Typography
                         variant="h2"
                         component="h1"
@@ -172,7 +172,7 @@ const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
                     >
                         Tìm kiếm và khám phá hàng ngàn workout được thiết kế bởi các chuyên gia và cộng đồng fitness
                     </Typography>
-                </Box>
+                </Box> */}
 
                 {/* Stats & Actions */}
                 <Box sx={{
