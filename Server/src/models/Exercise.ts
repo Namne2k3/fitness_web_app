@@ -13,6 +13,9 @@ export interface IExercise extends Omit<Exercise, '_id'>, Document {
     isApprovedForUse(): boolean;
     addVariation(variation: ExerciseVariation): Promise<IExercise>;
     calculateDifficulty(): string;
+    // ✅ Add virtual property to interface
+    readonly hasSafetyConcerns: boolean;
+    readonly variationCount: number;
 }
 
 /**
@@ -102,32 +105,32 @@ const ExerciseSchema = new Schema<IExercise>({
         index: true
     },
 
-    // Media fields
+    // Media files
     images: [{
-        type: String,
+        type: String, // Cloudinary URLs
         validate: {
             validator: function (v: string) {
-                return /^https?:\/\/.+/.test(v);
+                return /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(v);
             },
-            message: 'Image must be a valid URL'
+            message: 'Invalid image URL format'
         }
     }],
     videoUrl: {
         type: String,
         validate: {
             validator: function (v: string) {
-                return !v || /^https?:\/\/.+/.test(v);
+                return !v || /^https?:\/\/.+\.(mp4|webm|ogg)$/i.test(v);
             },
-            message: 'Video URL must be valid'
+            message: 'Invalid video URL format'
         }
     },
     gifUrl: {
         type: String,
         validate: {
             validator: function (v: string) {
-                return !v || /^https?:\/\/.+/.test(v);
+                return !v || /^https?:\/\/.+\.gif$/i.test(v);
             },
-            message: 'GIF URL must be valid'
+            message: 'Invalid GIF URL format'
         }
     },
 
@@ -135,12 +138,14 @@ const ExerciseSchema = new Schema<IExercise>({
     caloriesPerMinute: {
         type: Number,
         min: [0, 'Calories per minute cannot be negative'],
-        max: [50, 'Calories per minute seems too high']
+        max: [50, 'Calories per minute cannot exceed 50'],
+        default: 0
     },
     averageIntensity: {
         type: Number,
         min: [1, 'Intensity must be at least 1'],
-        max: [10, 'Intensity cannot exceed 10']
+        max: [10, 'Intensity cannot exceed 10'],
+        default: 5
     },
 
     // Variations
@@ -166,8 +171,7 @@ const ExerciseSchema = new Schema<IExercise>({
     },
     createdBy: {
         type: Schema.Types.ObjectId,
-        ref: 'User',
-        required: [true, 'Created by user ID is required']
+        ref: 'User'
     }
 }, {
     timestamps: true,
@@ -176,10 +180,9 @@ const ExerciseSchema = new Schema<IExercise>({
 });
 
 // ================================
-// 🔍 Indexes for Performance
+// 🎯 Indexes
 // ================================
-
-ExerciseSchema.index({ name: 1 }); // unique already creates index
+ExerciseSchema.index({ name: 1 }); // unique already applied
 ExerciseSchema.index({ category: 1, difficulty: 1 });
 ExerciseSchema.index({ primaryMuscleGroups: 1 });
 ExerciseSchema.index({ equipment: 1 });
@@ -193,22 +196,23 @@ ExerciseSchema.index({
 });
 
 // ================================
-// 📊 Virtual Properties
+// 🎯 Virtual Properties
 // ================================
 
 /**
  * Calculate total variations count
  */
 ExerciseSchema.virtual('variationCount').get(function (this: IExercise) {
-    return this.variations ? this.variations.length : 0;
+    return this.variations?.length || 0;
 });
 
 /**
- * Check if exercise has safety concerns
+ * ✅ FIXED: Check if exercise has safety concerns
  */
 ExerciseSchema.virtual('hasSafetyConcerns').get(function (this: IExercise) {
-    return (this.precautions && this.precautions.length > 0) ||
-        (this.contraindications && this.contraindications.length > 0);
+    const hasPrecautions = Array.isArray(this.precautions) && this.precautions.length > 0;
+    const hasContraindications = Array.isArray(this.contraindications) && this.contraindications.length > 0;
+    return hasPrecautions || hasContraindications;
 });
 
 // ================================
@@ -223,41 +227,46 @@ ExerciseSchema.methods.isApprovedForUse = function (this: IExercise): boolean {
 };
 
 /**
- * Add a new variation to the exercise
+ * Add a new variation to this exercise
  */
-ExerciseSchema.methods.addVariation = function (this: IExercise, variation: ExerciseVariation): Promise<IExercise> {
+ExerciseSchema.methods.addVariation = async function (
+    this: IExercise,
+    variation: ExerciseVariation
+): Promise<IExercise> {
     if (!this.variations) {
         this.variations = [];
     }
     this.variations.push(variation);
-    return this.save();
+    return await this.save();
 };
 
 /**
- * Calculate difficulty score based on various factors
+ * ✅ FIXED: Calculate difficulty based on multiple factors
  */
 ExerciseSchema.methods.calculateDifficulty = function (this: IExercise): string {
     let score = 0;
 
-    // Base difficulty
-    switch (this.difficulty) {
-        case 'beginner': score += 1; break;
-        case 'intermediate': score += 2; break;
-        case 'advanced': score += 3; break;
-    }
+    // Base difficulty from instructions complexity
+    if (this.instructions && this.instructions.length > 5) score += 1;
+    if (this.instructions && this.instructions.length > 8) score += 1;
 
     // Equipment complexity
-    if (this.equipment.includes('bodyweight')) score += 0;
-    else if (this.equipment.includes('dumbbells')) score += 1;
-    else if (this.equipment.includes('machine')) score += 2;
+    if (this.equipment?.includes('bodyweight')) score += 0;
+    else if (this.equipment?.includes('dumbbells')) score += 1;
+    else if (this.equipment?.includes('machine')) score += 2;
     else score += 1.5;
 
     // Muscle groups involved
-    const totalMuscles = this.primaryMuscleGroups.length + (this.secondaryMuscleGroups?.length || 0);
+    const primaryCount = this.primaryMuscleGroups?.length || 0;
+    const secondaryCount = this.secondaryMuscleGroups?.length || 0;
+    const totalMuscles = primaryCount + secondaryCount;
     if (totalMuscles >= 3) score += 1;
 
-    // Safety considerations
+    // ✅ FIXED: Use getter method instead of direct property access
     if (this.hasSafetyConcerns) score += 0.5;
+
+    // Intensity factor
+    if (this.averageIntensity && this.averageIntensity >= 8) score += 1;
 
     if (score <= 2) return 'beginner';
     if (score <= 4) return 'intermediate';
@@ -269,13 +278,13 @@ ExerciseSchema.methods.calculateDifficulty = function (this: IExercise): string 
 // ================================
 
 /**
- * Find exercises by muscle group
+ * Find exercises by muscle groups
  */
-ExerciseSchema.statics.findByMuscleGroup = function (muscleGroup: string) {
+ExerciseSchema.statics.findByMuscleGroups = function (muscleGroups: string[]) {
     return this.find({
         $or: [
-            { primaryMuscleGroups: muscleGroup },
-            { secondaryMuscleGroups: muscleGroup }
+            { primaryMuscleGroups: { $in: muscleGroups } },
+            { secondaryMuscleGroups: { $in: muscleGroups } }
         ],
         isApproved: true
     });
@@ -292,38 +301,51 @@ ExerciseSchema.statics.findByEquipment = function (equipment: string[]) {
 };
 
 /**
- * Get beginner-friendly exercises
+ * Get exercises by difficulty level
  */
-ExerciseSchema.statics.getBeginnerExercises = function () {
+ExerciseSchema.statics.findByDifficulty = function (difficulty: string) {
     return this.find({
-        difficulty: 'beginner',
-        isApproved: true,
-        $or: [
-            { contraindications: { $size: 0 } },
-            { contraindications: { $exists: false } }
-        ]
-    }).limit(20);
+        difficulty: difficulty,
+        isApproved: true
+    });
 };
 
 // ================================
-// 🔄 Middleware Hooks
+// 🔧 Middleware
 // ================================
 
 /**
- * Pre-save middleware
+ * Pre-save middleware to auto-calculate difficulty if not set
  */
 ExerciseSchema.pre('save', function (this: IExercise, next) {
-    // Auto-calculate difficulty if not set
-    if (!this.difficulty) {
+    if (!this.difficulty || this.isModified('instructions') || this.isModified('equipment')) {
         this.difficulty = this.calculateDifficulty() as any;
     }
+    next();
+});
 
+/**
+ * Pre-save validation
+ */
+ExerciseSchema.pre('save', function (this: IExercise, next) {
     // Ensure at least one instruction
     if (!this.instructions || this.instructions.length === 0) {
-        return next(new Error('Exercise must have at least one instruction step'));
+        const error = new Error('Exercise must have at least one instruction step');
+        return next(error);
+    }
+
+    // Ensure primary muscle groups exist
+    if (!this.primaryMuscleGroups || this.primaryMuscleGroups.length === 0) {
+        const error = new Error('Exercise must target at least one primary muscle group');
+        return next(error);
     }
 
     next();
 });
 
+/**
+ * Create and export the model
+ */
 export const ExerciseModel = mongoose.model<IExercise>('Exercise', ExerciseSchema);
+
+export default ExerciseModel;
