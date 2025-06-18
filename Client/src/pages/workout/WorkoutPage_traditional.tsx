@@ -156,7 +156,7 @@ const WorkoutPage: React.FC = () => {
 
     useEffect(() => {
         fetchWorkouts();
-    }, []);
+    }, [fetchWorkouts]);
 
     // Event handlers
     const handleFiltersChange = (filters: FilterState) => {

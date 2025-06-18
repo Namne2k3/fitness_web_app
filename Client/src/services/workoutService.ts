@@ -78,7 +78,7 @@ export class WorkoutService {    /**
             const apiResponse = {
                 success: response.success,
                 error: response.error,
-                data: response.data.data as WorkoutListResponse
+                data: response.data as WorkoutListResponse
             };
 
             if (!apiResponse.success) {
@@ -88,14 +88,14 @@ export class WorkoutService {    /**
             // Transform server response to match client expectations
             const serverData = apiResponse.data;
             return {
-                data: serverData || [],
+                data: serverData.data || [],
                 pagination: {
-                    currentPage: serverData.currentPage || 1,
-                    totalPages: serverData.totalPages || 1,
-                    totalItems: serverData.totalItems || 0,
-                    itemsPerPage: serverData.itemsPerPage || 12,
-                    hasNextPage: serverData.hasNextPage || false,
-                    hasPrevPage: serverData.hasPrevPage || false
+                    currentPage: serverData.pagination.currentPage || 1,
+                    totalPages: serverData.pagination.totalPages || 1,
+                    totalItems: serverData.pagination.totalItems || 0,
+                    itemsPerPage: serverData.pagination.itemsPerPage || 12,
+                    hasNextPage: serverData.pagination.hasNextPage || false,
+                    hasPrevPage: serverData.pagination.hasPrevPage || false
                 }
             };
         } catch (error) {
