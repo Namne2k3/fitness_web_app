@@ -45,8 +45,16 @@ export interface ApiResponse<T> {
 
 export interface PaginatedResult<T> {
     data: T[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
+    pagination?: {
+        currentPage?: number;
+        hasNextPage?: boolean;
+        hasPrevPage?: boolean;
+        itemsPerPage?: number;
+        totalItems?: number;
+        totalPages?: number;
+    };
+    sort?: {
+        field?: string;
+        order?: 'asc' | 'desc';
+    };
 }
