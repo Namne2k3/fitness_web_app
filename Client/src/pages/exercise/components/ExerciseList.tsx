@@ -7,11 +7,6 @@ import React, { useState, useTransition } from 'react';
 import {
     Box,
     Grid,
-    List as MuiList,
-    ListItem,
-    ListItemButton,
-    ListItemText,
-    ListItemAvatar,
     Avatar,
     Typography,
     Card,
@@ -24,6 +19,7 @@ import {
     Alert,
     Button,
     Stack,
+    Paper,
     useTheme,
     CircularProgress
 } from '@mui/material';
@@ -39,6 +35,7 @@ import { useExercises } from '../../../hooks/useExercises';
 import { ExerciseListParams } from '../../../services/exerciseService';
 import { Exercise } from '../../../types';
 import ExerciseCard from './ExerciseCard';
+import { getCategoryIcon, getDifficultyLabel, getDifficultyColor, getCategoryLabel } from '../helpers';
 
 interface ExerciseListProps {
     params: ExerciseListParams;
@@ -286,131 +283,320 @@ const ExerciseGridView: React.FC<ViewProps> = ({ exercises, onExerciseClick }) =
 };
 
 // ================================
-// 📋 List View Component
+// 📋 List View Component - Enhanced Beautiful Design
 // ================================
 const ExerciseListView: React.FC<ViewProps> = ({ exercises, onExerciseClick }) => {
     const theme = useTheme();
 
     return (
-        <MuiList sx={{
-            bgcolor: 'background.paper',
-            borderRadius: 3,
-            border: '1px solid rgba(0,0,0,0.06)',
-            overflow: 'hidden',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
-        }}>
+        <Stack spacing={2}>
             {exercises.map((exercise, index) => (
                 <Fade key={exercise._id} in timeout={300 + index * 50}>
-                    <ListItem
-                        disablePadding
+                    <Paper
+                        elevation={0}
                         sx={{
-                            borderBottom: index !== exercises.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none'
-                        }}
-                    >
-                        <ListItemButton
-                            onClick={() => onExerciseClick(exercise)}
-                            sx={{
-                                py: 2,
-                                px: 3,
-                                transition: 'all 0.3s ease',
-                                '&:hover': {
-                                    bgcolor: 'rgba(25, 118, 210, 0.04)',
-                                    transform: 'translateX(8px)',
-                                    boxShadow: '0 4px 20px rgba(25, 118, 210, 0.15)'
+                            borderRadius: 4,
+                            overflow: 'hidden',
+                            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%)',
+                            border: '1px solid rgba(0,0,0,0.04)',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            position: 'relative',
+                            cursor: 'pointer',
+                            '&:hover': {
+                                transform: 'translateY(-4px)',
+                                boxShadow: '0 20px 40px rgba(0,0,0,0.12)',
+                                '& .exercise-image': {
+                                    transform: 'scale(1.05)',
+                                },
+                                '& .exercise-overlay': {
+                                    opacity: 1,
+                                },
+                                '& .action-button': {
+                                    transform: 'scale(1.1)',
+                                    bgcolor: theme.palette.primary.dark,
                                 }
+                            }
+                        }}
+                        onClick={() => onExerciseClick(exercise)}
+                    >
+                        {/* Gradient Overlay */}
+                        <Box
+                            className="exercise-overlay"
+                            sx={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.02) 0%, rgba(255, 152, 0, 0.02) 100%)',
+                                opacity: 0,
+                                transition: 'opacity 0.3s ease',
+                                zIndex: 1,
                             }}
-                        >
-                            <ListItemAvatar>
+                        />
+
+                        <Box sx={{ display: 'flex', p: 3, alignItems: 'center', gap: 3, position: 'relative', zIndex: 2 }}>                            {/* Exercise Image/Avatar */}
+                            <Box sx={{ position: 'relative' }}>
                                 <Avatar
                                     src={exercise.images?.[0]}
+                                    className="exercise-image"
                                     sx={{
-                                        width: 56,
-                                        height: 56,
-                                        bgcolor: theme.palette.primary.main,
-                                        border: '2px solid rgba(255,255,255,0.9)',
-                                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                                        width: 80,
+                                        height: 80,
+                                        bgcolor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                        border: '3px solid rgba(255,255,255,0.9)',
+                                        boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                                        transition: 'all 0.3s ease',
+                                        '& .MuiAvatar-img': {
+                                            borderRadius: '50%',
+                                        }
                                     }}
                                 >
-                                    <FitnessCenter />
+                                    <FitnessCenter sx={{ fontSize: 32, color: 'white' }} />
                                 </Avatar>
-                            </ListItemAvatar>
 
-                            <ListItemText
-                                primary={
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 0.5 }}>
-                                        <Typography variant="h6" sx={{ fontWeight: 600, flexGrow: 1 }}>
-                                            {exercise.name}
-                                        </Typography>
-                                        <Chip
-                                            label={getDifficultyLabel(exercise.difficulty)}
-                                            size="small"
-                                            color={getDifficultyColor(exercise.difficulty)}
-                                            sx={{ fontWeight: 600 }}
-                                        />
-                                    </Box>
-                                }
-                                secondary={
-                                    <Box>
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                            sx={{ mb: 1, lineHeight: 1.4 }}
+                                {/* Category Badge - Moved to avatar overlay */}
+                                <Box
+                                    sx={{
+                                        position: 'absolute',
+                                        top: -8,
+                                        left: -8,
+                                        bgcolor: 'rgba(255, 152, 0, 0.9)',
+                                        color: 'white',
+                                        borderRadius: '50%',
+                                        width: 32,
+                                        height: 32,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '1rem',
+                                        border: '2px solid white',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                                    }}
+                                >
+                                    {getCategoryIcon(exercise.category)}
+                                </Box>
+                            </Box>
+
+                            {/* Exercise Details */}
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                                {/* Title Row */}
+                                <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
+                                    <Typography
+                                        variant="h6"
+                                        sx={{
+                                            fontWeight: 700,
+                                            fontSize: '1.1rem',
+                                            color: 'text.primary',
+                                            lineHeight: 1.3,
+                                            flex: 1,
+                                            minWidth: 0,
+                                            mr: 2
+                                        }}
+                                    >
+                                        {exercise.name}
+                                    </Typography>
+
+                                    {/* Difficulty Badge - Moved to top right */}
+                                    <Chip
+                                        label={getDifficultyLabel(exercise.difficulty)}
+                                        size="small"
+                                        color={getDifficultyColor(exercise.difficulty)}
+                                        sx={{
+                                            fontWeight: 700,
+                                            fontSize: '0.7rem',
+                                            height: 24,
+                                            '& .MuiChip-label': {
+                                                px: 1.5,
+                                            }
+                                        }}
+                                    />
+                                </Box>
+
+                                {/* Category Label Row */}
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            color: 'warning.main',
+                                            fontWeight: 600,
+                                            fontSize: '0.8rem',
+                                            bgcolor: 'rgba(255, 152, 0, 0.1)',
+                                            px: 1,
+                                            py: 0.25,
+                                            borderRadius: 1,
+                                            border: '1px solid rgba(255, 152, 0, 0.2)'
+                                        }}
+                                    >
+                                        {getCategoryLabel(exercise.category)}
+                                    </Typography>
+                                </Box>
+
+                                {/* Description */}
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    sx={{
+                                        mb: 2,
+                                        lineHeight: 1.5,
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                    }}
+                                >
+                                    {exercise.description || 'No description available'}
+                                </Typography>
+
+                                {/* Metrics Row */}
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 3,
+                                        flexWrap: 'wrap'
+                                    }}
+                                >
+                                    {/* Muscle Groups */}
+                                    {exercise.primaryMuscleGroups && exercise.primaryMuscleGroups.length > 0 && (
+                                        <Box
+                                            sx={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 0.5,
+                                                bgcolor: 'rgba(25, 118, 210, 0.08)',
+                                                px: 1.5,
+                                                py: 0.5,
+                                                borderRadius: 2,
+                                                border: '1px solid rgba(25, 118, 210, 0.12)'
+                                            }}
                                         >
-                                            {exercise.description?.substring(0, 100)}
-                                            {exercise.description && exercise.description.length > 100 && '...'}
-                                        </Typography>
-
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                                            {/* Category */}
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                                {getCategoryIcon(exercise.category)}
-                                                <Typography variant="caption" color="text.secondary">
-                                                    {getCategoryLabel(exercise.category)}
-                                                </Typography>
-                                            </Box>
-
-                                            {/* Muscle Groups */}
-                                            {exercise.primaryMuscleGroups && exercise.primaryMuscleGroups.length > 0 && (
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        🎯 {exercise.primaryMuscleGroups[0]}
-                                                        {exercise.primaryMuscleGroups.length > 1 && ` +${exercise.primaryMuscleGroups.length - 1}`}
-                                                    </Typography>
-                                                </Box>
-                                            )}
-
-                                            {/* Intensity */}
-                                            {exercise.averageIntensity && (
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                                    <LocalFireDepartment sx={{ fontSize: 14, color: 'warning.main' }} />
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        {exercise.averageIntensity}/10
-                                                    </Typography>
-                                                </Box>
-                                            )}
+                                            <Box sx={{ fontSize: '0.75rem' }}>🎯</Box>
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    color: 'primary.main',
+                                                    fontWeight: 600,
+                                                    fontSize: '0.75rem'
+                                                }}
+                                            >
+                                                {exercise.primaryMuscleGroups[0]}
+                                                {exercise.primaryMuscleGroups.length > 1 && ` +${exercise.primaryMuscleGroups.length - 1}`}
+                                            </Typography>
                                         </Box>
-                                    </Box>
-                                }
-                            />
+                                    )}
 
-                            <IconButton
-                                sx={{
-                                    ml: 2,
-                                    bgcolor: theme.palette.primary.main,
-                                    color: 'white',
-                                    '&:hover': {
-                                        bgcolor: theme.palette.primary.dark,
-                                        transform: 'scale(1.1)'
-                                    }
-                                }}
-                            >
-                                <PlayArrow />
-                            </IconButton>
-                        </ListItemButton>
-                    </ListItem>
+                                    {/* Intensity */}
+                                    {exercise.averageIntensity && (
+                                        <Box
+                                            sx={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 0.5,
+                                                bgcolor: 'rgba(255, 152, 0, 0.08)',
+                                                px: 1.5,
+                                                py: 0.5,
+                                                borderRadius: 2,
+                                                border: '1px solid rgba(255, 152, 0, 0.12)'
+                                            }}
+                                        >
+                                            <LocalFireDepartment sx={{ fontSize: 14, color: 'warning.main' }} />
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    color: 'warning.main',
+                                                    fontWeight: 600,
+                                                    fontSize: '0.75rem'
+                                                }}
+                                            >
+                                                {exercise.averageIntensity}/10
+                                            </Typography>
+                                        </Box>
+                                    )}
+
+                                    {/* Equipment */}
+                                    {exercise.equipment && exercise.equipment.length > 0 && (
+                                        <Box
+                                            sx={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 0.5,
+                                                bgcolor: 'rgba(76, 175, 80, 0.08)',
+                                                px: 1.5,
+                                                py: 0.5,
+                                                borderRadius: 2,
+                                                border: '1px solid rgba(76, 175, 80, 0.12)'
+                                            }}
+                                        >
+                                            <Box sx={{ fontSize: '0.75rem' }}>🏋️</Box>
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    color: 'success.main',
+                                                    fontWeight: 600,
+                                                    fontSize: '0.75rem'
+                                                }}
+                                            >
+                                                {exercise.equipment[0]}
+                                                {exercise.equipment.length > 1 && ` +${exercise.equipment.length - 1}`}
+                                            </Typography>
+                                        </Box>
+                                    )}
+                                </Box>
+                            </Box>
+
+                            {/* Action Button */}
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                                <IconButton
+                                    className="action-button"
+                                    sx={{
+                                        width: 48,
+                                        height: 48,
+                                        bgcolor: theme.palette.primary.main,
+                                        color: 'white',
+                                        boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
+                                        transition: 'all 0.3s ease',
+                                        '&:hover': {
+                                            bgcolor: theme.palette.primary.dark,
+                                            transform: 'scale(1.1)',
+                                            boxShadow: '0 6px 20px rgba(25, 118, 210, 0.4)',
+                                        }
+                                    }}
+                                >
+                                    <PlayArrow sx={{ fontSize: 24 }} />
+                                </IconButton>
+
+                                <Typography
+                                    variant="caption"
+                                    sx={{
+                                        color: 'text.secondary',
+                                        fontWeight: 500,
+                                        fontSize: '0.7rem'
+                                    }}
+                                >
+                                    Start
+                                </Typography>
+                            </Box>
+                        </Box>
+
+                        {/* Progress Bar Accent */}
+                        <Box
+                            sx={{
+                                position: 'absolute',
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                height: 3,
+                                background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                                opacity: 0.6,
+                            }}
+                        />
+                    </Paper>
                 </Fade>
             ))}
-        </MuiList>
+        </Stack>
     );
 };
 
@@ -424,24 +610,34 @@ interface SkeletonProps {
 const ExerciseListSkeleton: React.FC<SkeletonProps> = ({ viewMode }) => {
     if (viewMode === 'list') {
         return (
-            <MuiList sx={{ bgcolor: 'background.paper', borderRadius: 3 }}>
+            <Stack spacing={2}>
                 {[...Array(6)].map((_, index) => (
-                    <ListItem key={index} sx={{ py: 2 }}>
-                        <ListItemAvatar>
-                            <Skeleton variant="circular" width={56} height={56} />
-                        </ListItemAvatar>
-                        <ListItemText
-                            primary={<Skeleton variant="text" width="60%" height={28} />}
-                            secondary={
-                                <Box>
-                                    <Skeleton variant="text" width="100%" height={20} />
-                                    <Skeleton variant="text" width="80%" height={20} />
+                    <Paper
+                        key={index}
+                        elevation={0}
+                        sx={{
+                            p: 3,
+                            borderRadius: 4,
+                            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%)',
+                            border: '1px solid rgba(0,0,0,0.04)',
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <Skeleton variant="circular" width={80} height={80} />
+                            <Box sx={{ flex: 1 }}>
+                                <Skeleton variant="text" width="60%" height={32} sx={{ mb: 1 }} />
+                                <Skeleton variant="text" width="100%" height={20} sx={{ mb: 2 }} />
+                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                    <Skeleton variant="rounded" width={80} height={24} />
+                                    <Skeleton variant="rounded" width={60} height={24} />
+                                    <Skeleton variant="rounded" width={70} height={24} />
                                 </Box>
-                            }
-                        />
-                    </ListItem>
+                            </Box>
+                            <Skeleton variant="circular" width={48} height={48} />
+                        </Box>
+                    </Paper>
                 ))}
-            </MuiList>
+            </Stack>
         );
     }
 
@@ -467,43 +663,5 @@ const ExerciseListSkeleton: React.FC<SkeletonProps> = ({ viewMode }) => {
     );
 };
 
-// ================================
-// 🔧 Helper Functions
-// ================================
-const getDifficultyColor = (difficulty: string): 'success' | 'warning' | 'error' => {
-    switch (difficulty) {
-        case 'beginner': return 'success';
-        case 'intermediate': return 'warning';
-        case 'advanced': return 'error';
-        default: return 'success';
-    }
-};
-
-const getDifficultyLabel = (difficulty: string): string => {
-    switch (difficulty) {
-        case 'beginner': return 'Người mới';
-        case 'intermediate': return 'Trung bình';
-        case 'advanced': return 'Nâng cao';
-        default: return 'Người mới';
-    }
-};
-
-const getCategoryIcon = (category: string) => {
-    switch (category) {
-        case 'strength': return '💪';
-        case 'cardio': return '❤️';
-        case 'flexibility': return '🧘';
-        default: return '🏋️';
-    }
-};
-
-const getCategoryLabel = (category: string): string => {
-    switch (category) {
-        case 'strength': return 'Sức mạnh';
-        case 'cardio': return 'Tim mạch';
-        case 'flexibility': return 'Linh hoạt';
-        default: return 'Khác';
-    }
-};
 
 export default ExerciseList;

@@ -1,26 +1,27 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /**
- * 🔍 ExerciseFilters - Horizontal Tab-Based Design
- * Khác biệt với WorkoutFilters: sử dụng tab navigation thay vì collapse sections
+ * 🔍 ExerciseFilters - Compact Horizontal Design
+ * Tối ưu không gian với inline filters và collapsible advanced options
  */
 
 import {
     Clear,
-    Search
+    Search,
+    FilterList
 } from '@mui/icons-material';
 import {
     Autocomplete,
     Box,
-    Button,
     Chip,
+    Collapse,
     InputAdornment,
     Paper,
     Slider,
     Stack,
-    Tab,
-    Tabs,
     TextField,
-    Typography
+    Typography,
+    IconButton,
+    Divider
 } from '@mui/material';
 import React, { useState, useTransition } from 'react';
 import { ExerciseListParams } from '../../../services/exerciseService';
@@ -68,8 +69,8 @@ const ExerciseFilters: React.FC<ExerciseFiltersProps> = ({
     onFiltersChange,
     totalResults
 }) => {
-    const [activeTab, setActiveTab] = useState(0);
-    const [isPending, startTransition] = useTransition();
+    const [showAdvanced, setShowAdvanced] = useState(false);
+    const [_, startTransition] = useTransition();
 
     const handleFilterChange = (key: string, value: unknown) => {
         startTransition(() => {
@@ -87,342 +88,551 @@ const ExerciseFilters: React.FC<ExerciseFiltersProps> = ({
         value !== undefined && value !== '' && (Array.isArray(value) ? value.length > 0 : true)
     );
 
-    return (
+    const activeFiltersCount = Object.values(filters || {}).filter(value =>
+        value !== undefined && value !== '' && (Array.isArray(value) ? value.length > 0 : true)
+    ).length; return (
         <Paper
             elevation={0}
             sx={{
-                borderRadius: 4,
-                border: '1px solid rgba(0,0,0,0.08)',
-                mb: 3,
+                borderRadius: 2,
+                border: '1px solid rgba(0,0,0,0.06)',
+                mb: 2,
                 overflow: 'hidden',
-                background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.02) 0%, rgba(25, 118, 210, 0.02) 100%)',
-                transition: 'all 0.3s ease'
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(248,250,252,0.98) 100%)',
+                transition: 'all 0.3s ease',
+                backdropFilter: 'blur(10px)'
             }}
         >
-            {/* Search Header */}
-            <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                <TextField
-                    fullWidth
-                    placeholder="🔍 Tìm kiếm bài tập theo tên..."
-                    value={filters?.search || ''}
-                    onChange={(e) => handleFilterChange('search', e.target.value)}
-                    size="medium"
-                    InputProps={{
-                        startAdornment: (
-                            <InputAdornment position="start">
-                                <Search sx={{ color: 'primary.main', fontSize: 22 }} />
-                            </InputAdornment>
-                        ),
-                        endAdornment: filters?.search && (
-                            <InputAdornment position="end">
-                                <Button
-                                    size="small"
-                                    onClick={() => handleFilterChange('search', '')}
-                                    sx={{ minWidth: 'auto', p: 0.5 }}
-                                >
-                                    <Clear fontSize="small" />
-                                </Button>
-                            </InputAdornment>
-                        )
-                    }}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            borderRadius: 3,
-                            fontSize: '1.1rem',
-                            fontWeight: 500,
-                            background: 'white',
-                            height: 52,
-                            '&:hover': {
-                                boxShadow: '0 4px 20px rgba(25, 118, 210, 0.12)',
-                            },
-                            '&.Mui-focused': {
-                                boxShadow: '0 6px 25px rgba(25, 118, 210, 0.2)',
-                            }
-                        },
-                    }}
-                />
-
-                {/* Results Counter & Clear */}
+            {/* Ultra Compact Filter Bar */}
+            <Box sx={{
+                p: { xs: 1.5, sm: 2 },
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                gap: { xs: 1.5, sm: 2 },
+                alignItems: { xs: 'stretch', sm: 'center' }
+            }}>
+                {/* Left: Search + Quick Filters */}
                 <Box sx={{
                     display: 'flex',
-                    justifyContent: 'space-between',
+                    gap: 1.5,
+                    flex: 1,
                     alignItems: 'center',
-                    mt: 2
+                    flexWrap: { xs: 'wrap', md: 'nowrap' }
                 }}>
-                    <Typography
-                        variant="h6"
+                    {/* Compact Search */}
+                    <TextField
+                        placeholder="🔍 Tìm kiếm..."
+                        value={filters?.search || ''}
+                        onChange={(e) => handleFilterChange('search', e.target.value)}
+                        size="small"
                         sx={{
-                            fontWeight: 700,
-                            color: 'primary.main',
-                            fontSize: '1.1rem'
+                            minWidth: { xs: '100%', sm: 200, md: 250 },
+                            flex: { xs: 'none', md: 1 },
+                            maxWidth: { md: 300 },
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 20,
+                                height: 36,
+                                fontSize: '0.85rem',
+                                background: 'white',
+                                border: '1px solid rgba(0,0,0,0.08)',
+                                '&:hover': {
+                                    boxShadow: '0 2px 12px rgba(25, 118, 210, 0.15)',
+                                    borderColor: 'primary.main'
+                                },
+                                '&.Mui-focused': {
+                                    boxShadow: '0 2px 12px rgba(25, 118, 210, 0.2)',
+                                }
+                            },
+                            '& .MuiInputBase-input': {
+                                py: 0.8
+                            }
                         }}
-                    >
-                        {totalResults.toLocaleString()} bài tập được tìm thấy
-                    </Typography>
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <Search sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                </InputAdornment>
+                            ),
+                            endAdornment: filters?.search && (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => handleFilterChange('search', '')}
+                                        sx={{ p: 0.25 }}
+                                    >
+                                        <Clear fontSize="small" />
+                                    </IconButton>
+                                </InputAdornment>
+                            )
+                        }}
+                    />
 
+                    {/* Quick Filter Chips - Inline */}
+                    <Box sx={{
+                        display: { xs: 'none', lg: 'flex' },
+                        gap: 0.5,
+                        alignItems: 'center'
+                    }}>
+                        {/* Category Chips */}
+                        <Chip
+                            label="💪"
+                            onClick={() => handleFilterChange('category', filters?.category === 'strength' ? '' : 'strength')}
+                            variant={filters?.category === 'strength' ? 'filled' : 'outlined'}
+                            color={filters?.category === 'strength' ? 'primary' : 'default'}
+                            size="small"
+                            sx={{
+                                borderRadius: 1.5,
+                                fontSize: '0.75rem',
+                                height: 24,
+                                minWidth: 32,
+                                '& .MuiChip-label': { px: 0.5 },
+                                '&:hover': { transform: 'scale(1.05)' }
+                            }}
+                        />
+                        <Chip
+                            label="❤️"
+                            onClick={() => handleFilterChange('category', filters?.category === 'cardio' ? '' : 'cardio')}
+                            variant={filters?.category === 'cardio' ? 'filled' : 'outlined'}
+                            color={filters?.category === 'cardio' ? 'primary' : 'default'}
+                            size="small"
+                            sx={{
+                                borderRadius: 1.5,
+                                fontSize: '0.75rem',
+                                height: 24,
+                                minWidth: 32,
+                                '& .MuiChip-label': { px: 0.5 },
+                                '&:hover': { transform: 'scale(1.05)' }
+                            }}
+                        />
+                        <Chip
+                            label="🧘"
+                            onClick={() => handleFilterChange('category', filters?.category === 'flexibility' ? '' : 'flexibility')}
+                            variant={filters?.category === 'flexibility' ? 'filled' : 'outlined'}
+                            color={filters?.category === 'flexibility' ? 'primary' : 'default'}
+                            size="small"
+                            sx={{
+                                borderRadius: 1.5,
+                                fontSize: '0.75rem',
+                                height: 24,
+                                minWidth: 32,
+                                '& .MuiChip-label': { px: 0.5 },
+                                '&:hover': { transform: 'scale(1.05)' }
+                            }}
+                        />
+
+                        <Divider orientation="vertical" flexItem sx={{ mx: 0.5, height: 20 }} />
+
+                        {/* Difficulty Chips */}
+                        <Chip
+                            label="🟢"
+                            onClick={() => handleFilterChange('difficulty', filters?.difficulty === 'beginner' ? '' : 'beginner')}
+                            variant={filters?.difficulty === 'beginner' ? 'filled' : 'outlined'}
+                            size="small"
+                            sx={{
+                                borderRadius: 1.5,
+                                fontSize: '0.75rem',
+                                height: 24,
+                                minWidth: 32,
+                                '& .MuiChip-label': { px: 0.5 },
+                                borderColor: '#4caf50',
+                                color: filters?.difficulty === 'beginner' ? 'white' : '#4caf50',
+                                backgroundColor: filters?.difficulty === 'beginner' ? '#4caf50' : 'transparent',
+                                '&:hover': {
+                                    backgroundColor: '#4caf50',
+                                    color: 'white',
+                                    transform: 'scale(1.05)'
+                                }
+                            }}
+                        />
+                        <Chip
+                            label="🟡"
+                            onClick={() => handleFilterChange('difficulty', filters?.difficulty === 'intermediate' ? '' : 'intermediate')}
+                            variant={filters?.difficulty === 'intermediate' ? 'filled' : 'outlined'}
+                            size="small"
+                            sx={{
+                                borderRadius: 1.5,
+                                fontSize: '0.75rem',
+                                height: 24,
+                                minWidth: 32,
+                                '& .MuiChip-label': { px: 0.5 },
+                                borderColor: '#ff9800',
+                                color: filters?.difficulty === 'intermediate' ? 'white' : '#ff9800',
+                                backgroundColor: filters?.difficulty === 'intermediate' ? '#ff9800' : 'transparent',
+                                '&:hover': {
+                                    backgroundColor: '#ff9800',
+                                    color: 'white',
+                                    transform: 'scale(1.05)'
+                                }
+                            }}
+                        />
+                        <Chip
+                            label="🔴"
+                            onClick={() => handleFilterChange('difficulty', filters?.difficulty === 'advanced' ? '' : 'advanced')}
+                            variant={filters?.difficulty === 'advanced' ? 'filled' : 'outlined'}
+                            size="small"
+                            sx={{
+                                borderRadius: 1.5,
+                                fontSize: '0.75rem',
+                                height: 24,
+                                minWidth: 32,
+                                '& .MuiChip-label': { px: 0.5 },
+                                borderColor: '#f44336',
+                                color: filters?.difficulty === 'advanced' ? 'white' : '#f44336',
+                                backgroundColor: filters?.difficulty === 'advanced' ? '#f44336' : 'transparent',
+                                '&:hover': {
+                                    backgroundColor: '#f44336',
+                                    color: 'white',
+                                    transform: 'scale(1.05)'
+                                }
+                            }}
+                        />
+                    </Box>
+                </Box>
+
+                {/* Right: Results + Actions */}
+                <Box sx={{
+                    display: 'flex',
+                    gap: 1,
+                    alignItems: 'center',
+                    flexShrink: 0
+                }}>
+                    {/* Results Counter - Compact */}
+                    <Box sx={{
+                        bgcolor: 'primary.main',
+                        color: 'white',
+                        px: 1.5,
+                        py: 0.5,
+                        borderRadius: 2,
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                        whiteSpace: 'nowrap',
+                        height: 28,
+                        display: 'flex',
+                        alignItems: 'center',
+                        boxShadow: '0 2px 8px rgba(25, 118, 210, 0.3)'
+                    }}>
+                        {totalResults.toLocaleString()}
+                    </Box>
+
+                    {/* Clear Button - Compact */}
                     {hasActiveFilters && (
-                        <Button
-                            startIcon={<Clear />}
+                        <IconButton
                             onClick={clearAllFilters}
-                            variant="outlined"
                             color="error"
                             size="small"
                             sx={{
-                                borderRadius: 2,
-                                textTransform: 'none',
-                                fontWeight: 600
+                                bgcolor: 'error.main',
+                                color: 'white',
+                                width: 28,
+                                height: 28,
+                                '&:hover': {
+                                    bgcolor: 'error.dark',
+                                    transform: 'scale(1.1)'
+                                }
                             }}
                         >
-                            Xóa tất cả bộ lọc
-                        </Button>
+                            <Clear fontSize="small" />
+                        </IconButton>
                     )}
+
+                    {/* Advanced Toggle - Compact */}
+                    <IconButton
+                        onClick={() => setShowAdvanced(!showAdvanced)}
+                        color={showAdvanced ? 'primary' : 'default'}
+                        size="small"
+                        sx={{
+                            bgcolor: showAdvanced ? 'primary.main' : 'rgba(0,0,0,0.06)',
+                            color: showAdvanced ? 'white' : 'text.secondary',
+                            width: 28,
+                            height: 28,
+                            position: 'relative',
+                            '&:hover': {
+                                bgcolor: showAdvanced ? 'primary.dark' : 'rgba(0,0,0,0.12)',
+                                transform: 'scale(1.1)'
+                            }
+                        }}
+                    >
+                        <FilterList fontSize="small" />
+                        {activeFiltersCount > 0 && (
+                            <Box sx={{
+                                position: 'absolute',
+                                top: -4,
+                                right: -4,
+                                bgcolor: 'error.main',
+                                color: 'white',
+                                borderRadius: '50%',
+                                width: 16,
+                                height: 16,
+                                fontSize: '0.6rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontWeight: 'bold'
+                            }}>
+                                {activeFiltersCount}
+                            </Box>
+                        )}
+                    </IconButton>
                 </Box>
             </Box>
 
-            {/* Filter Tabs Navigation */}
-            <Box sx={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                <Tabs
-                    value={activeTab}
-                    onChange={(_, newTab) => setActiveTab(newTab)}
-                    variant="fullWidth"
-                    sx={{
-                        '& .MuiTab-root': {
-                            minHeight: 60,
-                            fontWeight: 600,
-                            fontSize: '0.95rem',
-                            textTransform: 'none',
-                            px: 2,
-                            py: 1.5,
-                            color: 'text.secondary',
-                            transition: 'all 0.3s ease',
+            {/* Mobile Quick Filters - Show on mobile when search is not active */}
+            <Box sx={{
+                display: { xs: 'block', lg: 'none' },
+                px: { xs: 1.5, sm: 2 },
+                pb: { xs: 1.5, sm: 2 }
+            }}>
+                <Stack direction="row" spacing={0.5} sx={{
+                    flexWrap: 'wrap',
+                    gap: 0.5,
+                    '& > *': {
+                        marginTop: '0 !important'
+                    }
+                }}>
+                    <Chip
+                        label="💪 Sức mạnh"
+                        onClick={() => handleFilterChange('category', filters?.category === 'strength' ? '' : 'strength')}
+                        variant={filters?.category === 'strength' ? 'filled' : 'outlined'}
+                        color={filters?.category === 'strength' ? 'primary' : 'default'}
+                        size="small"
+                        sx={{
+                            borderRadius: 1.5,
+                            fontWeight: 500,
+                            fontSize: '0.7rem',
+                            height: 26,
+                            '&:hover': { transform: 'translateY(-1px)' }
+                        }}
+                    />
+                    <Chip
+                        label="❤️ Tim mạch"
+                        onClick={() => handleFilterChange('category', filters?.category === 'cardio' ? '' : 'cardio')}
+                        variant={filters?.category === 'cardio' ? 'filled' : 'outlined'}
+                        color={filters?.category === 'cardio' ? 'primary' : 'default'}
+                        size="small"
+                        sx={{
+                            borderRadius: 1.5,
+                            fontWeight: 500,
+                            fontSize: '0.7rem',
+                            height: 26,
+                            '&:hover': { transform: 'translateY(-1px)' }
+                        }}
+                    />
+                    <Chip
+                        label="🧘 Linh hoạt"
+                        onClick={() => handleFilterChange('category', filters?.category === 'flexibility' ? '' : 'flexibility')}
+                        variant={filters?.category === 'flexibility' ? 'filled' : 'outlined'}
+                        color={filters?.category === 'flexibility' ? 'primary' : 'default'}
+                        size="small"
+                        sx={{
+                            borderRadius: 1.5,
+                            fontWeight: 500,
+                            fontSize: '0.7rem',
+                            height: 26,
+                            '&:hover': { transform: 'translateY(-1px)' }
+                        }}
+                    />
+                    <Chip
+                        label="🟢 Mới"
+                        onClick={() => handleFilterChange('difficulty', filters?.difficulty === 'beginner' ? '' : 'beginner')}
+                        variant={filters?.difficulty === 'beginner' ? 'filled' : 'outlined'}
+                        size="small"
+                        sx={{
+                            borderRadius: 1.5,
+                            fontWeight: 500,
+                            fontSize: '0.7rem',
+                            height: 26,
+                            borderColor: '#4caf50',
+                            color: filters?.difficulty === 'beginner' ? 'white' : '#4caf50',
+                            backgroundColor: filters?.difficulty === 'beginner' ? '#4caf50' : 'transparent',
                             '&:hover': {
-                                background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.08) 0%, rgba(25, 118, 210, 0.08) 100%)',
-                                color: 'primary.main',
-                            },
-                            '&.Mui-selected': {
-                                background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.12) 0%, rgba(25, 118, 210, 0.12) 100%)',
-                                color: 'primary.main',
-                                fontWeight: 700,
-                            },
-                        },
-                        '& .MuiTabs-indicator': {
-                            height: 4,
-                            background: 'linear-gradient(90deg, #ff9800 0%, #1976d2 100%)',
-                            borderRadius: '2px 2px 0 0',
-                        },
-                    }}
-                >
-                    <Tab
-                        icon={<span style={{ fontSize: '1.2rem', marginBottom: 4 }}>🏋️</span>}
-                        label="Loại bài tập"
-                    />
-                    <Tab
-                        icon={<span style={{ fontSize: '1.2rem', marginBottom: 4 }}>📊</span>}
-                        label="Độ khó"
-                    />
-                    <Tab
-                        icon={<span style={{ fontSize: '1.2rem', marginBottom: 4 }}>🎯</span>}
-                        label="Nhóm cơ"
-                    />
-                    <Tab
-                        icon={<span style={{ fontSize: '1.2rem', marginBottom: 4 }}>⚙️</span>}
-                        label="Nâng cao"
-                    />
-                </Tabs>
-            </Box>
-
-            {/* Tab Content */}
-            <Box sx={{ p: 3 }}>
-                {/* Category Tab */}
-                {activeTab === 0 && (
-                    <Box>
-                        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: 'text.primary' }}>
-                            Chọn loại bài tập
-                        </Typography>
-                        <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1.5 }}>
-                            <Chip
-                                label="🏋️ Tất cả"
-                                onClick={() => handleFilterChange('category', '')}
-                                variant={!filters?.category ? 'filled' : 'outlined'}
-                                color={!filters?.category ? 'primary' : 'default'}
-                                sx={{
-                                    borderRadius: 3,
-                                    fontWeight: 600,
-                                    fontSize: '0.9rem',
-                                    height: 40,
-                                    px: 2,
-                                    transition: 'all 0.2s ease',
-                                    cursor: 'pointer',
-                                    '&:hover': {
-                                        transform: 'translateY(-2px)',
-                                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                    }
-                                }}
-                            />
-                            {filterTabs.category.options.map((option) => (
-                                <Chip
-                                    key={option.value}
-                                    label={`${option.icon} ${option.label}`}
-                                    onClick={() => handleFilterChange('category', option.value)}
-                                    variant={filters?.category === option.value ? 'filled' : 'outlined'}
-                                    color={filters?.category === option.value ? 'primary' : 'default'}
-                                    sx={{
-                                        borderRadius: 3,
-                                        fontWeight: 600,
-                                        fontSize: '0.9rem',
-                                        height: 40,
-                                        px: 2,
-                                        transition: 'all 0.2s ease',
-                                        cursor: 'pointer',
-                                        '&:hover': {
-                                            transform: 'translateY(-2px)',
-                                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                        }
-                                    }}
-                                />
-                            ))}
-                        </Stack>
-                    </Box>
-                )}
-
-                {/* Difficulty Tab */}
-                {activeTab === 1 && (
-                    <Box>
-                        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: 'text.primary' }}>
-                            Chọn độ khó phù hợp
-                        </Typography>
-                        <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1.5 }}>
-                            <Chip
-                                label="📊 Tất cả"
-                                onClick={() => handleFilterChange('difficulty', '')}
-                                variant={!filters?.difficulty ? 'filled' : 'outlined'}
-                                color={!filters?.difficulty ? 'primary' : 'default'}
-                                sx={{
-                                    borderRadius: 3,
-                                    fontWeight: 600,
-                                    fontSize: '0.9rem',
-                                    height: 40,
-                                    px: 2,
-                                    transition: 'all 0.2s ease',
-                                    cursor: 'pointer',
-                                    '&:hover': {
-                                        transform: 'translateY(-2px)',
-                                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                    }
-                                }}
-                            />
-                            {filterTabs.difficulty.options.map((option) => (
-                                <Chip
-                                    key={option.value}
-                                    label={option.label}
-                                    onClick={() => handleFilterChange('difficulty', option.value)}
-                                    variant={filters?.difficulty === option.value ? 'filled' : 'outlined'}
-                                    sx={{
-                                        borderRadius: 3,
-                                        fontWeight: 600,
-                                        fontSize: '0.9rem',
-                                        height: 40,
-                                        px: 2,
-                                        transition: 'all 0.2s ease',
-                                        cursor: 'pointer',
-                                        borderColor: option.color,
-                                        color: filters?.difficulty === option.value ? 'white' : option.color,
-                                        backgroundColor: filters?.difficulty === option.value ? option.color : 'transparent',
-                                        '&:hover': {
-                                            transform: 'translateY(-2px)',
-                                            boxShadow: `0 4px 12px ${option.color}40`,
-                                            backgroundColor: option.color,
-                                            color: 'white',
-                                        }
-                                    }}
-                                />
-                            ))}
-                        </Stack>
-                    </Box>
-                )}
-
-                {/* Muscle Groups Tab */}
-                {activeTab === 2 && (
-                    <Box>
-                        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: 'text.primary' }}>
-                            Chọn nhóm cơ mục tiêu
-                        </Typography>
-                        <Autocomplete
-                            multiple
-                            options={filterTabs.muscle.options}
-                            value={Array.isArray(filters?.primaryMuscleGroups)
-                                ? filters.primaryMuscleGroups
-                                : filters?.primaryMuscleGroups ? [filters.primaryMuscleGroups] : []
+                                backgroundColor: '#4caf50',
+                                color: 'white',
+                                transform: 'translateY(-1px)'
                             }
-                            onChange={(_, value) => handleFilterChange('primaryMuscleGroups', value)}
-                            renderTags={(value, getTagProps) =>
-                                value.map((option, index) => (
-                                    <Chip
-                                        variant="filled"
-                                        label={option}
-                                        color="primary"
-                                        {...getTagProps({ index })}
-                                        key={option}
-                                        sx={{ borderRadius: 2, fontWeight: 600 }}
-                                    />
-                                ))
+                        }}
+                    />
+                    <Chip
+                        label="🟡 TB"
+                        onClick={() => handleFilterChange('difficulty', filters?.difficulty === 'intermediate' ? '' : 'intermediate')}
+                        variant={filters?.difficulty === 'intermediate' ? 'filled' : 'outlined'}
+                        size="small"
+                        sx={{
+                            borderRadius: 1.5,
+                            fontWeight: 500,
+                            fontSize: '0.7rem',
+                            height: 26,
+                            borderColor: '#ff9800',
+                            color: filters?.difficulty === 'intermediate' ? 'white' : '#ff9800',
+                            backgroundColor: filters?.difficulty === 'intermediate' ? '#ff9800' : 'transparent',
+                            '&:hover': {
+                                backgroundColor: '#ff9800',
+                                color: 'white',
+                                transform: 'translateY(-1px)'
                             }
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    placeholder="Tìm kiếm và chọn nhóm cơ..."
-                                    sx={{
-                                        '& .MuiOutlinedInput-root': {
-                                            borderRadius: 3,
-                                            minHeight: 56
-                                        }
-                                    }}
-                                />
-                            )}
-                            sx={{ mt: 1 }}
-                        />
-                    </Box>
-                )}
-
-                {/* Advanced Tab */}
-                {activeTab === 3 && (
-                    <Box>
-                        <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: 'text.primary' }}>
+                        }}
+                    />
+                    <Chip
+                        label="🔴 NC"
+                        onClick={() => handleFilterChange('difficulty', filters?.difficulty === 'advanced' ? '' : 'advanced')}
+                        variant={filters?.difficulty === 'advanced' ? 'filled' : 'outlined'}
+                        size="small"
+                        sx={{
+                            borderRadius: 1.5,
+                            fontWeight: 500,
+                            fontSize: '0.7rem',
+                            height: 26,
+                            borderColor: '#f44336',
+                            color: filters?.difficulty === 'advanced' ? 'white' : '#f44336',
+                            backgroundColor: filters?.difficulty === 'advanced' ? '#f44336' : 'transparent',
+                            '&:hover': {
+                                backgroundColor: '#f44336',
+                                color: 'white',
+                                transform: 'translateY(-1px)'
+                            }
+                        }}
+                    />
+                </Stack>
+            </Box>            {/* Advanced Filters - Ultra Compact */}
+            <Collapse in={showAdvanced}>
+                <Box sx={{
+                    borderTop: '1px solid rgba(0,0,0,0.06)',
+                    p: { xs: 1.5, sm: 2 },
+                    background: 'rgba(248,250,252,0.5)'
+                }}>
+                    {/* Advanced Header */}
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        mb: 2,
+                        gap: 1
+                    }}>
+                        <FilterList sx={{ fontSize: 18, color: 'primary.main' }} />
+                        <Typography variant="subtitle1" sx={{
+                            fontWeight: 600,
+                            fontSize: '0.9rem',
+                            color: 'primary.main'
+                        }}>
                             Bộ lọc nâng cao
                         </Typography>
+                    </Box>
 
-                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
-                            {/* Equipment Filter */}
-                            <Box>
-                                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                                    🏋️ Thiết bị
-                                </Typography>
-                                <Autocomplete
-                                    options={filterTabs.equipment.options}
-                                    value={Array.isArray(filters?.equipment)
-                                        ? filters.equipment[0] || ''
-                                        : filters?.equipment || ''
-                                    }
-                                    onChange={(_, value) => handleFilterChange('equipment', value ? [value] : [])}
-                                    renderInput={(params) => (
-                                        <TextField
-                                            {...params}
-                                            placeholder="Chọn thiết bị"
+                    {/* Compact Grid Layout */}
+                    <Box sx={{
+                        display: 'grid',
+                        gridTemplateColumns: {
+                            xs: '1fr',
+                            sm: '1fr 1fr',
+                            md: '1fr 1fr 1fr 1fr'
+                        },
+                        gap: { xs: 1.5, sm: 2 }
+                    }}>
+                        {/* Muscle Groups - Compact */}
+                        <Box>
+                            <Typography variant="caption" sx={{
+                                display: 'block',
+                                mb: 0.5,
+                                fontWeight: 600,
+                                fontSize: '0.75rem',
+                                color: 'text.secondary',
+                                textTransform: 'uppercase',
+                                letterSpacing: 0.5
+                            }}>
+                                🎯 Nhóm cơ
+                            </Typography>
+                            <Autocomplete
+                                multiple
+                                size="small"
+                                options={filterTabs.muscle.options}
+                                value={Array.isArray(filters?.primaryMuscleGroups)
+                                    ? filters.primaryMuscleGroups
+                                    : filters?.primaryMuscleGroups ? [filters.primaryMuscleGroups] : []
+                                }
+                                onChange={(_, value) => handleFilterChange('primaryMuscleGroups', value)}
+                                renderTags={(value, getTagProps) =>
+                                    value.map((option, index) => (
+                                        <Chip
+                                            variant="filled"
+                                            label={option}
+                                            color="primary"
+                                            size="small"
+                                            {...getTagProps({ index })}
+                                            key={option}
                                             sx={{
-                                                '& .MuiOutlinedInput-root': {
-                                                    borderRadius: 3
-                                                }
+                                                borderRadius: 1,
+                                                fontSize: '0.7rem',
+                                                height: 20,
+                                                '& .MuiChip-label': { px: 0.5 }
                                             }}
                                         />
-                                    )}
-                                />
-                            </Box>
+                                    ))
+                                }
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        placeholder="Chọn nhóm cơ..."
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: 1.5,
+                                                fontSize: '0.8rem',
+                                                minHeight: 36
+                                            }
+                                        }}
+                                    />
+                                )}
+                            />
+                        </Box>
 
-                            {/* Calories Range */}
-                            <Box>
-                                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                                    🔥 Calories (cal/phút): {filters?.caloriesRange?.min || 0} - {filters?.caloriesRange?.max || 50}
-                                </Typography>
+                        {/* Equipment - Compact */}
+                        <Box>
+                            <Typography variant="caption" sx={{
+                                display: 'block',
+                                mb: 0.5,
+                                fontWeight: 600,
+                                fontSize: '0.75rem',
+                                color: 'text.secondary',
+                                textTransform: 'uppercase',
+                                letterSpacing: 0.5
+                            }}>
+                                🏋️ Thiết bị
+                            </Typography>
+                            <Autocomplete
+                                size="small"
+                                options={filterTabs.equipment.options}
+                                value={Array.isArray(filters?.equipment)
+                                    ? filters.equipment[0] || ''
+                                    : filters?.equipment || ''
+                                }
+                                onChange={(_, value) => handleFilterChange('equipment', value ? [value] : [])}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        placeholder="Chọn thiết bị..."
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: 1.5,
+                                                fontSize: '0.8rem',
+                                                height: 36
+                                            }
+                                        }}
+                                    />
+                                )}
+                            />
+                        </Box>
+
+                        {/* Calories Range - Compact */}
+                        <Box>
+                            <Typography variant="caption" sx={{
+                                display: 'block',
+                                mb: 0.5,
+                                fontWeight: 600,
+                                fontSize: '0.75rem',
+                                color: 'text.secondary',
+                                textTransform: 'uppercase',
+                                letterSpacing: 0.5
+                            }}>
+                                🔥 Calories: {filters?.caloriesRange?.min || 0}-{filters?.caloriesRange?.max || 50}
+                            </Typography>
+                            <Box sx={{ px: 1, pt: 1 }}>
                                 <Slider
                                     value={[
                                         filters?.caloriesRange?.min || 0,
@@ -436,33 +646,36 @@ const ExerciseFilters: React.FC<ExerciseFiltersProps> = ({
                                     min={0}
                                     max={50}
                                     step={2}
-                                    marks={[
-                                        { value: 0, label: '0' },
-                                        { value: 25, label: '25' },
-                                        { value: 50, label: '50+' }
-                                    ]}
+                                    size="small"
                                     sx={{
                                         '& .MuiSlider-thumb': {
-                                            background: 'linear-gradient(135deg, #ff9800 0%, #1976d2 100%)',
-                                            border: '3px solid white',
-                                            boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                                            width: 12,
+                                            height: 12,
+                                            background: 'linear-gradient(135deg, #ff9800 0%, #1976d2 100%)'
                                         },
                                         '& .MuiSlider-track': {
                                             background: 'linear-gradient(90deg, #ff9800 0%, #1976d2 100%)',
-                                            height: 6
-                                        },
-                                        '& .MuiSlider-rail': {
-                                            height: 6
+                                            height: 3
                                         }
                                     }}
                                 />
                             </Box>
+                        </Box>
 
-                            {/* Intensity Range */}
-                            <Box sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}>
-                                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                                    ⚡ Cường độ: {filters?.intensityRange?.min || 1} - {filters?.intensityRange?.max || 10}
-                                </Typography>
+                        {/* Intensity Range - Compact */}
+                        <Box>
+                            <Typography variant="caption" sx={{
+                                display: 'block',
+                                mb: 0.5,
+                                fontWeight: 600,
+                                fontSize: '0.75rem',
+                                color: 'text.secondary',
+                                textTransform: 'uppercase',
+                                letterSpacing: 0.5
+                            }}>
+                                ⚡ Cường độ: {filters?.intensityRange?.min || 1}-{filters?.intensityRange?.max || 10}
+                            </Typography>
+                            <Box sx={{ px: 1, pt: 1 }}>
                                 <Slider
                                     value={[
                                         filters?.intensityRange?.min || 1,
@@ -476,31 +689,24 @@ const ExerciseFilters: React.FC<ExerciseFiltersProps> = ({
                                     min={1}
                                     max={10}
                                     step={1}
-                                    marks={[
-                                        { value: 1, label: 'Nhẹ' },
-                                        { value: 5, label: 'Trung bình' },
-                                        { value: 10, label: 'Cao' }
-                                    ]}
+                                    size="small"
                                     sx={{
                                         '& .MuiSlider-thumb': {
-                                            background: 'linear-gradient(135deg, #ff9800 0%, #1976d2 100%)',
-                                            border: '3px solid white',
-                                            boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                                            width: 12,
+                                            height: 12,
+                                            background: 'linear-gradient(135deg, #ff9800 0%, #1976d2 100%)'
                                         },
                                         '& .MuiSlider-track': {
                                             background: 'linear-gradient(90deg, #ff9800 0%, #1976d2 100%)',
-                                            height: 6
-                                        },
-                                        '& .MuiSlider-rail': {
-                                            height: 6
+                                            height: 3
                                         }
                                     }}
                                 />
                             </Box>
                         </Box>
                     </Box>
-                )}
-            </Box>
+                </Box>
+            </Collapse>
         </Paper>
     );
 };

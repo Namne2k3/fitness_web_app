@@ -29,6 +29,7 @@ import {
     Bookmark
 } from '@mui/icons-material';
 import { Exercise } from '../../../types';
+import { getCategoryLabel, getDifficultyLabel } from '../helpers';
 
 interface ExerciseCardProps {
     exercise: Exercise;
@@ -292,7 +293,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
 
                 {/* Difficulty Badge */}
                 <Chip
-                    label={exercise.difficulty}
+                    label={getDifficultyLabel(exercise.difficulty)}
                     size="small"
                     sx={{
                         position: 'absolute',
@@ -372,7 +373,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                         borderRadius: 1,
                         fontWeight: 600
                     }}>
-                        {getCategoryIcon(exercise.category)} {exercise.category}
+                        {getCategoryIcon(exercise.category)} {getCategoryLabel(exercise.category)}
                     </Typography>
                 </Box>
 
