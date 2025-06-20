@@ -21,7 +21,7 @@ export class ExerciseService {
         try {
             const {
                 page = 1,
-                limit = 20,
+                limit = 10,
                 filters = {},
                 sort = { field: 'name', order: 'asc' },
                 options = {}
