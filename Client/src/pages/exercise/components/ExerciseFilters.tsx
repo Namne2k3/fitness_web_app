@@ -4,6 +4,8 @@
  * Tối ưu không gian với inline filters và collapsible advanced options
  */
 
+// Đang làm dở chỗ filter gửi dữ liệu không đúng "tay" => "arm"
+
 import {
     Clear,
     Search,
@@ -172,10 +174,9 @@ const ExerciseFilters: React.FC<ExerciseFiltersProps> = ({
                         display: { xs: 'none', lg: 'flex' },
                         gap: 0.5,
                         alignItems: 'center'
-                    }}>
-                        {/* Category Chips */}
+                    }}>                        {/* Category Chips */}
                         <Chip
-                            label="💪"
+                            label="💪 Sức mạnh"
                             onClick={() => handleFilterChange('category', filters?.category === 'strength' ? '' : 'strength')}
                             variant={filters?.category === 'strength' ? 'filled' : 'outlined'}
                             color={filters?.category === 'strength' ? 'primary' : 'default'}
@@ -183,14 +184,13 @@ const ExerciseFilters: React.FC<ExerciseFiltersProps> = ({
                             sx={{
                                 borderRadius: 1.5,
                                 fontSize: '0.75rem',
-                                height: 24,
-                                minWidth: 32,
-                                '& .MuiChip-label': { px: 0.5 },
+                                height: 26,
+                                '& .MuiChip-label': { px: 1, fontWeight: 500 },
                                 '&:hover': { transform: 'scale(1.05)' }
                             }}
                         />
                         <Chip
-                            label="❤️"
+                            label="❤️ Tim mạch"
                             onClick={() => handleFilterChange('category', filters?.category === 'cardio' ? '' : 'cardio')}
                             variant={filters?.category === 'cardio' ? 'filled' : 'outlined'}
                             color={filters?.category === 'cardio' ? 'primary' : 'default'}
@@ -198,14 +198,13 @@ const ExerciseFilters: React.FC<ExerciseFiltersProps> = ({
                             sx={{
                                 borderRadius: 1.5,
                                 fontSize: '0.75rem',
-                                height: 24,
-                                minWidth: 32,
-                                '& .MuiChip-label': { px: 0.5 },
+                                height: 26,
+                                '& .MuiChip-label': { px: 1, fontWeight: 500 },
                                 '&:hover': { transform: 'scale(1.05)' }
                             }}
                         />
                         <Chip
-                            label="🧘"
+                            label="🧘 Linh hoạt"
                             onClick={() => handleFilterChange('category', filters?.category === 'flexibility' ? '' : 'flexibility')}
                             variant={filters?.category === 'flexibility' ? 'filled' : 'outlined'}
                             color={filters?.category === 'flexibility' ? 'primary' : 'default'}
@@ -213,27 +212,23 @@ const ExerciseFilters: React.FC<ExerciseFiltersProps> = ({
                             sx={{
                                 borderRadius: 1.5,
                                 fontSize: '0.75rem',
-                                height: 24,
-                                minWidth: 32,
-                                '& .MuiChip-label': { px: 0.5 },
+                                height: 26,
+                                '& .MuiChip-label': { px: 1, fontWeight: 500 },
                                 '&:hover': { transform: 'scale(1.05)' }
                             }}
                         />
 
-                        <Divider orientation="vertical" flexItem sx={{ mx: 0.5, height: 20 }} />
-
-                        {/* Difficulty Chips */}
+                        <Divider orientation="vertical" flexItem sx={{ mx: 0.5, height: 20 }} />                        {/* Difficulty Chips */}
                         <Chip
-                            label="🟢"
+                            label="🟢 Mới"
                             onClick={() => handleFilterChange('difficulty', filters?.difficulty === 'beginner' ? '' : 'beginner')}
                             variant={filters?.difficulty === 'beginner' ? 'filled' : 'outlined'}
                             size="small"
                             sx={{
                                 borderRadius: 1.5,
                                 fontSize: '0.75rem',
-                                height: 24,
-                                minWidth: 32,
-                                '& .MuiChip-label': { px: 0.5 },
+                                height: 26,
+                                '& .MuiChip-label': { px: 1, fontWeight: 500 },
                                 borderColor: '#4caf50',
                                 color: filters?.difficulty === 'beginner' ? 'white' : '#4caf50',
                                 backgroundColor: filters?.difficulty === 'beginner' ? '#4caf50' : 'transparent',
@@ -245,16 +240,15 @@ const ExerciseFilters: React.FC<ExerciseFiltersProps> = ({
                             }}
                         />
                         <Chip
-                            label="🟡"
+                            label="🟡 Trung bình"
                             onClick={() => handleFilterChange('difficulty', filters?.difficulty === 'intermediate' ? '' : 'intermediate')}
                             variant={filters?.difficulty === 'intermediate' ? 'filled' : 'outlined'}
                             size="small"
                             sx={{
                                 borderRadius: 1.5,
                                 fontSize: '0.75rem',
-                                height: 24,
-                                minWidth: 32,
-                                '& .MuiChip-label': { px: 0.5 },
+                                height: 26,
+                                '& .MuiChip-label': { px: 1, fontWeight: 500 },
                                 borderColor: '#ff9800',
                                 color: filters?.difficulty === 'intermediate' ? 'white' : '#ff9800',
                                 backgroundColor: filters?.difficulty === 'intermediate' ? '#ff9800' : 'transparent',
@@ -266,16 +260,15 @@ const ExerciseFilters: React.FC<ExerciseFiltersProps> = ({
                             }}
                         />
                         <Chip
-                            label="🔴"
+                            label="🔴 Nâng cao"
                             onClick={() => handleFilterChange('difficulty', filters?.difficulty === 'advanced' ? '' : 'advanced')}
                             variant={filters?.difficulty === 'advanced' ? 'filled' : 'outlined'}
                             size="small"
                             sx={{
                                 borderRadius: 1.5,
                                 fontSize: '0.75rem',
-                                height: 24,
-                                minWidth: 32,
-                                '& .MuiChip-label': { px: 0.5 },
+                                height: 26,
+                                '& .MuiChip-label': { px: 1, fontWeight: 500 },
                                 borderColor: '#f44336',
                                 color: filters?.difficulty === 'advanced' ? 'white' : '#f44336',
                                 backgroundColor: filters?.difficulty === 'advanced' ? '#f44336' : 'transparent',
