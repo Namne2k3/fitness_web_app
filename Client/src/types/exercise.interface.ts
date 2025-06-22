@@ -32,6 +32,11 @@ export interface Exercise {
     caloriesPerMinute?: number; // average calories burned
     averageIntensity?: number; // 1-10 scale
 
+    // Social features
+    likeCount?: number; // like count for social features
+    isLiked?: boolean; // current user liked status
+    isBookmarked?: boolean; // current user bookmark status
+
     // Variations
     variations: ExerciseVariation[];
 
