@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * 💪 Exercise Page - Clean & Compact Design
  * React Query implementation với streamlined header và simplified filters
@@ -152,10 +153,9 @@ const ExercisePage: React.FC = () => {
                     </Typography>
                 </Box>                {/* ================================ */}
                 {/* 🔍 COMPACT FILTERS - Using ExerciseFilters Component */}
-                {/* ================================ */}
-                <ExerciseFilters
-                    filters={filters}
-                    onFiltersChange={(newFilters) => {
+                {/* ================================ */}                <ExerciseFilters
+                    filters={filters || {}}
+                    onFiltersChange={(newFilters: any) => {
                         setFilters(newFilters);
                         setPage(1);
                     }}
@@ -209,7 +209,7 @@ const ExercisePage: React.FC = () => {
                 {/* ================================ */}
                 {/* 🎯 Floating Action Button */}
                 {/* ================================ */}
-                <Fab
+                {/* <Fab
                     color="primary"
                     aria-label="add exercise"
                     sx={{
@@ -230,7 +230,7 @@ const ExercisePage: React.FC = () => {
                     onClick={() => navigate('/exercises/create')}
                 >
                     <Add />
-                </Fab>
+                </Fab> */}
             </Container>
         </Box>
     );

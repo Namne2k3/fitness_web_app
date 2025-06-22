@@ -245,7 +245,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                 <CardMedia
                     component="img"
                     height={variant === 'standard' ? 200 : 160}
-                    image={exercise.images?.[0] || '/placeholder-exercise.jpg'}
+                    image={exercise.images?.[0] ?? 'https://media.istockphoto.com/id/512085711/photo/deadlift.jpg?s=612x612&w=0&k=20&c=0FDKEliyGHJ8QJB1G_UO6yx8f4JPdkYeGmsqi-aV2y0='}
                     alt={exercise.name}
                     sx={{
                         transition: 'transform 0.3s ease',
