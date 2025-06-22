@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { CssBaseline } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
@@ -12,7 +13,7 @@ import LogoutPage from './pages/auth/LogoutPage';
 import HomePage from './pages/home/HomePage';
 import fitnessTheme from './styles/theme';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
-import WorkoutPage from './pages/workout/WorkoutPage_traditional';
+import WorkoutPage from './pages/workout/WorkoutPage';
 import ExercisePage from './pages/exercise/ExercisePage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
