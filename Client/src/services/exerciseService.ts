@@ -54,9 +54,7 @@ export class ExerciseService {
             filters: { search: query, isApproved: true }
         });
         return response.data;
-    }
-
-    /**
+    }    /**
      * Get exercise by ID
      */
     static async getExercise(id: string): Promise<Exercise> {
@@ -65,6 +63,27 @@ export class ExerciseService {
             throw new Error('Exercise not found');
         }
         return response.data;
+    }
+
+    /**
+     * Get exercise by ID - alias cho React 19 use() hook
+     */
+    static async getExerciseById(id: string): Promise<Exercise> {
+        return this.getExercise(id);
+    }
+
+    /**
+     * Toggle like for exercise - Mock implementation
+     */
+    static async toggleLike(exerciseId: string): Promise<void> {
+        await api.post(`/exercises/${exerciseId}/toggle-like`);
+    }
+
+    /**
+     * Toggle bookmark for exercise - Mock implementation
+     */
+    static async toggleBookmark(exerciseId: string): Promise<void> {
+        await api.post(`/exercises/${exerciseId}/toggle-bookmark`);
     }
 
     /**

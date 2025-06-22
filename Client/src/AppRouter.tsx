@@ -15,6 +15,7 @@ import fitnessTheme from './styles/theme';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import WorkoutPage from './pages/workout/WorkoutPage';
 import ExercisePage from './pages/exercise/ExercisePage';
+import ExerciseDetailPage from './pages/exercise/ExerciseDetailPage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // ✅ React Query Client Configuration
@@ -64,9 +65,9 @@ export default function AppRouter() {
                                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                                 <Route path="/profile" element={<ProfilePage />} />
-                                <Route path="/logout" element={<LogoutPage />} />
-                                <Route path="/workouts/browse" element={<WorkoutPage />} />
+                                <Route path="/logout" element={<LogoutPage />} />                                <Route path="/workouts/browse" element={<WorkoutPage />} />
                                 <Route path="/library/exercises" element={<ExercisePage />} />
+                                <Route path="/exercises/:id" element={<ExerciseDetailPage />} />
                                 <Route path="*" element={<NotFoundPage />} />
                             </Routes>
                         </Layout>
