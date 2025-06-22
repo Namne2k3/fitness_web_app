@@ -1,7 +1,7 @@
 /**
- * 🏋️ ExerciseFilters Component - Design System Implementation
- * Modern filter interface following design-instructions.md color palette and gradients
- * Features color-coded categories, difficulty levels, and muscle groups
+ * 🔍 ExerciseFilters Component - Auto-Collapse Optimized Design
+ * Compact filter interface với smart collapsing để tiết kiệm không gian tối đa
+ * Applied WorkoutFilters design pattern for consistency
  */
 
 import React, { useState, useEffect, useTransition } from 'react';
@@ -20,186 +20,359 @@ import {
 import {
     Clear,
     Search,
-    ExpandMore,
-    FitnessCenter,
-    Speed,
-    SelfImprovement
+    ExpandMore
 } from '@mui/icons-material';
-import { useDebounce } from '../../../hooks/useDebounce';
+
+// ================================
+// 🎯 Types & Interfaces
+// ================================
+export interface ExerciseFilterState {
+    search: string;
+    category: string;
+    difficulty: string;
+    primaryMuscleGroups: string[];
+    equipment: string[];
+    // ✅ NEW: Advanced filters from OLD version
+    caloriesRange?: { min?: number; max?: number };
+    intensityRange?: { min?: number; max?: number };
+    isApproved?: boolean;
+    hasPrecautions?: boolean;
+}
 
 interface ExerciseFiltersProps {
-    filters: {
-        search?: string;
-        category?: string;
-        difficulty?: string;
-        primaryMuscleGroups?: string[];
-        equipment?: string[];
-        caloriesRange?: { min?: number; max?: number };
-        intensityRange?: { min?: number; max?: number };
-        isApproved?: boolean;
-        hasPrecautions?: boolean;
-        [key: string]: unknown;
-    };
-    onFiltersChange: (filters: Record<string, unknown>) => void;
+    filters: ExerciseFilterState;
+    onFiltersChange: (filters: ExerciseFilterState) => void;
     totalResults: number;
 }
 
-// Design system color-coded filter data following design-instructions.md
-const quickFilters = {
-    category: [
-        {
-            value: 'strength',
-            label: 'Sức mạnh',
-            icon: FitnessCenter,
-            shortLabel: 'Sức mạnh',
-            color: '#4caf50', // Success green
-            background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
-            border: 'rgba(76, 175, 80, 0.2)'
-        },
-        {
-            value: 'cardio',
-            label: 'Tim mạch',
-            icon: Speed,
-            shortLabel: 'Tim mạch',
-            color: '#f44336', // Error red
-            background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)',
-            border: 'rgba(244, 67, 54, 0.2)'
-        },
-        {
-            value: 'flexibility',
-            label: 'Linh hoạt',
-            icon: SelfImprovement,
-            shortLabel: 'Linh hoạt',
-            color: '#9c27b0', // Purple
-            background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
-            border: 'rgba(156, 39, 176, 0.2)'
-        }
-    ], difficulty: [
-        {
-            value: 'beginner',
-            label: 'Người mới',
-            emoji: '●',
-            level: 1,
-            color: '#4caf50', // Success green
-            background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
-            border: 'rgba(76, 175, 80, 0.2)'
-        },
-        {
-            value: 'intermediate',
-            label: 'Trung bình',
-            emoji: '●●',
-            level: 2,
-            color: '#ff9800', // Warning orange
-            background: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)',
-            border: 'rgba(255, 152, 0, 0.2)'
-        },
-        {
-            value: 'advanced',
-            label: 'Nâng cao',
-            emoji: '●●●',
-            level: 3,
-            color: '#f44336', // Error red
-            background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)',
-            border: 'rgba(244, 67, 54, 0.2)'
-        }
+// ================================
+// 🎨 Filter Categories Data - Following WorkoutFilters pattern
+// ================================
+const filterOptions = {
+    categories: [
+        { value: '', label: 'Tất cả', icon: '🏋️' },
+        { value: 'strength', label: 'Sức mạnh', icon: '💪' },
+        { value: 'cardio', label: 'Tim mạch', icon: '❤️' },
+        { value: 'flexibility', label: 'Linh hoạt', icon: '🧘' },
+        { value: 'balance', label: 'Thăng bằng', icon: '⚖️' },
+        { value: 'sports', label: 'Thể thao', icon: '⚽' }
     ],
-    muscle: [
-        { value: 'chest', label: 'Ngực', emoji: '💪', color: '#1976d2', background: 'linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%)', border: 'rgba(25, 118, 210, 0.2)' },
-        { value: 'back', label: 'Lưng', emoji: '�' },
-        { value: 'legs', label: 'Chân', emoji: '🦵', color: '#1976d2', background: 'linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%)', border: 'rgba(25, 118, 210, 0.2)' },
-        { value: 'shoulders', label: 'Vai', emoji: '🤷', color: '#1976d2', background: 'linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%)', border: 'rgba(25, 118, 210, 0.2)' },
-        { value: 'arms', label: 'Tay', emoji: '💪', color: '#1976d2', background: 'linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%)', border: 'rgba(25, 118, 210, 0.2)' },
-        { value: 'core', label: 'Cơ lõi', emoji: '🎯', color: '#1976d2', background: 'linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%)', border: 'rgba(25, 118, 210, 0.2)' }
+    difficulties: [
+        { value: '', label: 'Tất cả', color: '#666', bgColor: '#f5f5f5' },
+        { value: 'beginner', label: 'Người mới', color: '#4caf50', bgColor: '#e8f5e8' },
+        { value: 'intermediate', label: 'Trung bình', color: '#ff9800', bgColor: '#fff3e0' },
+        { value: 'advanced', label: 'Nâng cao', color: '#f44336', bgColor: '#ffebee' }
+    ],
+    muscleGroups: [
+        { value: 'chest', label: 'Ngực', icon: '💪' },
+        { value: 'back', label: 'Lưng', icon: '🔙' },
+        { value: 'legs', label: 'Chân', icon: '🦵' },
+        { value: 'shoulders', label: 'Vai', icon: '🤷' },
+        { value: 'arms', label: 'Tay', icon: '💪' },
+        { value: 'core', label: 'Cơ lõi', icon: '🎯' }
+    ], equipment: [
+        { value: '', label: 'Tất cả', icon: '🏋️' },
+        { value: 'bodyweight', label: 'Không TB', icon: '🤸' },
+        { value: 'dumbbells', label: 'Tạ đơn', icon: '🏋️' },
+        { value: 'barbell', label: 'Tạ đòn', icon: '🔗' },
+        { value: 'resistance_bands', label: 'Dây kháng', icon: '🎗️' },
+        { value: 'kettlebell', label: 'Kettlebell', icon: '⚫' },
+        { value: 'machine', label: 'Máy tập', icon: '🤖' },
+        { value: 'cable', label: 'Cáp treo', icon: '🪢' },
+        { value: 'pull_up_bar', label: 'Xà đơn', icon: '🎯' }
     ]
 };
 
+// ================================
+// 🔍 Main ExerciseFilters Component - Auto-Collapse
+// ================================
 const ExerciseFilters: React.FC<ExerciseFiltersProps> = ({
     filters,
     onFiltersChange,
     totalResults
 }) => {
+    // ✅ State management - Default collapsed
     const [showAdvanced, setShowAdvanced] = useState(false);
-    const [, startTransition] = useTransition();
+    const [showCategories, setShowCategories] = useState(false);
+    const [isPending, startTransition] = useTransition();
 
-    // ✅ Local search state cho immediate UI feedback
-    const [localSearchValue, setLocalSearchValue] = useState(filters?.search as string || '');
+    // ✅ Auto-expand logic when filters are active
+    const hasActiveFilters = Object.values(filters).some(value =>
+        Array.isArray(value) ? value.length > 0 : value !== ''
+    );
 
-    // ✅ Debounced search value để gọi API
-    const debouncedSearchValue = useDebounce(localSearchValue, 400);
-
-    // ✅ Sync debounced search với parent component
+    // Auto-expand categories if user has selected category/difficulty filters
     useEffect(() => {
-        if (debouncedSearchValue !== filters?.search) {
-            startTransition(() => {
-                onFiltersChange({ ...filters, search: debouncedSearchValue });
-            });
+        if (filters.category || filters.difficulty) {
+            setShowCategories(true);
         }
-    }, [debouncedSearchValue, filters, onFiltersChange]);
-
-    // ✅ Sync khi filters thay đổi từ bên ngoài
+    }, [filters.category, filters.difficulty]);    // Auto-expand advanced if user has selected muscle/equipment filters
     useEffect(() => {
-        if (filters?.search !== undefined && filters?.search !== localSearchValue) {
-            setLocalSearchValue(filters?.search as string || '');
+        if (filters.primaryMuscleGroups?.length > 0 || filters.equipment?.length > 0 ||
+            filters.caloriesRange || filters.intensityRange || filters.isApproved || filters.hasPrecautions) {
+            setShowAdvanced(true);
         }
-    }, [filters?.search, localSearchValue]);
+    }, [filters.primaryMuscleGroups, filters.equipment, filters.caloriesRange, filters.intensityRange, filters.isApproved, filters.hasPrecautions]);
 
-    const handleFilterChange = (key: string, value: unknown) => {
+    // Handle filter changes with React 19 transitions
+    const handleFilterChange = (key: keyof ExerciseFilterState, value: unknown) => {
         startTransition(() => {
             onFiltersChange({ ...filters, [key]: value });
         });
     };
 
+    // Handle muscle group toggle
+    const handleMuscleGroupToggle = (muscleGroup: string) => {
+        const currentGroups = filters.primaryMuscleGroups || [];
+        const newGroups = currentGroups.includes(muscleGroup)
+            ? currentGroups.filter(group => group !== muscleGroup)
+            : [...currentGroups, muscleGroup];
+
+        handleFilterChange('primaryMuscleGroups', newGroups);
+    };
+
+    // Handle equipment toggle
+    const handleEquipmentToggle = (equipment: string) => {
+        const currentEquipment = filters.equipment || [];
+        const newEquipment = currentEquipment.includes(equipment)
+            ? currentEquipment.filter(eq => eq !== equipment)
+            : [...currentEquipment, equipment];
+
+        handleFilterChange('equipment', newEquipment);
+    };    // Clear all filters
     const clearAllFilters = () => {
-        setLocalSearchValue('');
         startTransition(() => {
-            onFiltersChange({});
+            onFiltersChange({
+                search: '',
+                category: '',
+                difficulty: '',
+                primaryMuscleGroups: [],
+                equipment: [],
+                // ✅ Clear advanced filters too
+                caloriesRange: undefined,
+                intensityRange: undefined,
+                isApproved: undefined,
+                hasPrecautions: undefined
+            });
+            // Collapse all sections when clearing
+            setShowAdvanced(false);
+            setShowCategories(false);
         });
     };
 
-    const hasActiveFilters = Object.values(filters || {}).some(value =>
-        value !== undefined && value !== '' && (Array.isArray(value) ? value.length > 0 : true)
-    );
-
-    const activeFiltersCount = Object.values(filters || {}).filter(value =>
-        value !== undefined && value !== '' && (Array.isArray(value) ? value.length > 0 : true)
+    const activeFiltersCount = Object.values(filters).filter(value =>
+        Array.isArray(value) ? value.length > 0 : value !== ''
     ).length;
 
-    return (
-        <Paper
-            elevation={0}
-            sx={{
-                mb: 3,
-                border: '1px solid #e0e0e0',
-                borderRadius: 2,
-                overflow: 'hidden',
-                backgroundColor: 'white'
-            }}
-        >            {/* 🎯 Design System Header Section */}
-            <Box
-                sx={{
-                    background: 'linear-gradient(135deg, #1976d2 0%, #ff9800 100%)',
-                    color: 'white',
-                    p: 2,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                    gap: 2
+    return (<Paper
+        elevation={3}
+        sx={{
+            borderRadius: 3,
+            border: '1px solid rgba(102, 126, 234, 0.1)',
+            mb: 2,
+            overflow: 'hidden',
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 255, 0.95) 100%)',
+            backdropFilter: 'blur(8px)',
+            boxShadow: '0 4px 20px rgba(102, 126, 234, 0.08)',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+                boxShadow: '0 6px 25px rgba(102, 126, 234, 0.12)',
+                transform: 'translateY(-1px)'
+            },
+            ...(isPending && {
+                opacity: 0.7,
+                pointerEvents: 'none'
+            })
+        }}
+    >
+        {/* ✅ COMPACT: Search Bar + Quick Controls */}
+        <Box sx={{ p: { xs: 2, md: 2.5 } }}>
+            {/* Compact Search Bar */}
+            <TextField
+                fullWidth
+                placeholder="🔍 Tìm kiếm bài tập..."
+                value={filters.search}
+                onChange={(e) => handleFilterChange('search', e.target.value)}
+                size="medium"
+                InputProps={{
+                    startAdornment: (
+                        <InputAdornment position="start">
+                            <Search sx={{ color: 'primary.main', fontSize: 20 }} />
+                        </InputAdornment>
+                    ),
+                    endAdornment: filters.search && (
+                        <InputAdornment position="end">
+                            <IconButton
+                                size="small"
+                                onClick={() => handleFilterChange('search', '')}
+                                sx={{
+                                    color: 'text.secondary',
+                                    '&:hover': { color: 'error.main' }
+                                }}
+                            >
+                                <Clear fontSize="small" />
+                            </IconButton>
+                        </InputAdornment>
+                    )
                 }}
-            >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <FitnessCenter sx={{ fontSize: 24 }} />
-                    <Box>
-                        <Typography variant="h6" component="h2" fontWeight="600" sx={{ fontSize: '1.1rem' }}>
-                            Thư viện bài tập
-                        </Typography>
-                        <Typography variant="body2" sx={{ opacity: 0.8, fontSize: '0.85rem' }}>
+                sx={{
+                    mb: 2,
+                    '& .MuiOutlinedInput-root': {
+                        borderRadius: 3,
+                        fontSize: '1rem',
+                        fontWeight: 500,
+                        background: 'white',
+                        height: 48,
+                        '&:hover': {
+                            boxShadow: '0 2px 12px rgba(102, 126, 234, 0.1)',
+                            borderColor: 'rgba(102, 126, 234, 0.3)'
+                        },
+                        '&.Mui-focused': {
+                            boxShadow: '0 4px 20px rgba(102, 126, 234, 0.15)',
+                            borderColor: 'primary.main'
+                        }
+                    }
+                }}
+            />
+
+            {/* Compact Filter Actions */}
+            <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                justifyContent="space-between"
+                flexWrap="wrap"
+            >                    {/* Results count + Active filters indicator */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
                             {totalResults} bài tập
                         </Typography>
+                        {hasActiveFilters && (
+                            <Chip
+                                label={`${activeFiltersCount} bộ lọc`}
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                                sx={{
+                                    height: 24,
+                                    fontSize: '0.7rem',
+                                    fontWeight: 600,
+                                    borderRadius: 1
+                                }}
+                            />
+                        )}
                     </Box>
+
+                    {/* Active Filters Summary */}
+                    {hasActiveFilters && (
+                        <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                            {filters.category && (
+                                <Chip
+                                    label={`📂 ${filterOptions.categories.find(c => c.value === filters.category)?.label}`}
+                                    size="small"
+                                    variant="filled"
+                                    color="primary"
+                                    onDelete={() => handleFilterChange('category', '')}
+                                    sx={{ height: 20, fontSize: '0.65rem' }}
+                                />
+                            )}
+                            {filters.difficulty && (
+                                <Chip
+                                    label={`🎯 ${filterOptions.difficulties.find(d => d.value === filters.difficulty)?.label}`}
+                                    size="small"
+                                    variant="filled"
+                                    color="secondary"
+                                    onDelete={() => handleFilterChange('difficulty', '')}
+                                    sx={{ height: 20, fontSize: '0.65rem' }}
+                                />
+                            )}
+                            {filters.primaryMuscleGroups?.map(muscle => (
+                                <Chip
+                                    key={muscle}
+                                    label={`💪 ${filterOptions.muscleGroups.find(m => m.value === muscle)?.label}`}
+                                    size="small"
+                                    variant="filled"
+                                    color="success"
+                                    onDelete={() => handleMuscleGroupToggle(muscle)}
+                                    sx={{ height: 20, fontSize: '0.65rem' }}
+                                />
+                            ))}                            {filters.equipment?.map(eq => (
+                                <Chip
+                                    key={eq}
+                                    label={`🛠️ ${filterOptions.equipment.find(e => e.value === eq)?.label}`}
+                                    size="small"
+                                    variant="filled"
+                                    color="warning"
+                                    onDelete={() => handleEquipmentToggle(eq)}
+                                    sx={{ height: 20, fontSize: '0.65rem' }}
+                                />
+                            ))}
+                            {filters.caloriesRange?.min && (
+                                <Chip
+                                    label={`🔥 Calories ≥${filters.caloriesRange.min}`}
+                                    size="small"
+                                    variant="filled"
+                                    color="error"
+                                    onDelete={() => handleFilterChange('caloriesRange', { ...filters.caloriesRange, min: undefined })}
+                                    sx={{ height: 20, fontSize: '0.65rem' }}
+                                />
+                            )}
+                            {filters.caloriesRange?.max && (
+                                <Chip
+                                    label={`🔥 Calories ≤${filters.caloriesRange.max}`}
+                                    size="small"
+                                    variant="filled"
+                                    color="error"
+                                    onDelete={() => handleFilterChange('caloriesRange', { ...filters.caloriesRange, max: undefined })}
+                                    sx={{ height: 20, fontSize: '0.65rem' }}
+                                />
+                            )}
+                            {filters.intensityRange?.min && (
+                                <Chip
+                                    label={`⚡ Intensity ≥${filters.intensityRange.min}`}
+                                    size="small"
+                                    variant="filled"
+                                    color="info"
+                                    onDelete={() => handleFilterChange('intensityRange', { ...filters.intensityRange, min: undefined })}
+                                    sx={{ height: 20, fontSize: '0.65rem' }}
+                                />
+                            )}
+                            {filters.intensityRange?.max && (
+                                <Chip
+                                    label={`⚡ Intensity ≤${filters.intensityRange.max}`}
+                                    size="small"
+                                    variant="filled"
+                                    color="info"
+                                    onDelete={() => handleFilterChange('intensityRange', { ...filters.intensityRange, max: undefined })}
+                                    sx={{ height: 20, fontSize: '0.65rem' }}
+                                />
+                            )}
+                            {filters.isApproved && (
+                                <Chip
+                                    label="✅ Đã duyệt"
+                                    size="small"
+                                    variant="filled"
+                                    color="success"
+                                    onDelete={() => handleFilterChange('isApproved', undefined)}
+                                    sx={{ height: 20, fontSize: '0.65rem' }}
+                                />
+                            )}
+                            {filters.hasPrecautions && (
+                                <Chip
+                                    label="⚠️ Cảnh báo"
+                                    size="small"
+                                    variant="filled"
+                                    color="warning"
+                                    onDelete={() => handleFilterChange('hasPrecautions', undefined)}
+                                    sx={{ height: 20, fontSize: '0.65rem' }}
+                                />
+                            )}
+                        </Stack>
+                    )}
                 </Box>
 
-                {/* Clean Action Buttons */}
+                {/* Action buttons */}
                 <Stack direction="row" spacing={1}>
                     {hasActiveFilters && (
                         <Button
@@ -208,24 +381,76 @@ const ExerciseFilters: React.FC<ExerciseFiltersProps> = ({
                             onClick={clearAllFilters}
                             startIcon={<Clear />}
                             sx={{
-                                color: 'white',
-                                borderColor: 'rgba(255,255,255,0.3)',
-                                fontSize: '0.8rem',
-                                px: 2,
+                                minWidth: 'auto',
+                                px: 1.5,
+                                py: 0.5,
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                borderRadius: 2,
+                                color: 'error.main',
+                                borderColor: 'error.main',
                                 '&:hover': {
-                                    borderColor: 'white',
-                                    backgroundColor: 'rgba(255,255,255,0.1)',
+                                    borderColor: 'error.dark',
+                                    backgroundColor: 'error.50'
                                 }
                             }}
                         >
-                            Xóa bộ lọc {activeFiltersCount > 0 && `(${activeFiltersCount})`}
+                            Xóa
                         </Button>
                     )}
-
                     <Button
-                        variant="outlined"
+                        variant={showCategories ? "contained" : "outlined"}
+                        size="small"
+                        onClick={() => setShowCategories(!showCategories)}
+                        // startIcon={
+                        //     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        //         <span>📂</span>
+                        //         {(filters.category || filters.difficulty) && (
+                        //             <Box sx={{
+                        //                 width: 6,
+                        //                 height: 6,
+                        //                 borderRadius: '50%',
+                        //                 backgroundColor: 'primary.main'
+                        //             }} />
+                        //         )}
+                        //     </Box>
+                        // }
+                        endIcon={
+                            <ExpandMore
+                                sx={{
+                                    transform: showCategories ? 'rotate(180deg)' : 'rotate(0deg)',
+                                    transition: 'transform 0.2s ease'
+                                }}
+                            />
+                        }
+                        sx={{
+                            minWidth: 'auto',
+                            px: 1.5,
+                            py: 0.5,
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            borderRadius: 2
+                        }}
+                    >
+                        Danh mục
+                    </Button>
+                    <Button
+                        variant={showAdvanced ? "contained" : "outlined"}
                         size="small"
                         onClick={() => setShowAdvanced(!showAdvanced)}
+                        // startIcon={
+                        //     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        //         <span>🔧</span>
+                        //         {(filters.primaryMuscleGroups?.length > 0 || filters.equipment?.length > 0) && (
+                        //             <Box sx={{
+                        //                 width: 6,
+                        //                 height: 6,
+                        //                 borderRadius: '50%',
+                        //                 backgroundColor: 'warning.main'
+                        //             }} />
+                        //         )}
+                        //     </Box>
+                        // }
                         endIcon={
                             <ExpandMore
                                 sx={{
@@ -235,118 +460,67 @@ const ExerciseFilters: React.FC<ExerciseFiltersProps> = ({
                             />
                         }
                         sx={{
-                            color: 'white',
-                            borderColor: 'rgba(255,255,255,0.3)',
-                            fontSize: '0.8rem',
-                            px: 2,
-                            '&:hover': {
-                                borderColor: 'white',
-                                backgroundColor: 'rgba(255,255,255,0.1)',
-                            }
+                            minWidth: 'auto',
+                            px: 1.5,
+                            py: 0.5,
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            borderRadius: 2
                         }}
                     >
-                        {showAdvanced ? 'Thu gọn' : 'Bộ lọc nâng cao'}
+                        Nâng cao
                     </Button>
                 </Stack>
-            </Box>
-
-            {/* 🔍 Minimal Search Bar */}
-            <Box sx={{ p: 2, backgroundColor: '#fafafa' }}>
-                <TextField
-                    fullWidth
-                    placeholder="Tìm kiếm bài tập..."
-                    value={localSearchValue}
-                    onChange={(e) => setLocalSearchValue(e.target.value)}
-                    size="small"
-                    InputProps={{
-                        startAdornment: (
-                            <InputAdornment position="start">
-                                <Search sx={{ color: '#666', fontSize: 20 }} />
-                            </InputAdornment>
-                        ),
-                        endAdornment: localSearchValue && (
-                            <InputAdornment position="end">
-                                <IconButton
-                                    onClick={() => setLocalSearchValue('')}
-                                    size="small"
-                                    sx={{ color: '#666', p: 0.5 }}
-                                >
-                                    <Clear fontSize="small" />
-                                </IconButton>
-                            </InputAdornment>
-                        ),
-                    }} sx={{
-                        '& .MuiOutlinedInput-root': {
-                            backgroundColor: 'white',
-                            borderRadius: 1.5,
-                            fontSize: '0.9rem',
-                            '& fieldset': {
-                                borderColor: '#ddd',
-                            },
-                            '&:hover fieldset': {
-                                borderColor: '#1976d2', // Primary blue
-                            },
-                            '&.Mui-focused fieldset': {
-                                borderColor: '#1976d2', // Primary blue
-                                borderWidth: 2
-                            },
-                        }
-                    }}
-                />
-            </Box>
-
-            {/* 🏷️ Clean Filter Sections */}
-            <Box sx={{ p: 2, pt: 1 }}>
+            </Stack>
+        </Box>            {/* ✅ CATEGORY FILTERS - Collapsible */}
+        <Collapse in={showCategories}>
+            <Box sx={{
+                px: { xs: 2, md: 2.5 },
+                pb: 2,
+                borderTop: '1px solid rgba(102, 126, 234, 0.1)',
+                backgroundColor: 'rgba(248, 250, 255, 0.8)',
+                backdropFilter: 'blur(4px)'
+            }}>
                 {/* Category Section */}
                 <Box sx={{ mb: 2 }}>
                     <Typography
                         variant="body2"
                         sx={{
-                            mb: 1,
-                            color: '#333',
+                            mb: 1.5,
+                            mt: 2,
+                            color: 'text.primary',
                             fontWeight: 600,
-                            fontSize: '0.85rem',
+                            fontSize: '0.8rem',
                             textTransform: 'uppercase',
                             letterSpacing: '0.5px'
                         }}
                     >
-                        Danh mục
+                        📂 Danh mục
                     </Typography>
                     <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                        {quickFilters.category.map((option) => (
+                        {filterOptions.categories.map((category) => (
                             <Chip
-                                key={option.value}
-                                icon={<option.icon sx={{ fontSize: 16 }} />}
-                                label={option.shortLabel}
-                                variant={filters?.category === option.value ? 'filled' : 'outlined'}
+                                key={category.value}
+                                label={
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                        <span style={{ fontSize: '0.8rem' }}>{category.icon}</span>
+                                        <span>{category.label}</span>
+                                    </Box>
+                                }
+                                variant={filters.category === category.value ? 'filled' : 'outlined'}
                                 onClick={() => handleFilterChange('category',
-                                    filters?.category === option.value ? '' : option.value
-                                )} sx={{
+                                    filters.category === category.value ? '' : category.value
+                                )}
+                                sx={{
                                     fontSize: '0.8rem',
                                     height: 32,
-                                    borderRadius: 1,
+                                    borderRadius: 2,
                                     fontWeight: 500,
                                     transition: 'all 0.2s ease',
-                                    ...(filters?.category === option.value ? {
-                                        background: option.background,
-                                        color: option.color,
-                                        border: `1px solid ${option.border}`,
-                                        '& .MuiChip-icon': { color: option.color },
-                                        '&:hover': {
-                                            transform: 'translateY(-1px)',
-                                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                        }
-                                    } : {
-                                        backgroundColor: 'white',
-                                        border: `1px solid ${option.border}`,
-                                        color: option.color,
-                                        '& .MuiChip-icon': { color: option.color },
-                                        '&:hover': {
-                                            background: option.background,
-                                            transform: 'translateY(-1px)',
-                                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                        }
-                                    })
+                                    '&:hover': {
+                                        transform: 'translateY(-1px)',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                    }
                                 }}
                             />
                         ))}
@@ -354,419 +528,343 @@ const ExerciseFilters: React.FC<ExerciseFiltersProps> = ({
                 </Box>
 
                 {/* Difficulty Section */}
-                <Box sx={{ mb: showAdvanced ? 2 : 0 }}>
+                <Box>
                     <Typography
                         variant="body2"
                         sx={{
-                            mb: 1,
-                            color: '#333',
+                            mb: 1.5,
+                            color: 'text.primary',
                             fontWeight: 600,
-                            fontSize: '0.85rem',
+                            fontSize: '0.8rem',
                             textTransform: 'uppercase',
                             letterSpacing: '0.5px'
                         }}
                     >
-                        Độ khó
+                        🎯 Độ khó
                     </Typography>
                     <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                        {quickFilters.difficulty.map((option) => (
+                        {filterOptions.difficulties.map((difficulty) => (
                             <Chip
-                                key={option.value}
-                                label={
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                        <span style={{ fontSize: '0.7rem', opacity: 0.8 }}>{option.emoji}</span>
-                                        <span>{option.label}</span>
-                                    </Box>
-                                }
-                                variant={filters?.difficulty === option.value ? 'filled' : 'outlined'}
+                                key={difficulty.value}
+                                label={difficulty.label}
+                                variant={filters.difficulty === difficulty.value ? 'filled' : 'outlined'}
                                 onClick={() => handleFilterChange('difficulty',
-                                    filters?.difficulty === option.value ? '' : option.value
-                                )} sx={{
+                                    filters.difficulty === difficulty.value ? '' : difficulty.value
+                                )}
+                                sx={{
                                     fontSize: '0.8rem',
                                     height: 32,
-                                    borderRadius: 1,
+                                    borderRadius: 2,
                                     fontWeight: 500,
                                     transition: 'all 0.2s ease',
-                                    ...(filters?.difficulty === option.value ? {
-                                        background: option.background,
-                                        color: option.color,
-                                        border: `1px solid ${option.border}`,
-                                        '&:hover': {
-                                            transform: 'translateY(-1px)',
-                                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                        }
-                                    } : {
-                                        backgroundColor: 'white',
-                                        border: `1px solid ${option.border}`,
-                                        color: option.color,
-                                        '&:hover': {
-                                            background: option.background,
-                                            transform: 'translateY(-1px)',
-                                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                        }
-                                    })
+                                    color: difficulty.color,
+                                    backgroundColor: filters.difficulty === difficulty.value ? difficulty.bgColor : 'white',
+                                    borderColor: difficulty.color,
+                                    '&:hover': {
+                                        backgroundColor: difficulty.bgColor,
+                                        transform: 'translateY(-1px)',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                    }
                                 }}
                             />
                         ))}
                     </Stack>
                 </Box>
-            </Box>            {/* 🔧 Advanced Filters Section */}
-            <Collapse in={showAdvanced}>
-                <Box sx={{ borderTop: '1px solid #e0e0e0', p: 2, backgroundColor: '#fafafa' }}>
-                    
-                    {/* Primary Muscle Groups */}
-                    <Box sx={{ mb: 3 }}>
-                        <Typography
-                            variant="body2"
-                            sx={{
-                                mb: 1,
-                                color: '#333',
-                                fontWeight: 600,
-                                fontSize: '0.85rem',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.5px'
-                            }}
-                        >
-                            Nhóm cơ chính
-                        </Typography>
-                        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                            {quickFilters.muscle.map((option) => (
-                                <Chip
-                                    key={option.value}
-                                    label={
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                            <span style={{ fontSize: '0.8rem' }}>{option.emoji}</span>
-                                            <span>{option.label}</span>
-                                        </Box>
-                                    }
-                                    variant={filters?.primaryMuscleGroups?.includes(option.value) ? 'filled' : 'outlined'}
-                                    onClick={() => {
-                                        const currentGroups = filters?.primaryMuscleGroups || [];
-                                        const newGroups = currentGroups.includes(option.value)
-                                            ? currentGroups.filter(g => g !== option.value)
-                                            : [...currentGroups, option.value];
-                                        handleFilterChange('primaryMuscleGroups', newGroups);
-                                    }}
-                                    sx={{
-                                        fontSize: '0.8rem',
-                                        height: 32,
-                                        borderRadius: 1,
-                                        fontWeight: 500,
-                                        transition: 'all 0.2s ease',
-                                        ...(filters?.primaryMuscleGroups?.includes(option.value) ? {
-                                            background: option.background,
-                                            color: option.color,
-                                            border: `1px solid ${option.border}`,
-                                            '&:hover': {
-                                                transform: 'translateY(-1px)',
-                                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                            }
-                                        } : {
-                                            backgroundColor: 'white',
-                                            border: `1px solid ${option.border}`,
-                                            color: option.color,
-                                            '&:hover': {
-                                                background: option.background,
-                                                transform: 'translateY(-1px)',
-                                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                            }
-                                        })
-                                    }}
-                                />
-                            ))}
-                        </Stack>
-                    </Box>
-
-                    {/* Equipment Section */}
-                    <Box sx={{ mb: 3 }}>
-                        <Typography
-                            variant="body2"
-                            sx={{
-                                mb: 1,
-                                color: '#333',
-                                fontWeight: 600,
-                                fontSize: '0.85rem',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.5px'
-                            }}
-                        >
-                            Thiết bị
-                        </Typography>
-                        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                            {[
-                                { value: 'bodyweight', label: 'Không dụng cụ', emoji: '🏃', color: '#4caf50', background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)', border: 'rgba(76, 175, 80, 0.2)' },
-                                { value: 'dumbbells', label: 'Tạ đơn', emoji: '🏋️', color: '#2196f3', background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)', border: 'rgba(33, 150, 243, 0.2)' },
-                                { value: 'barbell', label: 'Tạ đòn', emoji: '🏋️‍♂️', color: '#ff9800', background: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)', border: 'rgba(255, 152, 0, 0.2)' },
-                                { value: 'machine', label: 'Máy tập', emoji: '⚙️', color: '#9c27b0', background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)', border: 'rgba(156, 39, 176, 0.2)' },
-                                { value: 'resistance_bands', label: 'Dây kháng lực', emoji: '🎗️', color: '#e91e63', background: 'linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%)', border: 'rgba(233, 30, 99, 0.2)' },
-                                { value: 'kettlebell', label: 'Kettlebell', emoji: '⚡', color: '#ff5722', background: 'linear-gradient(135deg, #fbe9e7 0%, #ffccbc 100%)', border: 'rgba(255, 87, 34, 0.2)' },
-                                { value: 'cable', label: 'Cáp treo', emoji: '🪢', color: '#607d8b', background: 'linear-gradient(135deg, #eceff1 0%, #cfd8dc 100%)', border: 'rgba(96, 125, 139, 0.2)' },
-                                { value: 'pull_up_bar', label: 'Xà đơn', emoji: '🎯', color: '#795548', background: 'linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%)', border: 'rgba(121, 85, 72, 0.2)' }
-                            ].map((option) => (
-                                <Chip
-                                    key={option.value}
-                                    label={
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                            <span style={{ fontSize: '0.8rem' }}>{option.emoji}</span>
-                                            <span>{option.label}</span>
-                                        </Box>
-                                    }
-                                    variant={filters?.equipment?.includes(option.value) ? 'filled' : 'outlined'}
-                                    onClick={() => {
-                                        const currentEquipment = filters?.equipment || [];
-                                        const newEquipment = currentEquipment.includes(option.value)
-                                            ? currentEquipment.filter(e => e !== option.value)
-                                            : [...currentEquipment, option.value];
-                                        handleFilterChange('equipment', newEquipment);
-                                    }}
-                                    sx={{
-                                        fontSize: '0.8rem',
-                                        height: 32,
-                                        borderRadius: 1,
-                                        fontWeight: 500,
-                                        transition: 'all 0.2s ease',
-                                        ...(filters?.equipment?.includes(option.value) ? {
-                                            background: option.background,
-                                            color: option.color,
-                                            border: `1px solid ${option.border}`,
-                                            '&:hover': {
-                                                transform: 'translateY(-1px)',
-                                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                            }
-                                        } : {
-                                            backgroundColor: 'white',
-                                            border: `1px solid ${option.border}`,
-                                            color: option.color,
-                                            '&:hover': {
-                                                background: option.background,
-                                                transform: 'translateY(-1px)',
-                                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                            }
-                                        })
-                                    }}
-                                />
-                            ))}
-                        </Stack>
-                    </Box>
-
-                    {/* Ranges Section */}
-                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
-                        {/* Calories Range */}
-                        <Box>
-                            <Typography
-                                variant="body2"
+            </Box>
+        </Collapse>            {/* ✅ ADVANCED FILTERS - Collapsible */}
+        <Collapse in={showAdvanced}>
+            <Box sx={{
+                px: { xs: 2, md: 2.5 },
+                pb: 2,
+                borderTop: '1px solid rgba(102, 126, 234, 0.1)',
+                backgroundColor: 'rgba(248, 250, 255, 0.8)',
+                backdropFilter: 'blur(4px)'
+            }}>
+                {/* Muscle Groups Section */}
+                <Box sx={{ mb: 2 }}>
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            mb: 1.5,
+                            mt: 2,
+                            color: 'text.primary',
+                            fontWeight: 600,
+                            fontSize: '0.8rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                        }}
+                    >
+                        💪 Nhóm cơ
+                    </Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                        {filterOptions.muscleGroups.map((muscle) => (
+                            <Chip
+                                key={muscle.value}
+                                label={
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                        <span style={{ fontSize: '0.8rem' }}>{muscle.icon}</span>
+                                        <span>{muscle.label}</span>
+                                    </Box>
+                                }
+                                variant={filters.primaryMuscleGroups?.includes(muscle.value) ? 'filled' : 'outlined'}
+                                onClick={() => handleMuscleGroupToggle(muscle.value)}
                                 sx={{
-                                    mb: 1,
-                                    color: '#333',
-                                    fontWeight: 600,
-                                    fontSize: '0.85rem',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.5px'
+                                    fontSize: '0.8rem',
+                                    height: 32,
+                                    borderRadius: 2,
+                                    fontWeight: 500,
+                                    transition: 'all 0.2s ease',
+                                    '&:hover': {
+                                        transform: 'translateY(-1px)',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                    }
                                 }}
-                            >
-                                Calories/phút
-                            </Typography>
-                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                                <TextField
-                                    type="number"
-                                    placeholder="Min"
-                                    size="small"
-                                    value={filters?.caloriesRange?.min || ''}
-                                    onChange={(e) => {
-                                        const value = e.target.value ? Number(e.target.value) : undefined;
-                                        handleFilterChange('caloriesRange', {
-                                            ...filters?.caloriesRange,
-                                            min: value
-                                        });
-                                    }}
-                                    sx={{
-                                        width: 80,
-                                        '& .MuiOutlinedInput-root': {
-                                            borderRadius: 1,
-                                            fontSize: '0.8rem',
-                                            '&:hover fieldset': { borderColor: '#1976d2' },
-                                            '&.Mui-focused fieldset': { borderColor: '#1976d2' }
-                                        }
-                                    }}
-                                />
-                                <Typography variant="body2" color="text.secondary">-</Typography>
-                                <TextField
-                                    type="number"
-                                    placeholder="Max"
-                                    size="small"
-                                    value={filters?.caloriesRange?.max || ''}
-                                    onChange={(e) => {
-                                        const value = e.target.value ? Number(e.target.value) : undefined;
-                                        handleFilterChange('caloriesRange', {
-                                            ...filters?.caloriesRange,
-                                            max: value
-                                        });
-                                    }}
-                                    sx={{
-                                        width: 80,
-                                        '& .MuiOutlinedInput-root': {
-                                            borderRadius: 1,
-                                            fontSize: '0.8rem',
-                                            '&:hover fieldset': { borderColor: '#1976d2' },
-                                            '&.Mui-focused fieldset': { borderColor: '#1976d2' }
-                                        }
-                                    }}
-                                />
-                            </Box>
-                        </Box>
-
-                        {/* Intensity Range */}
-                        <Box>
-                            <Typography
-                                variant="body2"
+                            />
+                        ))}
+                    </Stack>
+                </Box>                {/* Equipment Section */}
+                <Box>
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            mb: 1.5,
+                            color: 'text.primary',
+                            fontWeight: 600,
+                            fontSize: '0.8rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                        }}
+                    >
+                        🛠️ Thiết bị
+                    </Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                        {filterOptions.equipment.map((equipment) => (
+                            <Chip
+                                key={equipment.value}
+                                label={
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                        <span style={{ fontSize: '0.8rem' }}>{equipment.icon}</span>
+                                        <span>{equipment.label}</span>
+                                    </Box>
+                                }
+                                variant={filters.equipment?.includes(equipment.value) ? 'filled' : 'outlined'}
+                                onClick={() => handleEquipmentToggle(equipment.value)}
                                 sx={{
-                                    mb: 1,
-                                    color: '#333',
-                                    fontWeight: 600,
-                                    fontSize: '0.85rem',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.5px'
+                                    fontSize: '0.8rem',
+                                    height: 32,
+                                    borderRadius: 2,
+                                    fontWeight: 500,
+                                    transition: 'all 0.2s ease',
+                                    '&:hover': {
+                                        transform: 'translateY(-1px)',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                    }
                                 }}
-                            >
-                                Cường độ (1-10)
-                            </Typography>
-                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                                <TextField
-                                    type="number"
-                                    placeholder="Min"
-                                    size="small"
-                                    inputProps={{ min: 1, max: 10 }}
-                                    value={filters?.intensityRange?.min || ''}
-                                    onChange={(e) => {
-                                        const value = e.target.value ? Number(e.target.value) : undefined;
-                                        handleFilterChange('intensityRange', {
-                                            ...filters?.intensityRange,
-                                            min: value
-                                        });
-                                    }}
-                                    sx={{
-                                        width: 80,
-                                        '& .MuiOutlinedInput-root': {
-                                            borderRadius: 1,
-                                            fontSize: '0.8rem',
-                                            '&:hover fieldset': { borderColor: '#1976d2' },
-                                            '&.Mui-focused fieldset': { borderColor: '#1976d2' }
-                                        }
-                                    }}
-                                />
-                                <Typography variant="body2" color="text.secondary">-</Typography>
-                                <TextField
-                                    type="number"
-                                    placeholder="Max"
-                                    size="small"
-                                    inputProps={{ min: 1, max: 10 }}
-                                    value={filters?.intensityRange?.max || ''}
-                                    onChange={(e) => {
-                                        const value = e.target.value ? Number(e.target.value) : undefined;
-                                        handleFilterChange('intensityRange', {
-                                            ...filters?.intensityRange,
-                                            max: value
-                                        });
-                                    }}
-                                    sx={{
-                                        width: 80,
-                                        '& .MuiOutlinedInput-root': {
-                                            borderRadius: 1,
-                                            fontSize: '0.8rem',
-                                            '&:hover fieldset': { borderColor: '#1976d2' },
-                                            '&.Mui-focused fieldset': { borderColor: '#1976d2' }
-                                        }
-                                    }}
-                                />
-                            </Box>
-                        </Box>
-                    </Box>
+                            />
+                        ))}
+                    </Stack>
+                </Box>
 
-                    {/* Admin & Safety Options */}
+                {/* ✅ NEW: Numeric Range Filters */}
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mt: 3 }}>
+                    {/* Calories Range */}
                     <Box>
                         <Typography
                             variant="body2"
                             sx={{
-                                mb: 1,
-                                color: '#333',
+                                mb: 1.5,
+                                color: 'text.primary',
                                 fontWeight: 600,
-                                fontSize: '0.85rem',
+                                fontSize: '0.8rem',
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.5px'
                             }}
                         >
-                            Tùy chọn khác
+                            🔥 Calories/phút
                         </Typography>
-                        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                            <Chip
-                                label="Chỉ bài tập đã duyệt"
-                                variant={filters?.isApproved === true ? 'filled' : 'outlined'}
-                                onClick={() => handleFilterChange('isApproved', 
-                                    filters?.isApproved === true ? undefined : true
-                                )}
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                            <TextField
+                                type="number"
+                                placeholder="Min"
+                                size="small"
+                                value={filters.caloriesRange?.min || ''}
+                                onChange={(e) => {
+                                    const value = e.target.value ? Number(e.target.value) : undefined;
+                                    handleFilterChange('caloriesRange', {
+                                        ...filters.caloriesRange,
+                                        min: value
+                                    });
+                                }}
                                 sx={{
-                                    fontSize: '0.8rem',
-                                    height: 32,
-                                    borderRadius: 1,
-                                    fontWeight: 500,
-                                    transition: 'all 0.2s ease',
-                                    ...(filters?.isApproved === true ? {
-                                        background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
-                                        color: '#4caf50',
-                                        border: '1px solid rgba(76, 175, 80, 0.2)',
-                                        '&:hover': {
-                                            transform: 'translateY(-1px)',
-                                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                        }
-                                    } : {
-                                        backgroundColor: 'white',
-                                        border: '1px solid rgba(76, 175, 80, 0.2)',
-                                        color: '#4caf50',
-                                        '&:hover': {
-                                            background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
-                                            transform: 'translateY(-1px)',
-                                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                        }
-                                    })
+                                    width: 80,
+                                    '& .MuiOutlinedInput-root': {
+                                        borderRadius: 2,
+                                        fontSize: '0.8rem',
+                                        height: 40,
+                                        background: 'white',
+                                        '&:hover fieldset': { borderColor: 'primary.main' },
+                                        '&.Mui-focused fieldset': { borderColor: 'primary.main' }
+                                    }
                                 }}
                             />
-                            <Chip
-                                label="Có cảnh báo an toàn"
-                                variant={filters?.hasPrecautions === true ? 'filled' : 'outlined'}
-                                onClick={() => handleFilterChange('hasPrecautions', 
-                                    filters?.hasPrecautions === true ? undefined : true
-                                )}
+                            <Typography variant="body2" color="text.secondary">-</Typography>
+                            <TextField
+                                type="number"
+                                placeholder="Max"
+                                size="small"
+                                value={filters.caloriesRange?.max || ''}
+                                onChange={(e) => {
+                                    const value = e.target.value ? Number(e.target.value) : undefined;
+                                    handleFilterChange('caloriesRange', {
+                                        ...filters.caloriesRange,
+                                        max: value
+                                    });
+                                }}
                                 sx={{
-                                    fontSize: '0.8rem',
-                                    height: 32,
-                                    borderRadius: 1,
-                                    fontWeight: 500,
-                                    transition: 'all 0.2s ease',
-                                    ...(filters?.hasPrecautions === true ? {
-                                        background: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)',
-                                        color: '#ff9800',
-                                        border: '1px solid rgba(255, 152, 0, 0.2)',
-                                        '&:hover': {
-                                            transform: 'translateY(-1px)',
-                                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                        }
-                                    } : {
-                                        backgroundColor: 'white',
-                                        border: '1px solid rgba(255, 152, 0, 0.2)',
-                                        color: '#ff9800',
-                                        '&:hover': {
-                                            background: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)',
-                                            transform: 'translateY(-1px)',
-                                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                        }
-                                    })
+                                    width: 80,
+                                    '& .MuiOutlinedInput-root': {
+                                        borderRadius: 2,
+                                        fontSize: '0.8rem',
+                                        height: 40,
+                                        background: 'white',
+                                        '&:hover fieldset': { borderColor: 'primary.main' },
+                                        '&.Mui-focused fieldset': { borderColor: 'primary.main' }
+                                    }
                                 }}
                             />
-                        </Stack>
+                        </Box>
+                    </Box>
+
+                    {/* Intensity Range */}
+                    <Box>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                                mb: 1.5,
+                                color: 'text.primary',
+                                fontWeight: 600,
+                                fontSize: '0.8rem',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                            }}
+                        >
+                            ⚡ Cường độ (1-10)
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                            <TextField
+                                type="number"
+                                placeholder="Min"
+                                size="small"
+                                inputProps={{ min: 1, max: 10 }}
+                                value={filters.intensityRange?.min || ''}
+                                onChange={(e) => {
+                                    const value = e.target.value ? Number(e.target.value) : undefined;
+                                    handleFilterChange('intensityRange', {
+                                        ...filters.intensityRange,
+                                        min: value
+                                    });
+                                }}
+                                sx={{
+                                    width: 80,
+                                    '& .MuiOutlinedInput-root': {
+                                        borderRadius: 2,
+                                        fontSize: '0.8rem',
+                                        height: 40,
+                                        background: 'white',
+                                        '&:hover fieldset': { borderColor: 'primary.main' },
+                                        '&.Mui-focused fieldset': { borderColor: 'primary.main' }
+                                    }
+                                }}
+                            />
+                            <Typography variant="body2" color="text.secondary">-</Typography>
+                            <TextField
+                                type="number"
+                                placeholder="Max"
+                                size="small"
+                                inputProps={{ min: 1, max: 10 }}
+                                value={filters.intensityRange?.max || ''}
+                                onChange={(e) => {
+                                    const value = e.target.value ? Number(e.target.value) : undefined;
+                                    handleFilterChange('intensityRange', {
+                                        ...filters.intensityRange,
+                                        max: value
+                                    });
+                                }}
+                                sx={{
+                                    width: 80,
+                                    '& .MuiOutlinedInput-root': {
+                                        borderRadius: 2,
+                                        fontSize: '0.8rem',
+                                        height: 40,
+                                        background: 'white',
+                                        '&:hover fieldset': { borderColor: 'primary.main' },
+                                        '&.Mui-focused fieldset': { borderColor: 'primary.main' }
+                                    }
+                                }}
+                            />
+                        </Box>
                     </Box>
                 </Box>
-            </Collapse>
-        </Paper>
+
+                {/* ✅ NEW: Admin & Safety Options */}
+                {/* <Box sx={{ mt: 3 }}>
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            mb: 1.5,
+                            color: 'text.primary',
+                            fontWeight: 600,
+                            fontSize: '0.8rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                        }}
+                    >
+                        ⚙️ Tùy chọn khác
+                    </Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                        <Chip
+                            label="✅ Chỉ bài tập đã duyệt"
+                            variant={filters.isApproved === true ? 'filled' : 'outlined'}
+                            onClick={() => handleFilterChange('isApproved',
+                                filters.isApproved === true ? undefined : true
+                            )}
+                            color="success"
+                            sx={{
+                                fontSize: '0.8rem',
+                                height: 32,
+                                borderRadius: 2,
+                                fontWeight: 500,
+                                transition: 'all 0.2s ease',
+                                '&:hover': {
+                                    transform: 'translateY(-1px)',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                }
+                            }}
+                        />
+                        <Chip
+                            label="⚠️ Có cảnh báo an toàn"
+                            variant={filters.hasPrecautions === true ? 'filled' : 'outlined'}
+                            onClick={() => handleFilterChange('hasPrecautions',
+                                filters.hasPrecautions === true ? undefined : true
+                            )}
+                            color="warning"
+                            sx={{
+                                fontSize: '0.8rem',
+                                height: 32,
+                                borderRadius: 2,
+                                fontWeight: 500,
+                                transition: 'all 0.2s ease',
+                                '&:hover': {
+                                    transform: 'translateY(-1px)',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                }
+                            }}
+                        />
+                    </Stack>
+                </Box> */}
+            </Box>
+        </Collapse>
+    </Paper>
     );
 };
 

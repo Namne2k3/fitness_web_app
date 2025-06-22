@@ -20,7 +20,7 @@ import { useNavigate } from 'react-router-dom';
 import { ExerciseListParams } from '../../services/exerciseService';
 import { Exercise } from '../../types';
 import { useExercises } from '../../hooks/useExercises';
-import ExerciseFilters from './components/ExerciseFilters';
+import ExerciseFilters, { ExerciseFilterState } from './components/ExerciseFilters';
 import ExerciseList from './components/ExerciseList';
 import ExercisePagination from './components/ExercisePagination';
 
@@ -64,23 +64,35 @@ const ExercisePage: React.FC = () => {
             }
         },
         { success: true, error: null, data: { filters: {}, timestamp: Date.now() } }
-    );
-
-    // ================================
+    );    // ================================
     // 🔧 Filter & Sort Management
     // ================================
-    const [filters, setFilters] = useState<ExerciseListParams['filters']>({
-        isApproved: true
-    });
-
-    const [sort] = useState<{ field: string; order: 'asc' | 'desc' }>({
+    const [filters, setFilters] = useState<ExerciseFilterState>({
+        search: '',
+        category: '',
+        difficulty: '',
+        primaryMuscleGroups: [],
+        equipment: []
+    }); const [sort] = useState<{ field: string; order: 'asc' | 'desc' }>({
         field: 'name',
         order: 'asc'
-    });    // Build params cho API call
+    });
+
+    // Helper function để convert ExerciseFilterState sang ExerciseListParams['filters']
+    const mapFiltersToParams = (filters: ExerciseFilterState): ExerciseListParams['filters'] => {
+        return {
+            search: filters.search || undefined,
+            category: (filters.category as any) || undefined,
+            difficulty: (filters.difficulty as any) || undefined,
+            primaryMuscleGroups: filters.primaryMuscleGroups.length > 0 ? filters.primaryMuscleGroups : undefined,
+            equipment: filters.equipment.length > 0 ? filters.equipment : undefined,
+            isApproved: true // Always filter to approved exercises
+        };
+    };    // Build params cho API call
     const exerciseParams: ExerciseListParams = {
         page,
         limit,
-        filters,
+        filters: mapFiltersToParams(filters),
         sort,
         options: {
             includeUserData: false,
@@ -154,8 +166,8 @@ const ExercisePage: React.FC = () => {
                 </Box>                {/* ================================ */}
                 {/* 🔍 COMPACT FILTERS - Using ExerciseFilters Component */}
                 {/* ================================ */}                <ExerciseFilters
-                    filters={filters || {} as any}
-                    onFiltersChange={(newFilters: any) => {
+                    filters={filters}
+                    onFiltersChange={(newFilters: ExerciseFilterState) => {
                         setFilters(newFilters);
                         setPage(1);
                     }}
