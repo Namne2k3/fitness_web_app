@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-ignore - MUI Grid type conflicts resolved
 /* eslint-disable */
-import React, { useOptimistic, useTransition } from 'react';
+import React, { useOptimistic, useTransition, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Box,
@@ -18,8 +18,9 @@ import {
     Card,
     CardContent,
     Breadcrumbs,
-    Link,
-    IconButton
+    Link, IconButton,
+    FormControlLabel,
+    Switch
 } from '@mui/material';
 import {
     ArrowBack,
@@ -38,6 +39,9 @@ import {
     Whatshot,
     PlayCircleOutline as PlayCircleOutlineIcon,
     Gif as GifBoxIcon,
+    PlayArrow,
+    CheckCircle,
+    Build,
 } from '@mui/icons-material';
 import { ExerciseService } from '../../services/exerciseService';
 // import { useExercise } from '../../hooks/useExercises'; // 🚀 Commented out for mock data testing
@@ -46,76 +50,77 @@ import { ExerciseService } from '../../services/exerciseService';
  * 🚀 MOCK DATA - For UI testing before API implementation
  */
 const mockExerciseData = {
-    id: 'mock-push-up-123',
-    name: 'Push-ups (Hít đất)',
-    description: 'Bài tập hít đất là một bài tập cơ bản giúp tăng cường sức mạnh cho ngực, vai và cánh tay. Đây là bài tập không cần thiết bị và có thể thực hiện ở bất kỳ đâu.',
+    id: 'mock-flying-bell-456',
+    name: 'Flying Lateral Raises (Bay vai)',
+    description: 'Bài tập Bay vai với tạ đơn là một bài tập cô lập tuyệt vời để phát triển cơ vai trước và giữa. Bài tập này giúp tạo độ rộng cho vai và cải thiện đường nét cơ thể phần trên.',
     category: 'Strength Training',
-    difficulty: 'beginner',
+    difficulty: 'intermediate',
     isApproved: true,
-    likeCount: 245,
-    caloriesPerMinute: 8,
-    averageIntensity: 6,
-    primaryMuscleGroups: ['Ngực', 'Vai trước', 'Tay sau'],
-    secondaryMuscleGroups: ['Cơ core', 'Cơ lưng'],
-    equipment: ['Không cần thiết bị'],
-
-    // 🎥 Media content
+    likeCount: 312,
+    caloriesPerMinute: 12,
+    averageIntensity: 7,
+    primaryMuscleGroups: ['Vai trước', 'Vai giữa', 'Ngực trên'],
+    secondaryMuscleGroups: ['Vai sau', 'Cơ core', 'Tay trước'],
+    equipment: ['Tạ đơn', 'Ghế tập'],    // 🎥 Media content
     images: [
-        'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80', // Push-up position 1
-        'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=800&q=80', // Push-up position 2
-        'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=800&q=80', // Push-up form
-        'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80'  // Push-up variations
+        'https://cdn.mos.cms.futurecdn.net/v2/t:0,l:437,cw:1125,ch:1125,q:80,w:1125/N7cKZJUp4C3kdvwvKoPXSR.jpg', // Lateral raise starting position
+        'https://images.unsplash.com/photo-1434596922112-19c563067271?w=800&q=80', // Dumbbell shoulder exercise
+        'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80', // Seated shoulder workout
+        'https://images.unsplash.com/photo-1506629905607-d908a0b61549?w=800&q=80'  // Shoulder training form
     ],
     videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4', // Demo video
-    gifUrl: 'https://media.giphy.com/media/26BRv0ThflsHCqDrG/giphy.gif', // Animated demo
+    gifUrl: 'https://i.pinimg.com/originals/8b/d3/74/8bd3745dca0749b912b08b0d4bca3833.gif', // Animated demo
     instructions: [
-        'Bắt đầu ở tư thế plank với hai tay đặt rộng bằng vai, cánh tay thẳng',
-        'Giữ thân người thẳng từ đầu đến gót chân',
-        'Hạ thấp cơ thể bằng cách uốn cùi chỏ cho đến khi ngực gần chạm đất',
-        'Đẩy cơ thể lên về vị trí ban đầu bằng cách duỗi thẳng cánh tay',
-        'Lặp lại động tác với nhịp độ đều đặn và kiểm soát'
+        'Ngồi thẳng trên ghế tập, lưng tựa vào tựa ghế, mỗi tay cầm một tạ đơn',
+        'Giữ tạ ở vị trí bên hông, cùi chỏ hơi cong nhẹ (khoảng 15-20 độ)',
+        'Nâng tạ lên hai bên theo chuyển động cung tròn cho đến khi ngang vai',
+        'Giữ ngực thẳng, vai hạ thấp, không sử dụng động lực từ thân người',
+        'Hạ tạ xuống từ từ theo đường cong tương tự, kiểm soát tốc độ',
+        'Thở ra khi nâng tạ lên, thở vào khi hạ tạ xuống'
     ],
     precautions: [
-        'Giữ cổ tay thẳng và không bị gập quá mức',
-        'Không để hông chảy xệ hoặc nâng cao quá mức',
-        'Thực hiện động tác chậm và có kiểm soát',
-        'Dừng lại nếu cảm thấy đau ở cổ tay hoặc vai'
+        'Không nâng tạ quá cao, chỉ nâng đến ngang vai để tránh tổn thương',
+        'Giữ cùi chỏ hơi cong, không duỗi thẳng hoàn toàn',
+        'Sử dụng trọng lượng phù hợp, không nên quá nặng',
+        'Thực hiện động tác chậm và kiểm soát, tránh sử dụng động lực',
+        'Giữ vai hạ thấp, không nhún vai khi thực hiện'
     ],
     contraindications: [
-        'Chấn thương cổ tay hoặc vai gần đây',
-        'Vấn đề về cột sống thắt lưng nghiêm trọng',
-        'Hội chứng ống cổ tay',
-        'Phụ nữ mang thai (nên tham khảo bác sĩ)'
+        'Chấn thương vai, đặc biệt là vùng rotator cuff',
+        'Viêm gân vai hoặc bursitis',
+        'Đau vai mãn tính chưa được điều trị',
+        'Chấn thương cổ tay hoặc khuỷu tay nghiêm trọng',
+        'Phụ nữ mang thai giai đoạn cuối (tham khảo bác sĩ)'
     ],
     variations: [
         {
-            name: 'Push-up trên đầu gối',
-            description: 'Phiên bản dễ hơn cho người mới bắt đầu',
+            name: 'Lateral Raise đứng',
+            description: 'Phiên bản đứng cơ bản cho người mới bắt đầu',
             difficultyModifier: 'easier',
             instructions: [
-                'Quỳ xuống với đầu gối chạm đất thay vì duỗi thẳng chân',
-                'Giữ thân trên thẳng từ đầu đến đầu gối',
-                'Thực hiện động tác hít đất như bình thường'
+                'Đứng thẳng, chân rộng bằng vai, mỗi tay cầm một tạ nhẹ',
+                'Nâng tạ lên hai bên cho đến ngang vai',
+                'Hạ xuống từ từ và lặp lại'
             ]
         },
         {
-            name: 'Diamond Push-ups',
-            description: 'Phiên bản khó hơn tập trung vào tay sau',
+            name: 'Cable Lateral Raise',
+            description: 'Sử dụng máy cáp để tăng độ khó và kiểm soát tốt hơn',
             difficultyModifier: 'harder',
             instructions: [
-                'Đặt hai tay tạo thành hình kim cương dưới ngực',
-                'Thực hiện động tác hít đất với tư thế tay này',
-                'Tập trung lực vào tay sau'
+                'Đứng bên cạnh máy cáp, nắm tay cầm với tay xa máy',
+                'Nâng tay cầm lên bên cho đến ngang vai',
+                'Điều khiển lực căng liên tục từ cáp'
             ]
         },
         {
-            name: 'Wide-grip Push-ups',
-            description: 'Biến thể tập trung vào cơ ngực',
+            name: 'Bent-over Lateral Raise',
+            description: 'Biến thể cúi người tập trung vào vai sau',
             difficultyModifier: 'variation',
             instructions: [
-                'Đặt tay rộng hơn vai khoảng 1.5 lần',
-                'Thực hiện động tác hít đất bình thường',
-                'Cảm nhận sự kéo giãn ở vùng ngực'
+                'Cúi người về phía trước 45 độ, giữ lưng thẳng',
+                'Nâng tạ lên sau lưng theo chuyển động cung tròn',
+                'Tập trung vào cơ vai sau'
             ]
         }
     ]
@@ -433,7 +438,7 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                         }
                                         sx={{ fontWeight: 600 }}
                                     />
-                                    {exercise.isApproved && (
+                                    {/* {exercise.isApproved && (
                                         <Chip
                                             icon={<Verified />}
                                             label="Đã xác thực"
@@ -443,7 +448,7 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                                 fontWeight: 600
                                             }}
                                         />
-                                    )}
+                                    )} */}
                                 </Box>
                             </Box>
                         </Box>
@@ -454,8 +459,7 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                     </Grid>
 
                     {/* @ts-ignore */}
-                    <Grid item xs={12} md={4}>
-                        {/* Action Buttons */}
+                    <Grid item xs={12} md={4}>                        {/* Action Buttons */}
                         <Stack direction="row" spacing={2} justifyContent="center">
                             <Button
                                 variant="contained"
@@ -465,8 +469,19 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                 sx={{
                                     bgcolor: 'rgba(255,255,255,0.2)',
                                     color: 'white',
+                                    backdropFilter: 'blur(10px)',
+                                    border: '1px solid rgba(255,255,255,0.3)',
+                                    borderRadius: 2,
+                                    px: 3,
+                                    py: 1.5,
+                                    transition: 'all 0.3s ease',
                                     '&:hover': {
                                         bgcolor: 'rgba(255,255,255,0.3)',
+                                        transform: 'translateY(-2px)',
+                                        boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
+                                    },
+                                    '&:active': {
+                                        transform: 'translateY(0)',
                                     }
                                 }}
                             >
@@ -479,8 +494,19 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                 sx={{
                                     bgcolor: 'rgba(255,255,255,0.2)',
                                     color: 'white',
+                                    backdropFilter: 'blur(10px)',
+                                    border: '1px solid rgba(255,255,255,0.3)',
+                                    borderRadius: 2,
+                                    width: 48,
+                                    height: 48,
+                                    transition: 'all 0.3s ease',
                                     '&:hover': {
                                         bgcolor: 'rgba(255,255,255,0.3)',
+                                        transform: 'translateY(-2px) scale(1.05)',
+                                        boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
+                                    },
+                                    '&:active': {
+                                        transform: 'translateY(0) scale(1)',
                                     }
                                 }}
                             >
@@ -492,8 +518,18 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                 sx={{
                                     bgcolor: 'rgba(255,255,255,0.2)',
                                     color: 'white',
+                                    backdropFilter: 'blur(10px)',
+                                    border: '1px solid rgba(255,255,255,0.3)',
+                                    borderRadius: 2,
+                                    width: 48,
+                                    height: 48,
+                                    transition: 'all 0.3s ease',
                                     '&:hover': {
-                                        bgcolor: 'rgba(255,255,255,0.3)',
+                                        bgcolor: 'rgba(255,255,255,0.3)', transform: 'translateY(-2px) rotate(10deg)',
+                                        boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
+                                    },
+                                    '&:active': {
+                                        transform: 'translateY(0) rotate(0deg)',
                                     }
                                 }}
                             >
@@ -502,9 +538,7 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                         </Stack>
                     </Grid>
                 </Grid>
-            </Paper>
-
-            {/* Compact Muscle Groups Section */}
+            </Paper>            {/* Comprehensive Exercise Info Section - Muscle Groups & Equipment */}
             <Paper
                 elevation={0}
                 sx={{
@@ -515,7 +549,8 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                     mb: 4
                 }}
             >
-                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3, alignItems: { xs: 'stretch', sm: 'center' } }}>
+                {/* Muscle Groups Row */}
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3, alignItems: { xs: 'stretch', sm: 'center' }, mb: 3 }}>
                     {/* Primary Muscle Groups */}
                     <Box sx={{ flex: 1 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -575,7 +610,37 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                         </Box>
                     )}
                 </Box>
-            </Paper>            {/* Stats Cards */}
+
+                {/* Equipment Section */}
+                {exercise.equipment && exercise.equipment.length > 0 && (
+                    <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                            <Build sx={{ color: '#ff9800', mr: 1, fontSize: 20 }} />
+                            <Typography variant="h6" fontWeight="600" color="#f57c00">
+                                Thiết bị cần thiết
+                            </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                            {exercise.equipment.map((item, index) => (
+                                <Chip
+                                    key={index}
+                                    label={item}
+                                    sx={{
+                                        bgcolor: '#ff9800',
+                                        color: 'white',
+                                        fontWeight: 500,
+                                        '&:hover': {
+                                            bgcolor: '#f57c00',
+                                            transform: 'scale(1.05)'
+                                        },
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                />
+                            ))}
+                        </Box>
+                    </Box>
+                )}
+            </Paper>{/* Stats Cards */}
             <Box
                 sx={{
                     display: 'grid',
@@ -633,91 +698,14 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                         </Box>
                         <InstructionsTab instructions={exercise.instructions} />
                     </Paper>
-                </Grid>                {/* Video/GIF Section */}
+                </Grid>
+                {/* Enhanced Video/GIF Section */}
                 {/* @ts-ignore */}
                 <Grid size={{ xs: 12, md: 6 }}>
-                    {(exercise.videoUrl || exercise.gifUrl) ? (
-                        <Paper
-                            elevation={2}
-                            sx={{
-                                height: '100%',
-                                borderRadius: 3,
-                                overflow: 'hidden',
-                                background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
-                                border: '1px solid rgba(76, 175, 80, 0.2)'
-                            }}
-                        >
-                            <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                                    <Avatar sx={{ bgcolor: '#4caf50', width: 40, height: 40, mr: 2 }}>
-                                        {exercise.videoUrl ? <PlayCircleOutlineIcon /> : <GifBoxIcon />}
-                                    </Avatar>
-                                    <Typography variant="h5" fontWeight="bold" color="#388e3c">
-                                        {exercise.videoUrl ? 'Video hướng dẫn' : 'Hướng dẫn động'}
-                                    </Typography>
-                                </Box>
-
-                                <Box
-                                    sx={{
-                                        flex: 1,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        borderRadius: 2,
-                                        overflow: 'hidden',
-                                        boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-                                        background: '#000',
-                                        minHeight: '300px'
-                                    }}
-                                >
-                                    {exercise.videoUrl ? (
-                                        <video
-                                            controls
-                                            poster={exercise.images?.[0]}
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                maxHeight: '400px',
-                                                objectFit: 'cover'
-                                            }}
-                                        >
-                                            <source src={exercise.videoUrl} type="video/mp4" />
-                                            Trình duyệt của bạn không hỗ trợ phát video.
-                                        </video>
-                                    ) : exercise.gifUrl ? (
-                                        <img
-                                            src={exercise.gifUrl}
-                                            alt="Exercise demonstration"
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                maxHeight: '400px',
-                                                objectFit: 'cover',
-                                                borderRadius: '8px'
-                                            }}
-                                        />
-                                    ) : null}
-                                </Box>
-
-                                <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                    sx={{ textAlign: 'center', mt: 2 }}
-                                >
-                                    💡 Theo dõi kỹ thuật thực hiện để đảm bảo hiệu quả và an toàn
-                                </Typography>
-                            </Box>
-                        </Paper>
-                    ) : (
-                        <Paper elevation={0} sx={{ height: '100%', p: 4, borderRadius: 3, border: '1px dashed rgba(76, 175, 80, 0.3)', background: 'linear-gradient(135deg, #f1f8e9 0%, #e8f5e8 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>
-                            <Box sx={{ textAlign: 'center' }}>
-                                <PlayCircleOutlineIcon sx={{ fontSize: 64, color: 'rgba(76, 175, 80, 0.3)', mb: 2 }} />
-                                <Typography variant="h6" color="text.secondary">
-                                    Video hướng dẫn đang được cập nhật
-                                </Typography>
-                            </Box>
-                        </Paper>
-                    )}                </Grid>            </Grid>            {/* 🔄 Variations Section - Full Width */}
+                    <VideoGifSection exercise={exercise} />
+                </Grid>
+            </Grid>
+            {/* 🔄 Variations Section - Full Width */}
             <Grid container spacing={4} sx={{ mb: 4 }}>
                 {/* Enhanced Variations Section - Full Width */}
                 {/* @ts-ignore */}
@@ -783,27 +771,126 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                 />
             </Paper>
 
-            {/* Equipment Section */}
-            {exercise.equipment && exercise.equipment.length > 0 && (
-                <Paper elevation={0} sx={{ p: 3, borderRadius: 2, mb: 4 }}>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                        Thiết bị cần thiết
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                        {exercise.equipment.map((item, index) => (
-                            <Chip
-                                key={index}
-                                label={item}
-                                variant="outlined" sx={{
-                                    borderColor: 'primary.main',
-                                    color: 'primary.main',
-                                    fontWeight: 500
-                                }}
-                            />
-                        ))}
+            {/* Exercise Summary Section */}
+            <Paper
+                elevation={0}
+                sx={{
+                    mb: 4,
+                    borderRadius: 3,
+                    overflow: 'hidden',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white'
+                }}
+            >
+                <Box sx={{ p: 4 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                        <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 48, height: 48, mr: 2 }}>
+                            <CheckCircle sx={{ fontSize: 28 }} />
+                        </Avatar>
+                        <Box>
+                            <Typography variant="h5" component="h2" fontWeight="bold">
+                                Tóm tắt bài tập
+                            </Typography>
+                            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                                Những điểm quan trọng cần nhớ
+                            </Typography>
+                        </Box>
+                    </Box>                    <Grid container spacing={3}>
+                        {/* Quick Stats */}
+                        {/* @ts-ignore */}
+                        <Grid size={{ xs: 12, md: 4 }}>
+                            <Box sx={{ textAlign: 'center', p: 3, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
+                                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
+                                    {exercise.instructions.length}
+                                </Typography>
+                                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                                    Bước thực hiện
+                                </Typography>
+                            </Box>
+                        </Grid>
+                        {/* @ts-ignore */}
+                        <Grid size={{ xs: 12, md: 4 }}>
+                            <Box sx={{ textAlign: 'center', p: 3, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
+                                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
+                                    {exercise.primaryMuscleGroups.length}
+                                </Typography>
+                                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                                    Nhóm cơ chính
+                                </Typography>
+                            </Box>
+                        </Grid>
+                        {/* @ts-ignore */}
+                        <Grid size={{ xs: 12, md: 4 }}>
+                            <Box sx={{ textAlign: 'center', p: 3, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
+                                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
+                                    {exercise.variations?.length || 0}
+                                </Typography>
+                                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                                    Biến thể
+                                </Typography>
+                            </Box>
+                        </Grid>
+                    </Grid>
+
+                    {/* Key Points */}
+                    <Box sx={{ mt: 4 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                            🎯 Điểm quan trọng
+                        </Typography>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <CheckCircle sx={{ fontSize: 20 }} />
+                                <Typography variant="body2">
+                                    Mức độ: <strong>{exercise.difficulty}</strong>
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <CheckCircle sx={{ fontSize: 20 }} />
+                                <Typography variant="body2">
+                                    Loại: <strong>{exercise.category}</strong>
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <CheckCircle sx={{ fontSize: 20 }} />
+                                <Typography variant="body2">
+                                    Calories: <strong>~{exercise.caloriesPerMinute}/phút</strong>
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <CheckCircle sx={{ fontSize: 20 }} />
+                                <Typography variant="body2">
+                                    Cường độ: <strong>{exercise.averageIntensity}/10</strong>
+                                </Typography>
+                            </Box>
+                        </Box>
                     </Box>
-                </Paper>
-            )}
+
+                    {/* Call to Action */}
+                    <Box sx={{ mt: 4, textAlign: 'center' }}>
+                        <Typography variant="body1" sx={{ mb: 2, opacity: 0.95 }}>
+                            Sẵn sàng thử bài tập này? Hãy bắt đầu với các bước cơ bản!
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            size="large"
+                            sx={{
+                                bgcolor: 'rgba(255,255,255,0.2)',
+                                color: 'white',
+                                border: '1px solid rgba(255,255,255,0.3)',
+                                px: 4,
+                                py: 1.5,
+                                '&:hover': {
+                                    bgcolor: 'rgba(255,255,255,0.3)',
+                                    transform: 'translateY(-2px)',
+                                }
+                            }}
+                            startIcon={<PlayArrow />}
+                        >
+                            Bắt đầu luyện tập
+                        </Button>
+                    </Box>
+                </Box>
+            </Paper>
         </Box>
     );
 };
@@ -1016,21 +1103,123 @@ const StatsCard: React.FC<{
 );
 
 /**
- * Instructions Tab Component
+ * Compact Timeline Instructions Tab Component
  */
 const InstructionsTab: React.FC<{ instructions: string[] }> = ({ instructions }) => (
     <Box>
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-            Hướng dẫn thực hiện
-        </Typography>
-        <Box component="ol" sx={{ pl: 2 }}>
+        <Box sx={{ position: 'relative', overflowY: 'auto' }}>
+            {/* Timeline Progress Line */}
+            <Box
+                sx={{
+                    position: 'absolute',
+                    left: 14, // Adjusted for smaller circle
+                    top: 16,
+                    bottom: 16,
+                    width: 2,
+                    bgcolor: 'primary.light',
+                    opacity: 0.3,
+                    zIndex: 0
+                }}
+            />
+
             {instructions.map((step, index) => (
-                <Box component="li" key={index} sx={{ mb: 2 }}>
-                    <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
-                        {step}
-                    </Typography>
+                <Box
+                    key={index}
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        mb: 1.5, // Reduced from 3 to 1.5
+                        position: 'relative',
+                        '&:last-child': {
+                            mb: 0
+                        }
+                    }}
+                >
+                    {/* Compact Step Number Circle */}
+                    <Box
+                        sx={{
+                            width: 28, // Reduced from 40 to 28
+                            height: 28,
+                            borderRadius: '50%',
+                            bgcolor: 'primary.main',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 'bold',
+                            fontSize: '13px', // Reduced from 16px to 13px
+                            flexShrink: 0,
+                            mr: 2, // Reduced from 3 to 2
+                            position: 'relative',
+                            zIndex: 1,
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.12)', // Reduced shadow
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                                transform: 'scale(1.05)', // Reduced from scale(1.1)
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                            }
+                        }}
+                    >
+                        {index + 1}
+                    </Box>
+
+                    {/* Compact Step Content */}
+                    <Box sx={{ flex: 1, pt: 0.5 }}>
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                p: 2, // Reduced from 3 to 2
+                                bgcolor: 'rgba(255,255,255,0.8)',
+                                border: '1px solid',
+                                borderColor: 'rgba(33, 150, 243, 0.1)',
+                                borderRadius: 2,
+                                transition: 'all 0.3s ease',
+                                '&:hover': {
+                                    borderColor: 'primary.light',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)', // Reduced shadow
+                                    transform: 'translateY(-1px)'
+                                }
+                            }}
+                        >
+                            <Typography
+                                variant="body2" // Changed from body1 to body2
+                                sx={{
+                                    lineHeight: 1.5, // Reduced from 1.7 to 1.5
+                                    fontSize: '14px', // Reduced from 16px to 14px
+                                    color: 'text.primary',
+                                    fontWeight: 400
+                                }}
+                            >
+                                {step}
+                            </Typography>
+                        </Paper>
+                    </Box>
                 </Box>
             ))}
+        </Box>
+
+        {/* Compact Summary Footer */}
+        <Box
+            sx={{
+                mt: 2, // Reduced from 4 to 2
+                p: 2, // Reduced from 3 to 2
+                bgcolor: 'rgba(33, 150, 243, 0.1)',
+                borderRadius: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5, // Reduced from 2 to 1.5
+                border: '1px solid rgba(33, 150, 243, 0.2)'
+            }}
+        >
+            <CheckCircle sx={{ fontSize: 18, color: 'primary.main' }} /> {/* Reduced from 24 to 18 */}
+            <Box>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: 'primary.main', display: 'block' }}>
+                    Hoàn thành tất cả {instructions.length} bước
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '11px' }}>
+                    Thực hiện đúng kỹ thuật để đạt hiệu quả tối ưu
+                </Typography>
+            </Box>
         </Box>
     </Box>
 );
@@ -1079,6 +1268,274 @@ const SafetyTab: React.FC<{
 );
 
 
+
+/**
+ * VideoGifSection Component - Toggle between video and GIF display
+ */
+interface VideoGifSectionProps {
+    exercise: {
+        videoUrl?: string;
+        gifUrl?: string;
+        name: string;
+    };
+}
+
+const VideoGifSection: React.FC<VideoGifSectionProps> = ({ exercise }) => {
+    const [showGif, setShowGif] = useState(true);
+    const [mediaError, setMediaError] = useState(false);
+
+    const hasVideo = Boolean(exercise.videoUrl);
+    const hasGif = Boolean(exercise.gifUrl);
+
+    if (!hasVideo && !hasGif) {
+        return (
+            <Paper
+                elevation={0}
+                sx={{
+                    height: '100%',
+                    p: 4,
+                    borderRadius: 3,
+                    border: '1px solid rgba(156, 39, 176, 0.2)',
+                    background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: 300
+                }}
+            >
+                <Box sx={{ textAlign: 'center' }}>
+                    <GifBoxIcon sx={{ fontSize: 60, color: '#9c27b0', mb: 2 }} />
+                    <Typography variant="h6" color="text.secondary">
+                        Chưa có video hoặc hình minh họa
+                    </Typography>
+                </Box>
+            </Paper>
+        );
+    }
+
+    const isGifDisplay = showGif && hasGif;
+
+    return (
+        <Paper
+            elevation={0}
+            sx={{
+                height: '100%',
+                borderRadius: 3,
+                overflow: 'hidden',
+                // background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
+                border: '1px solid rgba(156, 39, 176, 0.2)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 12px 28px rgba(156, 39, 176, 0.15)'
+                }
+            }}
+        >
+            {/* Header */}
+            <Box sx={{
+                p: 3,
+                background: 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+            }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 40, height: 40 }}>
+                        {isGifDisplay ? <GifBoxIcon /> : <PlayCircleOutlineIcon />}
+                    </Avatar>
+                    <Box>
+                        <Typography variant="h6" component="h2" fontWeight="bold">
+                            {isGifDisplay ? 'Hướng dẫn minh họa' : 'Video hướng dẫn'}
+                        </Typography>
+                        <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                            {isGifDisplay ? 'Xem động tác chi tiết' : 'Xem video thực hiện'}
+                        </Typography>
+                    </Box>
+                </Box>
+
+                {/* Toggle Switch - Only show if both video and GIF exist */}
+                {hasVideo && hasGif && (
+                    <FormControlLabel
+                        control={
+                            <Switch
+                                checked={showGif}
+                                onChange={(e) => {
+                                    setShowGif(e.target.checked);
+                                    setMediaError(false);
+                                }}
+                                sx={{
+                                    '& .MuiSwitch-switchBase.Mui-checked': {
+                                        color: 'white',
+                                    },
+                                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                        backgroundColor: 'rgba(255,255,255,0.3)',
+                                    },
+                                }}
+                            />
+                        }
+                        label={
+                            <Typography variant="body2" sx={{ color: 'white', fontSize: '0.875rem' }}>
+                                {showGif ? 'GIF' : 'Video'}
+                            </Typography>
+                        }
+                        labelPlacement="start"
+                    />
+                )}
+            </Box>
+
+            {/* Media Content */}
+            <Box sx={{ p: 3 }}>
+                {mediaError ? (
+                    <Box sx={{
+                        textAlign: 'center',
+                        py: 4,
+                        minHeight: 200,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <Alert severity="error" sx={{ mb: 2 }}>
+                            Không thể tải {isGifDisplay ? 'hình minh họa' : 'video'}
+                        </Alert>
+                        <Button
+                            variant="outlined"
+                            onClick={() => setMediaError(false)}
+                            startIcon={<PlayCircleOutlineIcon />}
+                        >
+                            Thử lại
+                        </Button>
+                    </Box>
+                ) : (<Box sx={{
+                    position: 'relative',
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    minHeight: 200,
+                    // background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <Box
+                        sx={{
+                            width: '100%',
+                            opacity: mediaError ? 0 : 1,
+                            transition: 'opacity 0.5s ease, transform 0.5s ease',
+                            transform: mediaError ? 'scale(0.9)' : 'scale(1)',
+                        }}
+                    >
+                        {isGifDisplay ? (
+                            // GIF Display with fade effect
+                            <Box
+                                sx={{
+                                    opacity: 1,
+                                    transition: 'opacity 0.3s ease',
+                                    animation: 'fadeIn 0.5s ease-in',
+                                    '@keyframes fadeIn': {
+                                        '0%': { opacity: 0, transform: 'translateY(10px)' },
+                                        '100%': { opacity: 1, transform: 'translateY(0)' }
+                                    }
+                                }}
+                            >
+                                <img
+                                    src={exercise.gifUrl}
+                                    alt={`${exercise.name} - Hướng dẫn minh họa`}
+                                    style={{
+                                        width: '100%',
+                                        height: 'auto',
+                                        minHeight: '200px',
+                                        objectFit: 'contain',
+                                        borderRadius: '8px'
+                                    }}
+                                    onError={() => setMediaError(true)}
+                                    loading="lazy"
+                                />
+                            </Box>
+                        ) : (
+                            // Video Display with fade effect
+                            <Box
+                                sx={{
+                                    opacity: 1,
+                                    transition: 'opacity 0.3s ease',
+                                    animation: 'slideIn 0.5s ease-out',
+                                    '@keyframes slideIn': {
+                                        '0%': { opacity: 0, transform: 'translateX(20px)' },
+                                        '100%': { opacity: 1, transform: 'translateX(0)' }
+                                    }
+                                }}
+                            >
+                                <video
+                                    controls
+                                    poster={exercise.gifUrl} // Use GIF as poster if available
+                                    style={{
+                                        width: '100%',
+                                        height: 'auto',
+                                        minHeight: '200px',
+                                        objectFit: 'contain',
+                                        borderRadius: '8px'
+                                    }}
+                                    onError={() => setMediaError(true)}
+                                >
+                                    <source src={exercise.videoUrl} type="video/mp4" />
+                                    <source src={exercise.videoUrl} type="video/webm" />
+                                    <source src={exercise.videoUrl} type="video/ogg" />
+                                    Trình duyệt của bạn không hỗ trợ phát video.
+                                </video>
+                            </Box>
+                        )}
+                    </Box>
+
+                    {/* Media Type Indicator */}
+                    <Chip
+                        label={isGifDisplay ? 'GIF' : 'VIDEO'}
+                        size="small"
+                        sx={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            backgroundColor: 'rgba(0,0,0,0.7)',
+                            color: 'white',
+                            fontWeight: 600,
+                            fontSize: '0.75rem'
+                        }}
+                    />
+                </Box>
+                )}
+
+                {/* Media Info */}
+                <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        {isGifDisplay
+                            ? 'Hình minh họa động giúp bạn hiểu rõ từng bước thực hiện bài tập'
+                            : 'Video hướng dẫn chi tiết với âm thanh và giải thích'
+                        }
+                    </Typography>
+                </Box>
+
+                {/* Available Media Types */}
+                {hasVideo && hasGif && (
+                    <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                        <Chip
+                            label="Video có sẵn"
+                            size="small"
+                            icon={<PlayCircleOutlineIcon />}
+                            variant={!showGif ? 'filled' : 'outlined'}
+                            color={!showGif ? 'primary' : 'default'}
+                        />
+                        <Chip
+                            label="GIF có sẵn"
+                            size="small"
+                            icon={<GifBoxIcon />}
+                            variant={showGif ? 'filled' : 'outlined'}
+                            color={showGif ? 'secondary' : 'default'}
+                        />
+                    </Box>
+                )}
+            </Box>
+        </Paper>
+    );
+};
 
 /**
  * Loading Skeleton Component
