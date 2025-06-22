@@ -6,7 +6,6 @@
  */
 
 import {
-    Add,
     FitnessCenter
 } from '@mui/icons-material';
 import {
@@ -14,13 +13,13 @@ import {
     Box,
     Card,
     Container,
-    Fab,
     Typography
 } from '@mui/material';
 import React, { useActionState, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ExerciseListParams } from '../../services/exerciseService';
 import { Exercise } from '../../types';
+import { useExercises } from '../../hooks/useExercises';
 import ExerciseFilters from './components/ExerciseFilters';
 import ExerciseList from './components/ExerciseList';
 import ExercisePagination from './components/ExercisePagination';
@@ -77,9 +76,7 @@ const ExercisePage: React.FC = () => {
     const [sort] = useState<{ field: string; order: 'asc' | 'desc' }>({
         field: 'name',
         order: 'asc'
-    });
-
-    // Build params cho API call
+    });    // Build params cho API call
     const exerciseParams: ExerciseListParams = {
         page,
         limit,
@@ -90,6 +87,9 @@ const ExercisePage: React.FC = () => {
             includeVariations: false
         }
     };
+
+    // ✅ Get exercise data để lấy total count cho filters
+    const { data: exerciseData } = useExercises(exerciseParams);
 
     // ================================
     // 🎯 Event Handlers
@@ -154,12 +154,12 @@ const ExercisePage: React.FC = () => {
                 </Box>                {/* ================================ */}
                 {/* 🔍 COMPACT FILTERS - Using ExerciseFilters Component */}
                 {/* ================================ */}                <ExerciseFilters
-                    filters={filters || {}}
+                    filters={filters || {} as any}
                     onFiltersChange={(newFilters: any) => {
                         setFilters(newFilters);
                         setPage(1);
                     }}
-                    totalResults={0} // Will be populated by actual data
+                    totalResults={exerciseData?.pagination?.totalItems || exerciseData?.data?.length || 0}
                 />
 
                 {/* ================================ */}
