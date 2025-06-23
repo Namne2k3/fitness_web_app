@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-ignore - MUI Grid type conflicts resolved
 /* eslint-disable */
-import React, { useOptimistic, useTransition, useState } from 'react';
+import React, { useOptimistic, useTransition, useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Box,
@@ -22,6 +22,14 @@ import {
     FormControlLabel,
     Switch
 } from '@mui/material';
+import {
+    Timeline,
+    TimelineItem,
+    TimelineSeparator,
+    TimelineConnector,
+    TimelineContent,
+    TimelineDot,
+} from '@mui/lab';
 import {
     ArrowBack,
     Favorite,
@@ -52,6 +60,11 @@ import {
     Warning,
     Block,
     Info,
+    Visibility,
+    Movie,
+    SettingsEthernet,
+    Shield,
+    Assignment,
 } from '@mui/icons-material';
 import { ExerciseService } from '../../services/exerciseService';
 // import { useExercise } from '../../hooks/useExercises'; // 🚀 Commented out for mock data testing
@@ -179,6 +192,86 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
     const exercise = mockExerciseData;
     const isLoading = false;
     const error = null;
+
+    // 🗺️ Section Navigation State & Refs
+    const [activeSection, setActiveSection] = useState<string>('overview');
+    const overviewRef = useRef<HTMLDivElement>(null);
+    const muscleGroupsRef = useRef<HTMLDivElement>(null);
+    const statsRef = useRef<HTMLDivElement>(null);
+    const instructionsRef = useRef<HTMLDivElement>(null);
+    const variationsRef = useRef<HTMLDivElement>(null);
+    const safetyRef = useRef<HTMLDivElement>(null);
+    const summaryRef = useRef<HTMLDivElement>(null);
+
+    // 📍 Scroll to section handler
+    const scrollToSection = (sectionId: string) => {
+        const refs = {
+            overview: overviewRef,
+            muscleGroups: muscleGroupsRef,
+            stats: statsRef,
+            instructions: instructionsRef,
+            variations: variationsRef,
+            safety: safetyRef,
+            summary: summaryRef,
+        };
+
+        const targetRef = refs[sectionId as keyof typeof refs];
+        if (targetRef?.current) {
+            targetRef.current.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+                inline: 'nearest'
+            });
+            setActiveSection(sectionId);
+        }
+    };    // 👁️ Intersection Observer để update active section
+    useEffect(() => {
+        const observerOptions = {
+            root: null,
+            rootMargin: '-10% 0px -70% 0px', // Giảm margin top để phát hiện sớm hơn
+            threshold: [0.1, 0.3, 0.6] // Multiple thresholds để chính xác hơn
+        };
+
+        const observerCallback = (entries: IntersectionObserverEntry[]) => {
+            // Tìm section có intersection ratio cao nhất
+            let maxRatio = 0;
+            let targetSectionId = '';
+
+            entries.forEach((entry) => {
+                if (entry.isIntersecting && entry.intersectionRatio > maxRatio) {
+                    const sectionId = entry.target.getAttribute('data-section');
+                    if (sectionId) {
+                        maxRatio = entry.intersectionRatio;
+                        targetSectionId = sectionId;
+                    }
+                }
+            });
+
+            // Chỉ update nếu có section visible với ratio cao nhất
+            if (targetSectionId && maxRatio > 0.1) {
+                setActiveSection(targetSectionId);
+            }
+        };
+
+        const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+        // Observe all sections
+        const sections = [
+            overviewRef.current,
+            muscleGroupsRef.current,
+            statsRef.current,
+            instructionsRef.current,
+            variationsRef.current,
+            safetyRef.current,
+            summaryRef.current,
+        ];
+
+        sections.forEach((section) => {
+            if (section) observer.observe(section);
+        });
+
+        return () => observer.disconnect();
+    }, []);
 
     // ✅ React 19: useOptimistic hooks - MUST be called before any conditionals
     const [optimisticLikes, addOptimisticLike] = useOptimistic(
@@ -365,9 +458,7 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
             // Fallback: copy to clipboard
             navigator.clipboard.writeText(window.location.href);
         }
-    };
-
-    return (
+    }; return (
         <Box sx={{ py: 4 }}>
             {/* Breadcrumbs */}
             <Breadcrumbs
@@ -385,70 +476,299 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                     }}
                 >
                     Thư viện bài tập
-                </Link>
-                <Typography color="text.primary">{exercise.name}</Typography>
-            </Breadcrumbs>
+                </Link>                <Typography color="text.primary">{exercise.name}</Typography>
+            </Breadcrumbs>            {/* 📱 Mobile Timeline Navigation - Horizontal Scroll */}
+            <Box sx={{
+                display: { xs: 'block', lg: 'none' },
+                mb: 3,
+                overflowX: 'auto',
+                '&::-webkit-scrollbar': {
+                    height: 8,
+                },
+                '&::-webkit-scrollbar-track': {
+                    backgroundColor: 'rgba(0,0,0,0.06)',
+                    borderRadius: 4,
+                },
+                '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: 'primary.main',
+                    borderRadius: 4,
+                    '&:hover': {
+                        backgroundColor: 'primary.dark'
+                    }
+                }
+            }}>
+                <Stack
+                    direction="row"
+                    spacing={2}
+                    sx={{
+                        py: 2,
+                        px: 1,
+                        minWidth: 'max-content'
+                    }}
+                >
+                    {[
+                        { id: 'overview', label: 'Tổng quan', icon: <Visibility />, color: '#2196f3' },
+                        { id: 'muscleGroups', label: 'Nhóm cơ', icon: <FitnessCenter />, color: '#4caf50' },
+                        { id: 'stats', label: 'Thống kê', icon: <TrendingUp />, color: '#ff9800' },
+                        { id: 'instructions', label: 'Hướng dẫn', icon: <Movie />, color: '#9c27b0' },
+                        { id: 'variations', label: 'Biến thể', icon: <SettingsEthernet />, color: '#e91e63' },
+                        { id: 'safety', label: 'An toàn', icon: <Shield />, color: '#f44336' },
+                        { id: 'summary', label: 'Tóm tắt', icon: <Assignment />, color: '#607d8b' },
+                    ].map((section) => (
+                        <Button
+                            key={section.id}
+                            variant={activeSection === section.id ? 'contained' : 'outlined'}
+                            size="medium"
+                            startIcon={React.cloneElement(section.icon, {
+                                sx: { fontSize: 20 }
+                            })}
+                            onClick={() => scrollToSection(section.id)}
+                            sx={{
+                                minWidth: 140,
+                                height: 48,
+                                bgcolor: activeSection === section.id ? section.color : 'transparent',
+                                borderColor: section.color,
+                                borderWidth: '2px !important',
+                                color: activeSection === section.id ? 'white' : section.color,
+                                fontSize: '0.8rem',
+                                fontWeight: 600,
+                                textTransform: 'none',
+                                whiteSpace: 'nowrap',
+                                borderRadius: 3,
+                                boxShadow: activeSection === section.id
+                                    ? `0 4px 16px ${section.color}30`
+                                    : '0 2px 8px rgba(0,0,0,0.08)',
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                '&:hover': {
+                                    bgcolor: activeSection === section.id ? section.color : `${section.color}12`,
+                                    borderColor: section.color,
+                                    transform: 'translateY(-2px) scale(1.02)',
+                                    boxShadow: `0 6px 20px ${section.color}40`
+                                }
+                            }}
+                        >
+                            {section.label}
+                        </Button>
+                    ))}
+                </Stack>
+            </Box>
 
-            {/* Back Button */}
-            <Button
-                startIcon={<ArrowBack />}
-                onClick={() => navigate(-1)}
-                sx={{ mb: 3 }}
-                variant="outlined"
-            >
-                Quay lại
-            </Button>
+            {/* Main Layout: Timeline Navigation + Content */}
+            <Box sx={{ display: 'flex', gap: 4, position: 'relative' }}>
+                {/* 🗺️ Sticky Timeline Navigation - Desktop Only */}
+                <Box sx={{
+                    display: { xs: 'none', lg: 'block' },
+                    width: 300,
+                    flexShrink: 0,
+                    position: 'sticky',
+                    top: 100,
+                    height: 'fit-content',
+                    zIndex: 10
+                }}>
+                    <Paper
+                        elevation={8}
+                        sx={{
+                            p: 3,
+                            mt: 2,
+                            borderRadius: 4,
+                            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%)',
+                            backdropFilter: 'blur(20px)',
+                            border: '1px solid rgba(255,255,255,0.3)',
+                            boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
+                        }}
+                    >                        <Typography variant="h6" fontWeight="bold" sx={{ mb: 3, color: '#1565c0' }}>
+                            📋 Nội dung trang
+                        </Typography>                        <Timeline
+                            position="right"
+                            sx={{
+                                p: 0,
+                                m: 0,
+                                '& .MuiTimelineItem-root': {
+                                    '&:before': {
+                                        flex: 0,
+                                        padding: 0,
+                                    }
+                                }
+                            }}
+                        >
+                            {[
+                                { id: 'overview', label: 'Tổng quan', icon: <Visibility />, color: '#2196f3' },
+                                { id: 'muscleGroups', label: 'Nhóm cơ', icon: <FitnessCenter />, color: '#4caf50' },
+                                { id: 'stats', label: 'Thống kê', icon: <TrendingUp />, color: '#ff9800' },
+                                { id: 'instructions', label: 'Hướng dẫn', icon: <Movie />, color: '#9c27b0' },
+                                { id: 'variations', label: 'Biến thể', icon: <SettingsEthernet />, color: '#e91e63' },
+                                { id: 'safety', label: 'An toàn', icon: <Shield />, color: '#f44336' },
+                                { id: 'summary', label: 'Tóm tắt', icon: <Assignment />, color: '#607d8b' },
+                            ].map((section, index) => (
+                                <TimelineItem
+                                    key={section.id}
+                                    sx={{
+                                        minHeight: 70,
+                                        alignItems: 'center',
+                                        '&:before': {
+                                            content: 'none'
+                                        }
+                                    }}
+                                >
+                                    <TimelineSeparator>
+                                        <TimelineDot
+                                            sx={{
+                                                bgcolor: activeSection === section.id ? section.color : 'rgba(200, 200, 200, 0.3)',
+                                                border: `3px solid ${activeSection === section.id ? section.color : 'rgba(150, 150, 150, 0.5)'}`,
+                                                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                cursor: 'pointer',
+                                                width: 52,
+                                                height: 52,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                boxShadow: activeSection === section.id
+                                                    ? `0 6px 20px ${section.color}40, 0 0 0 4px ${section.color}15`
+                                                    : '0 2px 8px rgba(0,0,0,0.1)',
+                                                '&:hover': {
+                                                    bgcolor: section.color,
+                                                    borderColor: section.color,
+                                                    transform: 'scale(1.15) translateZ(0)',
+                                                    boxShadow: `0 8px 28px ${section.color}50, 0 0 0 6px ${section.color}20`,
+                                                    '& .MuiSvgIcon-root': {
+                                                        color: 'white !important'
+                                                    }
+                                                }
+                                            }}
+                                            onClick={() => scrollToSection(section.id)}
+                                        >
+                                            {React.cloneElement(section.icon, {
+                                                sx: {
+                                                    fontSize: 24,
+                                                    color: activeSection === section.id ? 'white' : 'rgba(100, 100, 100, 0.7)',
+                                                    transition: 'color 0.3s ease',
+                                                    fontWeight: 'bold'
+                                                }
+                                            })}
+                                        </TimelineDot>
+                                        {index < 6 && (
+                                            <TimelineConnector sx={{
+                                                bgcolor: activeSection === section.id ||
+                                                    (index < 6 && activeSection === [
+                                                        'overview', 'muscleGroups', 'stats', 'instructions', 'variations', 'safety', 'summary'
+                                                    ][index + 1])
+                                                    ? section.color : 'rgba(200, 200, 200, 0.4)',
+                                                width: 3,
+                                                minHeight: 24,
+                                                transition: 'background-color 0.3s ease'
+                                            }} />
+                                        )}
+                                    </TimelineSeparator>
+                                    <TimelineContent sx={{ py: 1, pl: 3, pr: 0, display: 'flex', alignItems: 'center' }}>
+                                        <Button
+                                            variant="text"
+                                            onClick={() => scrollToSection(section.id)}
+                                            sx={{
+                                                justifyContent: 'flex-start',
+                                                textAlign: 'left',
+                                                textTransform: 'none',
+                                                fontWeight: activeSection === section.id ? 700 : 500,
+                                                fontSize: '0.95rem',
+                                                color: activeSection === section.id ? section.color : 'text.secondary',
+                                                transition: 'all 0.3s ease',
+                                                borderRadius: 2,
+                                                padding: '8px 12px',
+                                                minHeight: 44,
+                                                '&:hover': {
+                                                    backgroundColor: `${section.color}08`,
+                                                    color: section.color,
+                                                    transform: 'translateX(4px)'
+                                                }
+                                            }}
+                                        >
+                                            {section.label}
+                                        </Button>
+                                    </TimelineContent>
+                                </TimelineItem>
+                            ))}                        </Timeline>
 
-            {/* Hero Section with Image Background */}
-            <Paper
-                elevation={0}
-                sx={{
-                    background: exercise.images && exercise.images.length > 0
-                        ? `linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%), url(${exercise.images[0]})`
-                        : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                    color: 'white',
-                    p: 4,
-                    borderRadius: 3,
-                    mb: 4
-                }}
-            >                <Grid container spacing={4} alignItems="center">
-                    {/* @ts-ignore - Grid item prop conflict */}
-                    <Grid item xs={12} md={8}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                            <Avatar
-                                sx={{
-                                    bgcolor: 'rgba(255,255,255,0.2)',
-                                    width: 64,
-                                    height: 64
-                                }}
-                            >
-                                <FitnessCenter sx={{ fontSize: 32 }} />
-                            </Avatar>
-                            <Box>
-                                <Typography variant="h3" component="h1" fontWeight="bold" gutterBottom>
-                                    {exercise.name}
-                                </Typography>
-                                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 2 }}>
-                                    <Chip
-                                        label={exercise.category}
+                        {/* Progress Indicator */}
+                        {/* <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                                📍 Đang xem: {(() => {
+                                    const sections = {
+                                        overview: 'Tổng quan',
+                                        muscleGroups: 'Nhóm cơ & Thiết bị',
+                                        stats: 'Thống kê',
+                                        instructions: 'Hướng dẫn & Video',
+                                        variations: 'Biến thể',
+                                        safety: 'An toàn',
+                                        summary: 'Tóm tắt'
+                                    };
+                                    return sections[activeSection as keyof typeof sections] || 'Không xác định';
+                                })()}
+                            </Typography>
+                        </Box> */}
+                    </Paper>
+                </Box>
+
+                {/* 📄 Main Content Area */}
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                    {/* Back Button */}
+                    <Button
+                        startIcon={<ArrowBack />}
+                        onClick={() => navigate(-1)}
+                        sx={{ mb: 3 }}
+                        variant="outlined"
+                    >
+                        Quay lại
+                    </Button>            {/* Hero Section with Image Background */}
+                    <Paper
+                        ref={overviewRef}
+                        data-section="overview"
+                        elevation={0}
+                        sx={{
+                            background: exercise.images && exercise.images.length > 0
+                                ? `linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%), url(${exercise.images[0]})`
+                                : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat',
+                            color: 'white',
+                            p: 4,
+                            borderRadius: 3,
+                            mb: 4
+                        }}
+                    ><Grid container spacing={4} alignItems="center">
+                            {/* @ts-ignore - Grid item prop conflict */}
+                            <Grid item xs={12} md={8}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                                    <Avatar
                                         sx={{
                                             bgcolor: 'rgba(255,255,255,0.2)',
-                                            color: 'white',
-                                            fontWeight: 600
+                                            width: 64,
+                                            height: 64
                                         }}
-                                    />
-                                    <Chip
-                                        label={exercise.difficulty}
-                                        color={
-                                            exercise.difficulty === 'beginner' ? 'success' :
-                                                exercise.difficulty === 'intermediate' ? 'warning' : 'error'
-                                        }
-                                        sx={{ fontWeight: 600 }}
-                                    />
-                                    {/* {exercise.isApproved && (
+                                    >
+                                        <FitnessCenter sx={{ fontSize: 32 }} />
+                                    </Avatar>
+                                    <Box>
+                                        <Typography variant="h3" component="h1" fontWeight="bold" gutterBottom>
+                                            {exercise.name}
+                                        </Typography>
+                                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 2 }}>
+                                            <Chip
+                                                label={exercise.category}
+                                                sx={{
+                                                    bgcolor: 'rgba(255,255,255,0.2)',
+                                                    color: 'white',
+                                                    fontWeight: 600
+                                                }}
+                                            />
+                                            <Chip
+                                                label={exercise.difficulty}
+                                                color={
+                                                    exercise.difficulty === 'beginner' ? 'success' :
+                                                        exercise.difficulty === 'intermediate' ? 'warning' : 'error'
+                                                }
+                                                sx={{ fontWeight: 600 }}
+                                            />
+                                            {/* {exercise.isApproved && (
                                         <Chip
                                             icon={<Verified />}
                                             label="Đã xác thực"
@@ -459,1285 +779,1302 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                             }}
                                         />
                                     )} */}
+                                        </Box>
+                                    </Box>
                                 </Box>
-                            </Box>
-                        </Box>
 
-                        <Typography variant="body1" sx={{ opacity: 0.9, lineHeight: 1.6 }}>
-                            {exercise.description}
-                        </Typography>
-                    </Grid>
-
-                    {/* @ts-ignore */}
-                    <Grid item xs={12} md={4}>                        {/* Action Buttons */}
-                        <Stack direction="row" spacing={2} justifyContent="center">
-                            <Button
-                                variant="contained"
-                                startIcon={optimisticLikes.isLiked ? <Favorite /> : <FavoriteBorder />}
-                                onClick={handleLike}
-                                disabled={isPending}
-                                sx={{
-                                    bgcolor: 'rgba(255,255,255,0.2)',
-                                    color: 'white',
-                                    backdropFilter: 'blur(10px)',
-                                    border: '1px solid rgba(255,255,255,0.3)',
-                                    borderRadius: 2,
-                                    px: 3,
-                                    py: 1.5,
-                                    transition: 'all 0.3s ease',
-                                    '&:hover': {
-                                        bgcolor: 'rgba(255,255,255,0.3)',
-                                        transform: 'translateY(-2px)',
-                                        boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
-                                    },
-                                    '&:active': {
-                                        transform: 'translateY(0)',
-                                    }
-                                }}
-                            >
-                                {optimisticLikes.count}
-                            </Button>
-
-                            <IconButton
-                                onClick={handleBookmark}
-                                disabled={isPending}
-                                sx={{
-                                    bgcolor: 'rgba(255,255,255,0.2)',
-                                    color: 'white',
-                                    backdropFilter: 'blur(10px)',
-                                    border: '1px solid rgba(255,255,255,0.3)',
-                                    borderRadius: 2,
-                                    width: 48,
-                                    height: 48,
-                                    transition: 'all 0.3s ease',
-                                    '&:hover': {
-                                        bgcolor: 'rgba(255,255,255,0.3)',
-                                        transform: 'translateY(-2px) scale(1.05)',
-                                        boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
-                                    },
-                                    '&:active': {
-                                        transform: 'translateY(0) scale(1)',
-                                    }
-                                }}
-                            >
-                                {optimisticBookmark ? <Bookmark /> : <BookmarkBorder />}
-                            </IconButton>
-
-                            <IconButton
-                                onClick={handleShare}
-                                sx={{
-                                    bgcolor: 'rgba(255,255,255,0.2)',
-                                    color: 'white',
-                                    backdropFilter: 'blur(10px)',
-                                    border: '1px solid rgba(255,255,255,0.3)',
-                                    borderRadius: 2,
-                                    width: 48,
-                                    height: 48,
-                                    transition: 'all 0.3s ease',
-                                    '&:hover': {
-                                        bgcolor: 'rgba(255,255,255,0.3)', transform: 'translateY(-2px) rotate(10deg)',
-                                        boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
-                                    },
-                                    '&:active': {
-                                        transform: 'translateY(0) rotate(0deg)',
-                                    }
-                                }}
-                            >
-                                <Share />
-                            </IconButton>
-                        </Stack>
-                    </Grid>
-                </Grid>
-            </Paper>            {/* Comprehensive Exercise Info Section - Muscle Groups & Equipment */}
-            <Paper
-                elevation={0}
-                sx={{
-                    p: 3,
-                    borderRadius: 3,
-                    background: 'linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%)',
-                    border: '1px solid rgba(33, 150, 243, 0.1)',
-                    mb: 4
-                }}
-            >
-                {/* Muscle Groups Row */}
-                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3, alignItems: { xs: 'stretch', sm: 'center' }, mb: 3 }}>
-                    {/* Primary Muscle Groups */}
-                    <Box sx={{ flex: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                            <FitnessCenter sx={{ color: '#1976d2', mr: 1, fontSize: 20 }} />
-                            <Typography variant="h6" fontWeight="600" color="#1565c0">
-                                Nhóm cơ chính
-                            </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                            {exercise.primaryMuscleGroups.map((muscle, index) => (
-                                <Chip
-                                    key={index}
-                                    label={muscle}
-                                    sx={{
-                                        bgcolor: '#1976d2',
-                                        color: 'white',
-                                        fontWeight: 600,
-                                        '&:hover': {
-                                            bgcolor: '#1565c0',
-                                            transform: 'scale(1.05)'
-                                        },
-                                        transition: 'all 0.2s ease'
-                                    }}
-                                />
-                            ))}
-                        </Box>
-                    </Box>
-
-                    {/* Secondary Muscle Groups */}
-                    {exercise.secondaryMuscleGroups && exercise.secondaryMuscleGroups.length > 0 && (
-                        <Box sx={{ flex: 1 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                <FitnessCenter sx={{ color: '#42a5f5', mr: 1, fontSize: 20 }} />
-                                <Typography variant="h6" fontWeight="600" color="#1976d2">
-                                    Nhóm cơ phụ
+                                <Typography variant="body1" sx={{ opacity: 0.9, lineHeight: 1.6 }}>
+                                    {exercise.description}
                                 </Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                {exercise.secondaryMuscleGroups.map((muscle, index) => (
-                                    <Chip
-                                        key={index}
-                                        label={muscle}
-                                        variant="outlined"
-                                        sx={{
-                                            borderColor: '#42a5f5',
-                                            color: '#1976d2',
-                                            fontWeight: 500,
-                                            '&:hover': {
-                                                bgcolor: 'rgba(66, 165, 245, 0.1)',
-                                                transform: 'scale(1.05)'
-                                            },
-                                            transition: 'all 0.2s ease'
-                                        }}
-                                    />
-                                ))}
-                            </Box>
-                        </Box>
-                    )}
-                </Box>
+                            </Grid>
 
-                {/* Equipment Section */}
-                {exercise.equipment && exercise.equipment.length > 0 && (
-                    <Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                            <Build sx={{ color: '#ff9800', mr: 1, fontSize: 20 }} />
-                            <Typography variant="h6" fontWeight="600" color="#f57c00">
-                                Thiết bị cần thiết
-                            </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                            {exercise.equipment.map((item, index) => (
-                                <Chip
-                                    key={index}
-                                    label={item}
-                                    sx={{
-                                        bgcolor: '#ff9800',
-                                        color: 'white',
-                                        fontWeight: 500,
-                                        '&:hover': {
-                                            bgcolor: '#f57c00',
-                                            transform: 'scale(1.05)'
-                                        },
-                                        transition: 'all 0.2s ease'
-                                    }}
-                                />
-                            ))}
-                        </Box>
-                    </Box>
-                )}
-            </Paper>{/* Stats Cards */}
-            <Box
-                sx={{
-                    display: 'grid',
-                    gridTemplateColumns: {
-                        xs: '1fr',
-                        sm: 'repeat(2, 1fr)',
-                        md: 'repeat(4, 1fr)'
-                    },
-                    gap: 3,
-                    mb: 4,
-                    width: '100%'
-                }}
-            >
-                <StatsCard
-                    icon={<Timer />}
-                    title="Thời gian"
-                    value="5-10 phút"
-                    color="#2196f3"
-                    background="linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)"
-                />
-                <StatsCard
-                    icon={<LocalFireDepartment />}
-                    title="Calories"
-                    value={`${exercise.caloriesPerMinute || 8}/phút`}
-                    color="#ff9800"
-                    background="linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)"
-                />
-                <StatsCard
-                    icon={<TrendingUp />}
-                    title="Cường độ"
-                    value={`${exercise.averageIntensity || 7}/10`}
-                    color="#4caf50"
-                    background="linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)"
-                />
-                <StatsCard
-                    icon={<Group />}
-                    title="Độ phổ biến"
-                    value="Cao"
-                    color="#9c27b0"
-                    background="linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)"
-                />
-            </Box>{/* 🔄 Instructions and Video Section - Side by Side */}
-            <Grid container spacing={4} sx={{ mb: 4 }}>
-                {/* Instructions Section */}
-                {/* @ts-ignore */}
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <Paper elevation={0} sx={{ height: '100%', p: 4, borderRadius: 3, border: '1px solid rgba(33, 150, 243, 0.1)', background: 'linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%)' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                            <Avatar sx={{ bgcolor: '#2196f3', width: 40, height: 40, mr: 2 }}>
-                                <FitnessCenter />
-                            </Avatar>
-                            <Typography variant="h5" component="h2" fontWeight="bold" color="#1565c0">
-                                Hướng dẫn thực hiện
-                            </Typography>
-                        </Box>
-                        <InstructionsTab instructions={exercise.instructions} />
-                    </Paper>
-                </Grid>
-                {/* Enhanced Video/GIF Section */}
-                {/* @ts-ignore */}
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <VideoGifSection exercise={exercise} />
-                </Grid>
-            </Grid>
-            {/* 🔄 Variations Section - Full Width */}
-            <Grid container spacing={4} sx={{ mb: 4 }}>
-                {/* Enhanced Variations Section - Full Width */}
-                {/* @ts-ignore */}
-                <Grid size={{ xs: 12 }}>
+                            {/* @ts-ignore */}
+                            <Grid item xs={12} md={4}>                        {/* Action Buttons */}
+                                <Stack direction="row" spacing={2} justifyContent="center">
+                                    <Button
+                                        variant="contained"
+                                        startIcon={optimisticLikes.isLiked ? <Favorite /> : <FavoriteBorder />}
+                                        onClick={handleLike}
+                                        disabled={isPending}
+                                        sx={{
+                                            bgcolor: 'rgba(255,255,255,0.2)',
+                                            color: 'white',
+                                            backdropFilter: 'blur(10px)',
+                                            border: '1px solid rgba(255,255,255,0.3)',
+                                            borderRadius: 2,
+                                            px: 3,
+                                            py: 1.5,
+                                            transition: 'all 0.3s ease',
+                                            '&:hover': {
+                                                bgcolor: 'rgba(255,255,255,0.3)',
+                                                transform: 'translateY(-2px)',
+                                                boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
+                                            },
+                                            '&:active': {
+                                                transform: 'translateY(0)',
+                                            }
+                                        }}
+                                    >
+                                        {optimisticLikes.count}
+                                    </Button>
+
+                                    <IconButton
+                                        onClick={handleBookmark}
+                                        disabled={isPending}
+                                        sx={{
+                                            bgcolor: 'rgba(255,255,255,0.2)',
+                                            color: 'white',
+                                            backdropFilter: 'blur(10px)',
+                                            border: '1px solid rgba(255,255,255,0.3)',
+                                            borderRadius: 2,
+                                            width: 48,
+                                            height: 48,
+                                            transition: 'all 0.3s ease',
+                                            '&:hover': {
+                                                bgcolor: 'rgba(255,255,255,0.3)',
+                                                transform: 'translateY(-2px) scale(1.05)',
+                                                boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
+                                            },
+                                            '&:active': {
+                                                transform: 'translateY(0) scale(1)',
+                                            }
+                                        }}
+                                    >
+                                        {optimisticBookmark ? <Bookmark /> : <BookmarkBorder />}
+                                    </IconButton>
+
+                                    <IconButton
+                                        onClick={handleShare}
+                                        sx={{
+                                            bgcolor: 'rgba(255,255,255,0.2)',
+                                            color: 'white',
+                                            backdropFilter: 'blur(10px)',
+                                            border: '1px solid rgba(255,255,255,0.3)',
+                                            borderRadius: 2,
+                                            width: 48,
+                                            height: 48,
+                                            transition: 'all 0.3s ease',
+                                            '&:hover': {
+                                                bgcolor: 'rgba(255,255,255,0.3)', transform: 'translateY(-2px) rotate(10deg)',
+                                                boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
+                                            },
+                                            '&:active': {
+                                                transform: 'translateY(0) rotate(0deg)',
+                                            }
+                                        }}
+                                    >
+                                        <Share />
+                                    </IconButton>
+                                </Stack>
+                            </Grid>
+                        </Grid>
+                    </Paper>            {/* Comprehensive Exercise Info Section - Muscle Groups & Equipment */}
                     <Paper
+                        ref={muscleGroupsRef}
+                        data-section="muscleGroups"
                         elevation={0}
                         sx={{
-                            height: '100%',
-                            borderRadius: 3,
-                            overflow: 'hidden',
-                            background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
-                            border: '1px solid rgba(156, 39, 176, 0.2)',
-                            transition: 'all 0.3s ease',
-                            '&:hover': {
-                                transform: 'translateY(-2px)',
-                                boxShadow: '0 12px 28px rgba(156, 39, 176, 0.15)'
-                            }
-                        }}
-                    >
-                        {/* Header */}
-                        <Box sx={{
                             p: 3,
-                            background: 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)',
-                            color: 'white',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 2
-                        }}>
-                            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 40, height: 40 }}>
-                                <Whatshot sx={{ color: 'white' }} />
-                            </Avatar>
-                            <Box>
-                                <Typography variant="h5" component="h2" fontWeight="bold">
-                                    Biến thể bài tập
-                                </Typography>
-                                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                                    Khám phá các cách thực hiện khác nhau
-                                </Typography>
-                            </Box>
-                        </Box>
-
-                        {/* Content */}
-                        <Box sx={{ p: 3 }}>
-                            <EnhancedVariationsSection variations={exercise.variations} />
-                        </Box>
-                    </Paper>
-                </Grid>
-            </Grid>            {/* Enhanced Safety Section */}
-            <Paper
-                elevation={0}
-                sx={{
-                    mb: 4,
-                    borderRadius: 4,
-                    overflow: 'hidden',
-                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%)',
-                    backdropFilter: 'blur(15px)',
-                    border: '1px solid rgba(244, 67, 54, 0.2)',
-                    boxShadow: '0 8px 32px rgba(244, 67, 54, 0.1)',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 12px 40px rgba(244, 67, 54, 0.15)',
-                        border: '1px solid rgba(244, 67, 54, 0.3)'
-                    }
-                }}
-            >
-                {/* Enhanced Header with Gradient Background */}
-                <Box sx={{
-                    p: 3,
-                    background: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2,
-                    position: 'relative',
-                    '&::before': {
-                        content: '""',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.05) 100%)',
-                        pointerEvents: 'none'
-                    }
-                }}>
-                    <Avatar sx={{
-                        bgcolor: 'rgba(255,255,255,0.2)',
-                        width: 48,
-                        height: 48,
-                        border: '2px solid rgba(255,255,255,0.3)',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-                    }}>
-                        <Verified sx={{ fontSize: 28 }} />
-                    </Avatar>
-                    <Box sx={{ flex: 1 }}>
-                        <Typography variant="h5" component="h2" fontWeight="bold" sx={{ mb: 0.5 }}>
-                            Hướng dẫn an toàn
-                        </Typography>
-                        <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                            Thông tin quan trọng để tránh chấn thương và tập luyện hiệu quả
-                        </Typography>
-                    </Box>
-                    <Box sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        background: 'rgba(255,255,255,0.15)',
-                        px: 2,
-                        py: 1,
-                        borderRadius: 2,
-                        border: '1px solid rgba(255,255,255,0.2)'
-                    }}>
-                        <Warning sx={{ fontSize: 20 }} />
-                        <Typography variant="caption" fontWeight="600">
-                            BẮT BUỘC ĐỌC
-                        </Typography>
-                    </Box>
-                </Box>
-
-                {/* Enhanced Content Area */}
-                <Box sx={{ p: 4 }}>
-                    <EnhancedSafetyTab
-                        precautions={exercise.precautions}
-                        contraindications={exercise.contraindications}
-                    />
-                </Box>
-            </Paper>{/* 🎯 Enhanced Exercise Summary Section - Completely Redesigned */}
-            <Paper
-                elevation={0}
-                sx={{
-                    mb: 6,
-                    borderRadius: 4,
-                    overflow: 'hidden',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    position: 'relative',
-                    '&::before': {
-                        content: '""',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.1) 100%)',
-                        pointerEvents: 'none'
-                    }
-                }}
-            >
-                <Box sx={{ p: 4, position: 'relative', zIndex: 1 }}>
-                    {/* Section Header with improved layout */}
-                    <Box sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        mb: 4,
-                        position: 'relative',
-                    }}>
-                        <Box sx={{
-                            position: 'relative',
-                            mr: 3
-                        }}>
-                            <Avatar sx={{
-                                bgcolor: 'rgba(255,255,255,0.2)',
-                                width: 70,
-                                height: 70,
-                                boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                                border: '3px solid rgba(255,255,255,0.3)',
-                                backdropFilter: 'blur(10px)'
-                            }}>
-                                <AutoAwesome sx={{ fontSize: 36, color: 'white' }} />
-                            </Avatar>
-                            <Box sx={{
-                                position: 'absolute',
-                                top: -5,
-                                right: -5,
-                                width: 28,
-                                height: 28,
-                                borderRadius: '50%',
-                                bgcolor: '#4caf50',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                border: '3px solid white',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                            }}>
-                                <CheckCircle sx={{ fontSize: 16, color: 'white' }} />
-                            </Box>
-                        </Box>                        <Box sx={{ flex: 1 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                                <Typography variant="h3" component="h2" fontWeight="800" sx={{
-                                    background: 'linear-gradient(135deg, #fff 0%, #e3f2fd 100%)',
-                                    backgroundClip: 'text',
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                    textShadow: '0 4px 8px rgba(0,0,0,0.2)',
-                                    letterSpacing: '-0.5px'
-                                }}>
-                                    Tóm tắt bài tập
-                                </Typography>
-                            </Box>
-                            <Typography variant="h6" sx={{
-                                opacity: 0.95,
-                                fontWeight: 500,
-                                color: 'rgba(255,255,255,0.9)',
-                                fontStyle: 'italic',
-                                position: 'relative',
-                                '&::before': {
-                                    content: '""',
-                                    fontSize: '2rem',
-                                    color: 'rgba(255,255,255,0.3)',
-                                    position: 'absolute',
-                                    left: '-20px',
-                                    top: '-10px'
-                                },
-                                '&::after': {
-                                    content: '""',
-                                    fontSize: '2rem',
-                                    color: 'rgba(255,255,255,0.3)'
-                                }
-                            }}>
-                                Khám phá chi tiết và những điểm quan trọng để thành công
-                            </Typography>
-                        </Box>
-                    </Box>                    {/* Modern Stats Grid với glassmorphism design */}
-                    <Box
-                        sx={{
-                            display: 'grid',
-                            gridTemplateColumns: {
-                                xs: 'repeat(2, 1fr)',
-                                sm: 'repeat(4, 1fr)'
-                            },
-                            gap: 3,
-                            mb: 5
+                            borderRadius: 3,
+                            background: 'linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%)',
+                            border: '1px solid rgba(33, 150, 243, 0.1)',
+                            mb: 4
                         }}
                     >
-                        {/* Instructions Count Card */}
-                        <Card sx={{
-                            position: 'relative',
-                            background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.15) 0%, rgba(21, 101, 192, 0.05) 100%)',
-                            borderRadius: 4,
-                            border: '1px solid rgba(33, 150, 243, 0.3)',
-                            backdropFilter: 'blur(20px)',
-                            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                            cursor: 'pointer',
-                            overflow: 'hidden',
-                            '&:hover': {
-                                transform: 'translateY(-12px) scale(1.03)',
-                                background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.25) 0%, rgba(21, 101, 192, 0.15) 100%)',
-                                boxShadow: '0 25px 50px rgba(33, 150, 243, 0.3)',
-                                border: '1px solid rgba(33, 150, 243, 0.5)'
-                            }
-                        }}>
-                            <CardContent sx={{ textAlign: 'center', p: 3.5 }}>
-                                <Box sx={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    gap: 2
-                                }}>
-                                    <Box sx={{
-                                        background: 'linear-gradient(135deg, #2196f3, #1976d2)',
-                                        borderRadius: '20px',
-                                        p: 2.5,
-                                        boxShadow: '0 12px 24px rgba(33, 150, 243, 0.4)',
-                                        border: '2px solid rgba(255,255,255,0.2)',
-                                        position: 'relative',
-                                        '&::before': {
-                                            content: '""',
-                                            position: 'absolute',
-                                            inset: 0,
-                                            borderRadius: '20px',
-                                            background: 'linear-gradient(135deg, rgba(255,255,255,0.2), transparent)',
-                                            zIndex: 1
-                                        }
-                                    }}>
-                                        <ListAlt sx={{ fontSize: 32, color: 'white', position: 'relative', zIndex: 2 }} />
-                                    </Box>
-                                    <Typography variant="h1" sx={{
-                                        fontWeight: '900',
-                                        color: 'white',
-                                        textShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                                        lineHeight: 1,
-                                        fontSize: '3rem'
-                                    }}>
-                                        {exercise.instructions.length}
-                                    </Typography>
-                                    <Typography variant="body2" sx={{
-                                        opacity: 0.95,
-                                        fontWeight: 700,
-                                        color: 'white',
-                                        textTransform: 'uppercase',
-                                        letterSpacing: 1,
-                                        fontSize: '0.75rem'
-                                    }}>
-                                        Bước thực hiện
-                                    </Typography>
-                                </Box>
-                            </CardContent>
-                        </Card>
-
-                        {/* Muscle Groups Card */}
-                        <Card sx={{
-                            position: 'relative',
-                            background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(139, 195, 74, 0.05) 100%)',
-                            borderRadius: 4,
-                            border: '1px solid rgba(76, 175, 80, 0.3)',
-                            backdropFilter: 'blur(20px)',
-                            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                            cursor: 'pointer',
-                            overflow: 'hidden',
-                            '&:hover': {
-                                transform: 'translateY(-12px) scale(1.03)',
-                                background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.25) 0%, rgba(139, 195, 74, 0.15) 100%)',
-                                boxShadow: '0 25px 50px rgba(76, 175, 80, 0.3)',
-                                border: '1px solid rgba(76, 175, 80, 0.5)'
-                            }
-                        }}>
-                            <CardContent sx={{ textAlign: 'center', p: 3.5 }}>
-                                <Box sx={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    gap: 2
-                                }}>
-                                    <Box sx={{
-                                        background: 'linear-gradient(135deg, #4caf50, #388e3c)',
-                                        borderRadius: '20px',
-                                        p: 2.5,
-                                        boxShadow: '0 12px 24px rgba(76, 175, 80, 0.4)',
-                                        border: '2px solid rgba(255,255,255,0.2)',
-                                        position: 'relative',
-                                        '&::before': {
-                                            content: '""',
-                                            position: 'absolute',
-                                            inset: 0,
-                                            borderRadius: '20px',
-                                            background: 'linear-gradient(135deg, rgba(255,255,255,0.2), transparent)',
-                                            zIndex: 1
-                                        }
-                                    }}>
-                                        <Group sx={{ fontSize: 32, color: 'white', position: 'relative', zIndex: 2 }} />
-                                    </Box>
-                                    <Typography variant="h1" sx={{
-                                        fontWeight: '900',
-                                        color: 'white',
-                                        textShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                                        lineHeight: 1,
-                                        fontSize: '3rem'
-                                    }}>
-                                        {exercise.primaryMuscleGroups.length}
-                                    </Typography>
-                                    <Typography variant="body2" sx={{
-                                        opacity: 0.95,
-                                        fontWeight: 700,
-                                        color: 'white',
-                                        textTransform: 'uppercase',
-                                        letterSpacing: 1,
-                                        fontSize: '0.75rem'
-                                    }}>
+                        {/* Muscle Groups Row */}
+                        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3, alignItems: { xs: 'stretch', sm: 'center' }, mb: 3 }}>
+                            {/* Primary Muscle Groups */}
+                            <Box sx={{ flex: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                    <FitnessCenter sx={{ color: '#1976d2', mr: 1, fontSize: 20 }} />
+                                    <Typography variant="h6" fontWeight="600" color="#1565c0">
                                         Nhóm cơ chính
                                     </Typography>
                                 </Box>
-                            </CardContent>
-                        </Card>
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                    {exercise.primaryMuscleGroups.map((muscle, index) => (
+                                        <Chip
+                                            key={index}
+                                            label={muscle}
+                                            sx={{
+                                                bgcolor: '#1976d2',
+                                                color: 'white',
+                                                fontWeight: 600,
+                                                '&:hover': {
+                                                    bgcolor: '#1565c0',
+                                                    transform: 'scale(1.05)'
+                                                },
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                        />
+                                    ))}
+                                </Box>
+                            </Box>
 
-                        {/* Variations Card */}
-                        <Card sx={{
-                            position: 'relative',
-                            background: 'linear-gradient(135deg, rgba(156, 39, 176, 0.15) 0%, rgba(233, 30, 99, 0.05) 100%)',
-                            borderRadius: 4,
-                            border: '1px solid rgba(156, 39, 176, 0.3)',
-                            backdropFilter: 'blur(20px)',
-                            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                            cursor: 'pointer',
-                            overflow: 'hidden',
-                            '&:hover': {
-                                transform: 'translateY(-12px) scale(1.03)',
-                                background: 'linear-gradient(135deg, rgba(156, 39, 176, 0.25) 0%, rgba(233, 30, 99, 0.15) 100%)',
-                                boxShadow: '0 25px 50px rgba(156, 39, 176, 0.3)',
-                                border: '1px solid rgba(156, 39, 176, 0.5)'
-                            }
-                        }}>
-                            <CardContent sx={{ textAlign: 'center', p: 3.5 }}>
+                            {/* Secondary Muscle Groups */}
+                            {exercise.secondaryMuscleGroups && exercise.secondaryMuscleGroups.length > 0 && (
+                                <Box sx={{ flex: 1 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                        <FitnessCenter sx={{ color: '#42a5f5', mr: 1, fontSize: 20 }} />
+                                        <Typography variant="h6" fontWeight="600" color="#1976d2">
+                                            Nhóm cơ phụ
+                                        </Typography>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                        {exercise.secondaryMuscleGroups.map((muscle, index) => (
+                                            <Chip
+                                                key={index}
+                                                label={muscle}
+                                                variant="outlined"
+                                                sx={{
+                                                    borderColor: '#42a5f5',
+                                                    color: '#1976d2',
+                                                    fontWeight: 500,
+                                                    '&:hover': {
+                                                        bgcolor: 'rgba(66, 165, 245, 0.1)',
+                                                        transform: 'scale(1.05)'
+                                                    },
+                                                    transition: 'all 0.2s ease'
+                                                }}
+                                            />
+                                        ))}
+                                    </Box>
+                                </Box>
+                            )}
+                        </Box>
+
+                        {/* Equipment Section */}
+                        {exercise.equipment && exercise.equipment.length > 0 && (
+                            <Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                    <Build sx={{ color: '#ff9800', mr: 1, fontSize: 20 }} />
+                                    <Typography variant="h6" fontWeight="600" color="#f57c00">
+                                        Thiết bị cần thiết
+                                    </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                    {exercise.equipment.map((item, index) => (
+                                        <Chip
+                                            key={index}
+                                            label={item}
+                                            sx={{
+                                                bgcolor: '#ff9800',
+                                                color: 'white',
+                                                fontWeight: 500,
+                                                '&:hover': {
+                                                    bgcolor: '#f57c00',
+                                                    transform: 'scale(1.05)'
+                                                },
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                        />
+                                    ))}
+                                </Box>
+                            </Box>
+                        )}            </Paper>{/* Stats Cards */}
+                    <Box
+                        ref={statsRef}
+                        data-section="stats"
+                        sx={{
+                            display: 'grid',
+                            gridTemplateColumns: {
+                                xs: '1fr',
+                                sm: 'repeat(2, 1fr)',
+                                md: 'repeat(4, 1fr)'
+                            },
+                            gap: 3,
+                            mb: 4,
+                            width: '100%'
+                        }}
+                    >
+                        <StatsCard
+                            icon={<Timer />}
+                            title="Thời gian"
+                            value="5-10 phút"
+                            color="#2196f3"
+                            background="linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)"
+                        />
+                        <StatsCard
+                            icon={<LocalFireDepartment />}
+                            title="Calories"
+                            value={`${exercise.caloriesPerMinute || 8}/phút`}
+                            color="#ff9800"
+                            background="linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)"
+                        />
+                        <StatsCard
+                            icon={<TrendingUp />}
+                            title="Cường độ"
+                            value={`${exercise.averageIntensity || 7}/10`}
+                            color="#4caf50"
+                            background="linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)"
+                        />
+                        <StatsCard
+                            icon={<Group />}
+                            title="Độ phổ biến"
+                            value="Cao"
+                            color="#9c27b0"
+                            background="linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)"
+                        />            </Box>{/* 🔄 Instructions and Video Section - Side by Side */}
+                    <Grid
+                        ref={instructionsRef}
+                        data-section="instructions"
+                        container
+                        spacing={4}
+                        sx={{ mb: 4 }}
+                    >
+                        {/* Instructions Section */}
+                        {/* @ts-ignore */}
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <Paper elevation={0} sx={{ height: '100%', p: 4, borderRadius: 3, border: '1px solid rgba(33, 150, 243, 0.1)', background: 'linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%)' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                                    <Avatar sx={{ bgcolor: '#2196f3', width: 40, height: 40, mr: 2 }}>
+                                        <FitnessCenter />
+                                    </Avatar>
+                                    <Typography variant="h5" component="h2" fontWeight="bold" color="#1565c0">
+                                        Hướng dẫn thực hiện
+                                    </Typography>
+                                </Box>
+                                <InstructionsTab instructions={exercise.instructions} />
+                            </Paper>
+                        </Grid>
+                        {/* Enhanced Video/GIF Section */}
+                        {/* @ts-ignore */}
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <VideoGifSection exercise={exercise} />
+                        </Grid>            </Grid>
+                    {/* 🔄 Variations Section - Full Width */}
+                    <Grid
+                        ref={variationsRef}
+                        data-section="variations"
+                        container
+                        spacing={4}
+                        sx={{ mb: 4 }}
+                    >
+                        {/* Enhanced Variations Section - Full Width */}
+                        {/* @ts-ignore */}
+                        <Grid size={{ xs: 12 }}>
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    height: '100%',
+                                    borderRadius: 3,
+                                    overflow: 'hidden',
+                                    background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
+                                    border: '1px solid rgba(156, 39, 176, 0.2)',
+                                    transition: 'all 0.3s ease',
+                                    '&:hover': {
+                                        transform: 'translateY(-2px)',
+                                        boxShadow: '0 12px 28px rgba(156, 39, 176, 0.15)'
+                                    }
+                                }}
+                            >
+                                {/* Header */}
                                 <Box sx={{
+                                    p: 3,
+                                    background: 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)',
+                                    color: 'white',
                                     display: 'flex',
-                                    flexDirection: 'column',
                                     alignItems: 'center',
                                     gap: 2
                                 }}>
-                                    <Box sx={{
-                                        background: 'linear-gradient(135deg, #9c27b0, #7b1fa2)',
-                                        borderRadius: '20px',
-                                        p: 2.5,
-                                        boxShadow: '0 12px 24px rgba(156, 39, 176, 0.4)',
-                                        border: '2px solid rgba(255,255,255,0.2)',
-                                        position: 'relative',
-                                        '&::before': {
-                                            content: '""',
-                                            position: 'absolute',
-                                            inset: 0,
-                                            borderRadius: '20px',
-                                            background: 'linear-gradient(135deg, rgba(255,255,255,0.2), transparent)',
-                                            zIndex: 1
-                                        }
-                                    }}>
-                                        <Transform sx={{ fontSize: 32, color: 'white', position: 'relative', zIndex: 2 }} />
+                                    <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 40, height: 40 }}>
+                                        <Whatshot sx={{ color: 'white' }} />
+                                    </Avatar>
+                                    <Box>
+                                        <Typography variant="h5" component="h2" fontWeight="bold">
+                                            Biến thể bài tập
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                                            Khám phá các cách thực hiện khác nhau
+                                        </Typography>
                                     </Box>
-                                    <Typography variant="h1" sx={{
-                                        fontWeight: '900',
-                                        color: 'white',
-                                        textShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                                        lineHeight: 1,
-                                        fontSize: '3rem'
-                                    }}>
-                                        {exercise.variations?.length || 0}
-                                    </Typography>
-                                    <Typography variant="body2" sx={{
-                                        opacity: 0.95,
-                                        fontWeight: 700,
-                                        color: 'white',
-                                        textTransform: 'uppercase',
-                                        letterSpacing: 1,
-                                        fontSize: '0.75rem'
-                                    }}>
-                                        Biến thể
-                                    </Typography>
                                 </Box>
-                            </CardContent>
-                        </Card>
 
-                        {/* Calories Card */}
-                        <Card sx={{
-                            position: 'relative',
-                            background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(255, 87, 34, 0.05) 100%)',
-                            borderRadius: 4,
-                            border: '1px solid rgba(255, 152, 0, 0.3)',
-                            backdropFilter: 'blur(20px)',
-                            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                            cursor: 'pointer',
-                            overflow: 'hidden',
-                            '&:hover': {
-                                transform: 'translateY(-12px) scale(1.03)',
-                                background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.25) 0%, rgba(255, 87, 34, 0.15) 100%)',
-                                boxShadow: '0 25px 50px rgba(255, 152, 0, 0.3)',
-                                border: '1px solid rgba(255, 152, 0, 0.5)'
-                            }
-                        }}>
-                            <CardContent sx={{ textAlign: 'center', p: 3.5 }}>
-                                <Box sx={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    gap: 2
-                                }}>
-                                    <Box sx={{
-                                        background: 'linear-gradient(135deg, #ff9800, #f57c00)',
-                                        borderRadius: '20px',
-                                        p: 2.5,
-                                        boxShadow: '0 12px 24px rgba(255, 152, 0, 0.4)',
-                                        border: '2px solid rgba(255,255,255,0.2)',
-                                        position: 'relative',
-                                        '&::before': {
-                                            content: '""',
-                                            position: 'absolute',
-                                            inset: 0,
-                                            borderRadius: '20px',
-                                            background: 'linear-gradient(135deg, rgba(255,255,255,0.2), transparent)',
-                                            zIndex: 1
-                                        }
-                                    }}>
-                                        <LocalFireDepartment sx={{ fontSize: 32, color: 'white', position: 'relative', zIndex: 2 }} />
-                                    </Box>
-                                    <Typography variant="h1" sx={{
-                                        fontWeight: '900',
-                                        color: 'white',
-                                        textShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                                        lineHeight: 1,
-                                        fontSize: '3rem'
-                                    }}>
-                                        {exercise.caloriesPerMinute}
-                                    </Typography>
-                                    <Typography variant="body2" sx={{
-                                        opacity: 0.95,
-                                        fontWeight: 700,
-                                        color: 'white',
-                                        textTransform: 'uppercase',
-                                        letterSpacing: 1,
-                                        fontSize: '0.75rem'
-                                    }}>
-                                        Cal/phút
-                                    </Typography>
+                                {/* Content */}
+                                <Box sx={{ p: 3 }}>
+                                    <EnhancedVariationsSection variations={exercise.variations} />
                                 </Box>
-                            </CardContent>
-                        </Card>
-                    </Box>                    {/* Enhanced Key Details Grid với premium design */}
-                    <Box sx={{ mb: 5 }}>
+                            </Paper>
+                        </Grid>            </Grid>            {/* Enhanced Safety Section */}
+                    <Paper
+                        ref={safetyRef}
+                        data-section="safety"
+                        elevation={0}
+                        sx={{
+                            mb: 4,
+                            borderRadius: 4,
+                            overflow: 'hidden',
+                            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%)',
+                            backdropFilter: 'blur(15px)',
+                            border: '1px solid rgba(244, 67, 54, 0.2)',
+                            boxShadow: '0 8px 32px rgba(244, 67, 54, 0.1)',
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                                transform: 'translateY(-2px)',
+                                boxShadow: '0 12px 40px rgba(244, 67, 54, 0.15)',
+                                border: '1px solid rgba(244, 67, 54, 0.3)'
+                            }
+                        }}
+                    >
+                        {/* Enhanced Header with Gradient Background */}
                         <Box sx={{
+                            p: 3,
+                            background: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)',
+                            color: 'white',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 3,
-                            mb: 4
+                            gap: 2,
+                            position: 'relative',
+                            '&::before': {
+                                content: '""',
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.05) 100%)',
+                                pointerEvents: 'none'
+                            }
                         }}>
+                            <Avatar sx={{
+                                bgcolor: 'rgba(255,255,255,0.2)',
+                                width: 48,
+                                height: 48,
+                                border: '2px solid rgba(255,255,255,0.3)',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                            }}>
+                                <Verified sx={{ fontSize: 28 }} />
+                            </Avatar>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="h5" component="h2" fontWeight="bold" sx={{ mb: 0.5 }}>
+                                    Hướng dẫn an toàn
+                                </Typography>
+                                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                                    Thông tin quan trọng để tránh chấn thương và tập luyện hiệu quả
+                                </Typography>
+                            </Box>
                             <Box sx={{
-                                background: 'linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)',
-                                borderRadius: '20px',
-                                p: 2,
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center',
-                                boxShadow: '0 12px 24px rgba(255, 107, 107, 0.4)',
-                                border: '2px solid rgba(255,255,255,0.2)',
+                                gap: 1,
+                                background: 'rgba(255,255,255,0.15)',
+                                px: 2,
+                                py: 1,
+                                borderRadius: 2,
+                                border: '1px solid rgba(255,255,255,0.2)'
+                            }}>
+                                <Warning sx={{ fontSize: 20 }} />
+                                <Typography variant="caption" fontWeight="600">
+                                    BẮT BUỘC ĐỌC
+                                </Typography>
+                            </Box>
+                        </Box>
+
+                        {/* Enhanced Content Area */}
+                        <Box sx={{ p: 4 }}>
+                            <EnhancedSafetyTab
+                                precautions={exercise.precautions}
+                                contraindications={exercise.contraindications}
+                            />
+                        </Box>
+                    </Paper>{/* 🎯 Enhanced Exercise Summary Section - Completely Redesigned */}
+                    <Paper
+                        ref={summaryRef}
+                        data-section="summary"
+                        elevation={0}
+                        sx={{
+                            mb: 6,
+                            borderRadius: 4,
+                            overflow: 'hidden',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            position: 'relative',
+                            '&::before': {
+                                content: '""',
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.1) 100%)',
+                                pointerEvents: 'none'
+                            }
+                        }}
+                    >
+                        <Box sx={{ p: 4, position: 'relative', zIndex: 1 }}>
+                            {/* Section Header with improved layout */}
+                            <Box sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                mb: 4,
                                 position: 'relative',
+                            }}>
+                                <Box sx={{
+                                    position: 'relative',
+                                    mr: 3
+                                }}>
+                                    <Avatar sx={{
+                                        bgcolor: 'rgba(255,255,255,0.2)',
+                                        width: 70,
+                                        height: 70,
+                                        boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                                        border: '3px solid rgba(255,255,255,0.3)',
+                                        backdropFilter: 'blur(10px)'
+                                    }}>
+                                        <AutoAwesome sx={{ fontSize: 36, color: 'white' }} />
+                                    </Avatar>
+                                    <Box sx={{
+                                        position: 'absolute',
+                                        top: -5,
+                                        right: -5,
+                                        width: 28,
+                                        height: 28,
+                                        borderRadius: '50%',
+                                        bgcolor: '#4caf50',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        border: '3px solid white',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                                    }}>
+                                        <CheckCircle sx={{ fontSize: 16, color: 'white' }} />
+                                    </Box>
+                                </Box>                        <Box sx={{ flex: 1 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                                        <Typography variant="h3" component="h2" fontWeight="800" sx={{
+                                            background: 'linear-gradient(135deg, #fff 0%, #e3f2fd 100%)',
+                                            backgroundClip: 'text',
+                                            WebkitBackgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                            textShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                                            letterSpacing: '-0.5px'
+                                        }}>
+                                            Tóm tắt bài tập
+                                        </Typography>
+                                    </Box>
+                                    <Typography variant="h6" sx={{
+                                        opacity: 0.95,
+                                        fontWeight: 500,
+                                        color: 'rgba(255,255,255,0.9)',
+                                        fontStyle: 'italic',
+                                        position: 'relative',
+                                        '&::before': {
+                                            content: '""',
+                                            fontSize: '2rem',
+                                            color: 'rgba(255,255,255,0.3)',
+                                            position: 'absolute',
+                                            left: '-20px',
+                                            top: '-10px'
+                                        },
+                                        '&::after': {
+                                            content: '""',
+                                            fontSize: '2rem',
+                                            color: 'rgba(255,255,255,0.3)'
+                                        }
+                                    }}>
+                                        Khám phá chi tiết và những điểm quan trọng để thành công
+                                    </Typography>
+                                </Box>
+                            </Box>                    {/* Modern Stats Grid với glassmorphism design */}
+                            <Box
+                                sx={{
+                                    display: 'grid',
+                                    gridTemplateColumns: {
+                                        xs: 'repeat(2, 1fr)',
+                                        sm: 'repeat(4, 1fr)'
+                                    },
+                                    gap: 3,
+                                    mb: 5
+                                }}
+                            >
+                                {/* Instructions Count Card */}
+                                <Card sx={{
+                                    position: 'relative',
+                                    background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.15) 0%, rgba(21, 101, 192, 0.05) 100%)',
+                                    borderRadius: 4,
+                                    border: '1px solid rgba(33, 150, 243, 0.3)',
+                                    backdropFilter: 'blur(20px)',
+                                    transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    cursor: 'pointer',
+                                    overflow: 'hidden',
+                                    '&:hover': {
+                                        transform: 'translateY(-12px) scale(1.03)',
+                                        background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.25) 0%, rgba(21, 101, 192, 0.15) 100%)',
+                                        boxShadow: '0 25px 50px rgba(33, 150, 243, 0.3)',
+                                        border: '1px solid rgba(33, 150, 243, 0.5)'
+                                    }
+                                }}>
+                                    <CardContent sx={{ textAlign: 'center', p: 3.5 }}>
+                                        <Box sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: 2
+                                        }}>
+                                            <Box sx={{
+                                                background: 'linear-gradient(135deg, #2196f3, #1976d2)',
+                                                borderRadius: '20px',
+                                                p: 2.5,
+                                                boxShadow: '0 12px 24px rgba(33, 150, 243, 0.4)',
+                                                border: '2px solid rgba(255,255,255,0.2)',
+                                                position: 'relative',
+                                                '&::before': {
+                                                    content: '""',
+                                                    position: 'absolute',
+                                                    inset: 0,
+                                                    borderRadius: '20px',
+                                                    background: 'linear-gradient(135deg, rgba(255,255,255,0.2), transparent)',
+                                                    zIndex: 1
+                                                }
+                                            }}>
+                                                <ListAlt sx={{ fontSize: 32, color: 'white', position: 'relative', zIndex: 2 }} />
+                                            </Box>
+                                            <Typography variant="h1" sx={{
+                                                fontWeight: '900',
+                                                color: 'white',
+                                                textShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                                                lineHeight: 1,
+                                                fontSize: '3rem'
+                                            }}>
+                                                {exercise.instructions.length}
+                                            </Typography>
+                                            <Typography variant="body2" sx={{
+                                                opacity: 0.95,
+                                                fontWeight: 700,
+                                                color: 'white',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: 1,
+                                                fontSize: '0.75rem'
+                                            }}>
+                                                Bước thực hiện
+                                            </Typography>
+                                        </Box>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Muscle Groups Card */}
+                                <Card sx={{
+                                    position: 'relative',
+                                    background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(139, 195, 74, 0.05) 100%)',
+                                    borderRadius: 4,
+                                    border: '1px solid rgba(76, 175, 80, 0.3)',
+                                    backdropFilter: 'blur(20px)',
+                                    transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    cursor: 'pointer',
+                                    overflow: 'hidden',
+                                    '&:hover': {
+                                        transform: 'translateY(-12px) scale(1.03)',
+                                        background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.25) 0%, rgba(139, 195, 74, 0.15) 100%)',
+                                        boxShadow: '0 25px 50px rgba(76, 175, 80, 0.3)',
+                                        border: '1px solid rgba(76, 175, 80, 0.5)'
+                                    }
+                                }}>
+                                    <CardContent sx={{ textAlign: 'center', p: 3.5 }}>
+                                        <Box sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: 2
+                                        }}>
+                                            <Box sx={{
+                                                background: 'linear-gradient(135deg, #4caf50, #388e3c)',
+                                                borderRadius: '20px',
+                                                p: 2.5,
+                                                boxShadow: '0 12px 24px rgba(76, 175, 80, 0.4)',
+                                                border: '2px solid rgba(255,255,255,0.2)',
+                                                position: 'relative',
+                                                '&::before': {
+                                                    content: '""',
+                                                    position: 'absolute',
+                                                    inset: 0,
+                                                    borderRadius: '20px',
+                                                    background: 'linear-gradient(135deg, rgba(255,255,255,0.2), transparent)',
+                                                    zIndex: 1
+                                                }
+                                            }}>
+                                                <Group sx={{ fontSize: 32, color: 'white', position: 'relative', zIndex: 2 }} />
+                                            </Box>
+                                            <Typography variant="h1" sx={{
+                                                fontWeight: '900',
+                                                color: 'white',
+                                                textShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                                                lineHeight: 1,
+                                                fontSize: '3rem'
+                                            }}>
+                                                {exercise.primaryMuscleGroups.length}
+                                            </Typography>
+                                            <Typography variant="body2" sx={{
+                                                opacity: 0.95,
+                                                fontWeight: 700,
+                                                color: 'white',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: 1,
+                                                fontSize: '0.75rem'
+                                            }}>
+                                                Nhóm cơ chính
+                                            </Typography>
+                                        </Box>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Variations Card */}
+                                <Card sx={{
+                                    position: 'relative',
+                                    background: 'linear-gradient(135deg, rgba(156, 39, 176, 0.15) 0%, rgba(233, 30, 99, 0.05) 100%)',
+                                    borderRadius: 4,
+                                    border: '1px solid rgba(156, 39, 176, 0.3)',
+                                    backdropFilter: 'blur(20px)',
+                                    transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    cursor: 'pointer',
+                                    overflow: 'hidden',
+                                    '&:hover': {
+                                        transform: 'translateY(-12px) scale(1.03)',
+                                        background: 'linear-gradient(135deg, rgba(156, 39, 176, 0.25) 0%, rgba(233, 30, 99, 0.15) 100%)',
+                                        boxShadow: '0 25px 50px rgba(156, 39, 176, 0.3)',
+                                        border: '1px solid rgba(156, 39, 176, 0.5)'
+                                    }
+                                }}>
+                                    <CardContent sx={{ textAlign: 'center', p: 3.5 }}>
+                                        <Box sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: 2
+                                        }}>
+                                            <Box sx={{
+                                                background: 'linear-gradient(135deg, #9c27b0, #7b1fa2)',
+                                                borderRadius: '20px',
+                                                p: 2.5,
+                                                boxShadow: '0 12px 24px rgba(156, 39, 176, 0.4)',
+                                                border: '2px solid rgba(255,255,255,0.2)',
+                                                position: 'relative',
+                                                '&::before': {
+                                                    content: '""',
+                                                    position: 'absolute',
+                                                    inset: 0,
+                                                    borderRadius: '20px',
+                                                    background: 'linear-gradient(135deg, rgba(255,255,255,0.2), transparent)',
+                                                    zIndex: 1
+                                                }
+                                            }}>
+                                                <Transform sx={{ fontSize: 32, color: 'white', position: 'relative', zIndex: 2 }} />
+                                            </Box>
+                                            <Typography variant="h1" sx={{
+                                                fontWeight: '900',
+                                                color: 'white',
+                                                textShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                                                lineHeight: 1,
+                                                fontSize: '3rem'
+                                            }}>
+                                                {exercise.variations?.length || 0}
+                                            </Typography>
+                                            <Typography variant="body2" sx={{
+                                                opacity: 0.95,
+                                                fontWeight: 700,
+                                                color: 'white',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: 1,
+                                                fontSize: '0.75rem'
+                                            }}>
+                                                Biến thể
+                                            </Typography>
+                                        </Box>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Calories Card */}
+                                <Card sx={{
+                                    position: 'relative',
+                                    background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(255, 87, 34, 0.05) 100%)',
+                                    borderRadius: 4,
+                                    border: '1px solid rgba(255, 152, 0, 0.3)',
+                                    backdropFilter: 'blur(20px)',
+                                    transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    cursor: 'pointer',
+                                    overflow: 'hidden',
+                                    '&:hover': {
+                                        transform: 'translateY(-12px) scale(1.03)',
+                                        background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.25) 0%, rgba(255, 87, 34, 0.15) 100%)',
+                                        boxShadow: '0 25px 50px rgba(255, 152, 0, 0.3)',
+                                        border: '1px solid rgba(255, 152, 0, 0.5)'
+                                    }
+                                }}>
+                                    <CardContent sx={{ textAlign: 'center', p: 3.5 }}>
+                                        <Box sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: 2
+                                        }}>
+                                            <Box sx={{
+                                                background: 'linear-gradient(135deg, #ff9800, #f57c00)',
+                                                borderRadius: '20px',
+                                                p: 2.5,
+                                                boxShadow: '0 12px 24px rgba(255, 152, 0, 0.4)',
+                                                border: '2px solid rgba(255,255,255,0.2)',
+                                                position: 'relative',
+                                                '&::before': {
+                                                    content: '""',
+                                                    position: 'absolute',
+                                                    inset: 0,
+                                                    borderRadius: '20px',
+                                                    background: 'linear-gradient(135deg, rgba(255,255,255,0.2), transparent)',
+                                                    zIndex: 1
+                                                }
+                                            }}>
+                                                <LocalFireDepartment sx={{ fontSize: 32, color: 'white', position: 'relative', zIndex: 2 }} />
+                                            </Box>
+                                            <Typography variant="h1" sx={{
+                                                fontWeight: '900',
+                                                color: 'white',
+                                                textShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                                                lineHeight: 1,
+                                                fontSize: '3rem'
+                                            }}>
+                                                {exercise.caloriesPerMinute}
+                                            </Typography>
+                                            <Typography variant="body2" sx={{
+                                                opacity: 0.95,
+                                                fontWeight: 700,
+                                                color: 'white',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: 1,
+                                                fontSize: '0.75rem'
+                                            }}>
+                                                Cal/phút
+                                            </Typography>
+                                        </Box>
+                                    </CardContent>
+                                </Card>
+                            </Box>                    {/* Enhanced Key Details Grid với premium design */}
+                            <Box sx={{ mb: 5 }}>
+                                <Box sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 3,
+                                    mb: 4
+                                }}>
+                                    <Box sx={{
+                                        background: 'linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)',
+                                        borderRadius: '20px',
+                                        p: 2,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        boxShadow: '0 12px 24px rgba(255, 107, 107, 0.4)',
+                                        border: '2px solid rgba(255,255,255,0.2)',
+                                        position: 'relative',
+                                        '&::before': {
+                                            content: '""',
+                                            position: 'absolute',
+                                            inset: 0,
+                                            borderRadius: '20px',
+                                            background: 'linear-gradient(135deg, rgba(255,255,255,0.2), transparent)',
+                                            zIndex: 1
+                                        }
+                                    }}>
+                                        <Psychology sx={{ fontSize: 28, color: 'white', position: 'relative', zIndex: 2 }} />
+                                    </Box>
+                                    <Typography variant="h4" sx={{
+                                        fontWeight: 800,
+                                        color: 'white',
+                                        background: 'linear-gradient(135deg, #fff 0%, #e3f2fd 100%)',
+                                        backgroundClip: 'text',
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                        textShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                                        letterSpacing: '-0.5px'
+                                    }}>
+                                        Thông số chi tiết
+                                    </Typography>
+                                </Box>
+
+                                <Box sx={{
+                                    display: 'grid',
+                                    gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+                                    gap: 3
+                                }}>
+                                    {/* Difficulty Level */}
+                                    <Card sx={{
+                                        position: 'relative',
+                                        background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.12) 0%, rgba(255, 152, 0, 0.08) 100%)',
+                                        borderRadius: 4,
+                                        border: '1px solid rgba(244, 67, 54, 0.25)',
+                                        backdropFilter: 'blur(15px)',
+                                        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        overflow: 'hidden',
+                                        cursor: 'pointer',
+                                        '&:hover': {
+                                            background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.18) 0%, rgba(255, 152, 0, 0.12) 100%)',
+                                            transform: 'translateY(-4px)',
+                                            boxShadow: '0 16px 32px rgba(244, 67, 54, 0.2)',
+                                            border: '1px solid rgba(244, 67, 54, 0.4)'
+                                        }
+                                    }}>
+                                        <CardContent sx={{ p: 3 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+                                                <Avatar sx={{
+                                                    background: 'linear-gradient(135deg, #f44336, #d32f2f)',
+                                                    width: 50,
+                                                    height: 50,
+                                                    boxShadow: '0 8px 16px rgba(244, 67, 54, 0.3)',
+                                                    border: '2px solid rgba(255,255,255,0.2)'
+                                                }}>
+                                                    <TrendingUp sx={{ fontSize: 24, color: 'white' }} />
+                                                </Avatar>
+                                                <Box sx={{ flex: 1 }}>
+                                                    <Typography variant="body2" sx={{
+                                                        opacity: 0.9,
+                                                        color: 'white',
+                                                        fontWeight: 600,
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: 0.5,
+                                                        fontSize: '0.75rem',
+                                                        mb: 0.5
+                                                    }}>
+                                                        Mức độ khó
+                                                    </Typography>
+                                                    <Typography variant="h6" sx={{
+                                                        fontWeight: 800,
+                                                        color: 'white',
+                                                        fontSize: '1.1rem'
+                                                    }}>
+                                                        {exercise.difficulty === 'beginner' ? '🟢 Người mới' :
+                                                            exercise.difficulty === 'intermediate' ? '🟡 Trung cấp' : '🔴 Nâng cao'}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Category */}
+                                    <Card sx={{
+                                        position: 'relative',
+                                        background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.12) 0%, rgba(63, 81, 181, 0.08) 100%)',
+                                        borderRadius: 4,
+                                        border: '1px solid rgba(33, 150, 243, 0.25)',
+                                        backdropFilter: 'blur(15px)',
+                                        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        overflow: 'hidden',
+                                        cursor: 'pointer',
+                                        '&:hover': {
+                                            background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.18) 0%, rgba(63, 81, 181, 0.12) 100%)',
+                                            transform: 'translateY(-4px)',
+                                            boxShadow: '0 16px 32px rgba(33, 150, 243, 0.2)',
+                                            border: '1px solid rgba(33, 150, 243, 0.4)'
+                                        }
+                                    }}>
+                                        <CardContent sx={{ p: 3 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+                                                <Avatar sx={{
+                                                    background: 'linear-gradient(135deg, #2196f3, #1976d2)',
+                                                    width: 50,
+                                                    height: 50,
+                                                    boxShadow: '0 8px 16px rgba(33, 150, 243, 0.3)',
+                                                    border: '2px solid rgba(255,255,255,0.2)'
+                                                }}>
+                                                    <Category sx={{ fontSize: 24, color: 'white' }} />
+                                                </Avatar>
+                                                <Box sx={{ flex: 1 }}>
+                                                    <Typography variant="body2" sx={{
+                                                        opacity: 0.9,
+                                                        color: 'white',
+                                                        fontWeight: 600,
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: 0.5,
+                                                        fontSize: '0.75rem',
+                                                        mb: 0.5
+                                                    }}>
+                                                        Loại bài tập
+                                                    </Typography>
+                                                    <Typography variant="h6" sx={{
+                                                        fontWeight: 800,
+                                                        color: 'white',
+                                                        fontSize: '1.1rem'
+                                                    }}>
+                                                        💪 {exercise.category === 'strength' ? 'Sức mạnh' :
+                                                            exercise.category === 'cardio' ? 'Tim mạch' : 'Linh hoạt'}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Intensity */}
+                                    <Card sx={{
+                                        position: 'relative',
+                                        background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.12) 0%, rgba(139, 195, 74, 0.08) 100%)',
+                                        borderRadius: 4,
+                                        border: '1px solid rgba(76, 175, 80, 0.25)',
+                                        backdropFilter: 'blur(15px)',
+                                        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        overflow: 'hidden',
+                                        cursor: 'pointer',
+                                        '&:hover': {
+                                            background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.18) 0%, rgba(139, 195, 74, 0.12) 100%)',
+                                            transform: 'translateY(-4px)',
+                                            boxShadow: '0 16px 32px rgba(76, 175, 80, 0.2)',
+                                            border: '1px solid rgba(76, 175, 80, 0.4)'
+                                        }
+                                    }}>
+                                        <CardContent sx={{ p: 3 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+                                                <Avatar sx={{
+                                                    background: 'linear-gradient(135deg, #4caf50, #388e3c)',
+                                                    width: 50,
+                                                    height: 50,
+                                                    boxShadow: '0 8px 16px rgba(76, 175, 80, 0.3)',
+                                                    border: '2px solid rgba(255,255,255,0.2)'
+                                                }}>
+                                                    <Speed sx={{ fontSize: 24, color: 'white' }} />
+                                                </Avatar>
+                                                <Box sx={{ flex: 1 }}>
+                                                    <Typography variant="body2" sx={{
+                                                        opacity: 0.9,
+                                                        color: 'white',
+                                                        fontWeight: 600,
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: 0.5,
+                                                        fontSize: '0.75rem',
+                                                        mb: 0.5
+                                                    }}>
+                                                        Cường độ
+                                                    </Typography>
+                                                    <Typography variant="h6" sx={{
+                                                        fontWeight: 800,
+                                                        color: 'white',
+                                                        fontSize: '1.1rem'
+                                                    }}>
+                                                        ⚡ {exercise.averageIntensity}/10
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Equipment */}
+                                    <Card sx={{
+                                        position: 'relative',
+                                        background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.12) 0%, rgba(255, 87, 34, 0.08) 100%)',
+                                        borderRadius: 4,
+                                        border: '1px solid rgba(255, 152, 0, 0.25)',
+                                        backdropFilter: 'blur(15px)',
+                                        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        overflow: 'hidden',
+                                        cursor: 'pointer',
+                                        '&:hover': {
+                                            background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.18) 0%, rgba(255, 87, 34, 0.12) 100%)',
+                                            transform: 'translateY(-4px)',
+                                            boxShadow: '0 16px 32px rgba(255, 152, 0, 0.2)',
+                                            border: '1px solid rgba(255, 152, 0, 0.4)'
+                                        }
+                                    }}>
+                                        <CardContent sx={{ p: 3 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+                                                <Avatar sx={{
+                                                    background: 'linear-gradient(135deg, #ff9800, #f57c00)',
+                                                    width: 50,
+                                                    height: 50,
+                                                    boxShadow: '0 8px 16px rgba(255, 152, 0, 0.3)',
+                                                    border: '2px solid rgba(255,255,255,0.2)'
+                                                }}>
+                                                    <FitnessCenter sx={{ fontSize: 24, color: 'white' }} />
+                                                </Avatar>
+                                                <Box sx={{ flex: 1 }}>
+                                                    <Typography variant="body2" sx={{
+                                                        opacity: 0.9,
+                                                        color: 'white',
+                                                        fontWeight: 600,
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: 0.5,
+                                                        fontSize: '0.75rem',
+                                                        mb: 0.5
+                                                    }}>
+                                                        Thiết bị cần
+                                                    </Typography>
+                                                    <Typography variant="h6" sx={{
+                                                        fontWeight: 800,
+                                                        color: 'white',
+                                                        fontSize: '1.1rem'
+                                                    }}>
+                                                        🏋️ {exercise.equipment.length} loại
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                        </CardContent>
+                                    </Card>
+                                </Box>
+                            </Box>                    {/* Revolutionary Call to Action Area với modern glassmorphism */}
+                            <Box sx={{
+                                textAlign: 'center',
+                                p: 5,
+                                position: 'relative',
+                                borderRadius: 6,
+                                overflow: 'hidden',
+                                border: '1px solid rgba(255,255,255,0.15)',
+                                backdropFilter: 'blur(25px)',
+                                background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)',
                                 '&::before': {
                                     content: '""',
                                     position: 'absolute',
-                                    inset: 0,
-                                    borderRadius: '20px',
-                                    background: 'linear-gradient(135deg, rgba(255,255,255,0.2), transparent)',
-                                    zIndex: 1
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 50%, rgba(255, 107, 107, 0.05) 100%)',
+                                    pointerEvents: 'none',
+                                    animation: 'shimmer 3s ease-in-out infinite'
+                                },
+                                '@keyframes shimmer': {
+                                    '0%, 100%': { opacity: 0.5 },
+                                    '50%': { opacity: 0.8 }
                                 }
                             }}>
-                                <Psychology sx={{ fontSize: 28, color: 'white', position: 'relative', zIndex: 2 }} />
-                            </Box>
-                            <Typography variant="h4" sx={{
-                                fontWeight: 800,
-                                color: 'white',
-                                background: 'linear-gradient(135deg, #fff 0%, #e3f2fd 100%)',
-                                backgroundClip: 'text',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                textShadow: '0 4px 8px rgba(0,0,0,0.2)',
-                                letterSpacing: '-0.5px'
-                            }}>
-                                Thông số chi tiết
-                            </Typography>
-                        </Box>
-
-                        <Box sx={{
-                            display: 'grid',
-                            gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
-                            gap: 3
-                        }}>
-                            {/* Difficulty Level */}
-                            <Card sx={{
-                                position: 'relative',
-                                background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.12) 0%, rgba(255, 152, 0, 0.08) 100%)',
-                                borderRadius: 4,
-                                border: '1px solid rgba(244, 67, 54, 0.25)',
-                                backdropFilter: 'blur(15px)',
-                                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                                overflow: 'hidden',
-                                cursor: 'pointer',
-                                '&:hover': {
-                                    background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.18) 0%, rgba(255, 152, 0, 0.12) 100%)',
-                                    transform: 'translateY(-4px)',
-                                    boxShadow: '0 16px 32px rgba(244, 67, 54, 0.2)',
-                                    border: '1px solid rgba(244, 67, 54, 0.4)'
-                                }
-                            }}>
-                                <CardContent sx={{ p: 3 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
-                                        <Avatar sx={{
-                                            background: 'linear-gradient(135deg, #f44336, #d32f2f)',
-                                            width: 50,
-                                            height: 50,
-                                            boxShadow: '0 8px 16px rgba(244, 67, 54, 0.3)',
-                                            border: '2px solid rgba(255,255,255,0.2)'
-                                        }}>
-                                            <TrendingUp sx={{ fontSize: 24, color: 'white' }} />
-                                        </Avatar>
-                                        <Box sx={{ flex: 1 }}>
-                                            <Typography variant="body2" sx={{
-                                                opacity: 0.9,
-                                                color: 'white',
-                                                fontWeight: 600,
-                                                textTransform: 'uppercase',
-                                                letterSpacing: 0.5,
-                                                fontSize: '0.75rem',
-                                                mb: 0.5
-                                            }}>
-                                                Mức độ khó
-                                            </Typography>
-                                            <Typography variant="h6" sx={{
-                                                fontWeight: 800,
-                                                color: 'white',
-                                                fontSize: '1.1rem'
-                                            }}>
-                                                {exercise.difficulty === 'beginner' ? '🟢 Người mới' :
-                                                    exercise.difficulty === 'intermediate' ? '🟡 Trung cấp' : '🔴 Nâng cao'}
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                </CardContent>
-                            </Card>
-
-                            {/* Category */}
-                            <Card sx={{
-                                position: 'relative',
-                                background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.12) 0%, rgba(63, 81, 181, 0.08) 100%)',
-                                borderRadius: 4,
-                                border: '1px solid rgba(33, 150, 243, 0.25)',
-                                backdropFilter: 'blur(15px)',
-                                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                                overflow: 'hidden',
-                                cursor: 'pointer',
-                                '&:hover': {
-                                    background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.18) 0%, rgba(63, 81, 181, 0.12) 100%)',
-                                    transform: 'translateY(-4px)',
-                                    boxShadow: '0 16px 32px rgba(33, 150, 243, 0.2)',
-                                    border: '1px solid rgba(33, 150, 243, 0.4)'
-                                }
-                            }}>
-                                <CardContent sx={{ p: 3 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
-                                        <Avatar sx={{
-                                            background: 'linear-gradient(135deg, #2196f3, #1976d2)',
-                                            width: 50,
-                                            height: 50,
-                                            boxShadow: '0 8px 16px rgba(33, 150, 243, 0.3)',
-                                            border: '2px solid rgba(255,255,255,0.2)'
-                                        }}>
-                                            <Category sx={{ fontSize: 24, color: 'white' }} />
-                                        </Avatar>
-                                        <Box sx={{ flex: 1 }}>
-                                            <Typography variant="body2" sx={{
-                                                opacity: 0.9,
-                                                color: 'white',
-                                                fontWeight: 600,
-                                                textTransform: 'uppercase',
-                                                letterSpacing: 0.5,
-                                                fontSize: '0.75rem',
-                                                mb: 0.5
-                                            }}>
-                                                Loại bài tập
-                                            </Typography>
-                                            <Typography variant="h6" sx={{
-                                                fontWeight: 800,
-                                                color: 'white',
-                                                fontSize: '1.1rem'
-                                            }}>
-                                                💪 {exercise.category === 'strength' ? 'Sức mạnh' :
-                                                    exercise.category === 'cardio' ? 'Tim mạch' : 'Linh hoạt'}
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                </CardContent>
-                            </Card>
-
-                            {/* Intensity */}
-                            <Card sx={{
-                                position: 'relative',
-                                background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.12) 0%, rgba(139, 195, 74, 0.08) 100%)',
-                                borderRadius: 4,
-                                border: '1px solid rgba(76, 175, 80, 0.25)',
-                                backdropFilter: 'blur(15px)',
-                                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                                overflow: 'hidden',
-                                cursor: 'pointer',
-                                '&:hover': {
-                                    background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.18) 0%, rgba(139, 195, 74, 0.12) 100%)',
-                                    transform: 'translateY(-4px)',
-                                    boxShadow: '0 16px 32px rgba(76, 175, 80, 0.2)',
-                                    border: '1px solid rgba(76, 175, 80, 0.4)'
-                                }
-                            }}>
-                                <CardContent sx={{ p: 3 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
-                                        <Avatar sx={{
-                                            background: 'linear-gradient(135deg, #4caf50, #388e3c)',
-                                            width: 50,
-                                            height: 50,
-                                            boxShadow: '0 8px 16px rgba(76, 175, 80, 0.3)',
-                                            border: '2px solid rgba(255,255,255,0.2)'
-                                        }}>
-                                            <Speed sx={{ fontSize: 24, color: 'white' }} />
-                                        </Avatar>
-                                        <Box sx={{ flex: 1 }}>
-                                            <Typography variant="body2" sx={{
-                                                opacity: 0.9,
-                                                color: 'white',
-                                                fontWeight: 600,
-                                                textTransform: 'uppercase',
-                                                letterSpacing: 0.5,
-                                                fontSize: '0.75rem',
-                                                mb: 0.5
-                                            }}>
-                                                Cường độ
-                                            </Typography>
-                                            <Typography variant="h6" sx={{
-                                                fontWeight: 800,
-                                                color: 'white',
-                                                fontSize: '1.1rem'
-                                            }}>
-                                                ⚡ {exercise.averageIntensity}/10
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                </CardContent>
-                            </Card>
-
-                            {/* Equipment */}
-                            <Card sx={{
-                                position: 'relative',
-                                background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.12) 0%, rgba(255, 87, 34, 0.08) 100%)',
-                                borderRadius: 4,
-                                border: '1px solid rgba(255, 152, 0, 0.25)',
-                                backdropFilter: 'blur(15px)',
-                                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                                overflow: 'hidden',
-                                cursor: 'pointer',
-                                '&:hover': {
-                                    background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.18) 0%, rgba(255, 87, 34, 0.12) 100%)',
-                                    transform: 'translateY(-4px)',
-                                    boxShadow: '0 16px 32px rgba(255, 152, 0, 0.2)',
-                                    border: '1px solid rgba(255, 152, 0, 0.4)'
-                                }
-                            }}>
-                                <CardContent sx={{ p: 3 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
-                                        <Avatar sx={{
-                                            background: 'linear-gradient(135deg, #ff9800, #f57c00)',
-                                            width: 50,
-                                            height: 50,
-                                            boxShadow: '0 8px 16px rgba(255, 152, 0, 0.3)',
-                                            border: '2px solid rgba(255,255,255,0.2)'
-                                        }}>
-                                            <FitnessCenter sx={{ fontSize: 24, color: 'white' }} />
-                                        </Avatar>
-                                        <Box sx={{ flex: 1 }}>
-                                            <Typography variant="body2" sx={{
-                                                opacity: 0.9,
-                                                color: 'white',
-                                                fontWeight: 600,
-                                                textTransform: 'uppercase',
-                                                letterSpacing: 0.5,
-                                                fontSize: '0.75rem',
-                                                mb: 0.5
-                                            }}>
-                                                Thiết bị cần
-                                            </Typography>
-                                            <Typography variant="h6" sx={{
-                                                fontWeight: 800,
-                                                color: 'white',
-                                                fontSize: '1.1rem'
-                                            }}>
-                                                🏋️ {exercise.equipment.length} loại
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                </CardContent>
-                            </Card>
-                        </Box>
-                    </Box>                    {/* Revolutionary Call to Action Area với modern glassmorphism */}
-                    <Box sx={{
-                        textAlign: 'center',
-                        p: 5,
-                        position: 'relative',
-                        borderRadius: 6,
-                        overflow: 'hidden',
-                        border: '1px solid rgba(255,255,255,0.15)',
-                        backdropFilter: 'blur(25px)',
-                        background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)',
-                        '&::before': {
-                            content: '""',
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 50%, rgba(255, 107, 107, 0.05) 100%)',
-                            pointerEvents: 'none',
-                            animation: 'shimmer 3s ease-in-out infinite'
-                        },
-                        '@keyframes shimmer': {
-                            '0%, 100%': { opacity: 0.5 },
-                            '50%': { opacity: 0.8 }
-                        }
-                    }}>
-                        <Box sx={{ position: 'relative', zIndex: 2 }}>
-                            {/* Hero Icon Section */}
-                            <Box sx={{
-                                mb: 4,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: 2
-                            }}>
-                                <Box sx={{
-                                    background: 'linear-gradient(135deg, #ffd700 0%, #ffb300 100%)',
-                                    borderRadius: '50%',
-                                    p: 3,
-                                    boxShadow: '0 20px 40px rgba(255, 215, 0, 0.3)',
-                                    border: '3px solid rgba(255,255,255,0.3)',
-                                    position: 'relative',
-                                    animation: 'pulse 2s ease-in-out infinite',
-                                    '&::before': {
-                                        content: '""',
-                                        position: 'absolute',
-                                        inset: -5,
-                                        borderRadius: '50%',
-                                        background: 'linear-gradient(135deg, rgba(255,215,0,0.3), transparent)',
-                                        zIndex: -1
-                                    },
-                                    '@keyframes pulse': {
-                                        '0%, 100%': { transform: 'scale(1)' },
-                                        '50%': { transform: 'scale(1.05)' }
-                                    }
-                                }}>
-                                    <EmojiEvents sx={{
-                                        fontSize: 56,
-                                        color: 'white',
-                                        filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))'
-                                    }} />
-                                </Box>
-                            </Box>
-
-                            {/* Title & Description */}
-                            <Typography variant="h3" sx={{
-                                mb: 3,
-                                fontWeight: 900,
-                                background: 'linear-gradient(135deg, #fff 0%, #e3f2fd 50%, #fff 100%)',
-                                backgroundClip: 'text',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                textShadow: '0 4px 8px rgba(0,0,0,0.2)',
-                                letterSpacing: '-1px',
-                                lineHeight: 1.2
-                            }}>
-                                🚀 Sẵn sàng chinh phục thử thách?
-                            </Typography>
-
-                            <Box sx={{
-                                mb: 5,
-                                maxWidth: 700,
-                                mx: 'auto'
-                            }}>
-                                <Typography variant="h5" sx={{
-                                    mb: 2,
-                                    opacity: 0.95,
-                                    color: 'rgba(255,255,255,0.9)',
-                                    fontWeight: 600,
-                                    lineHeight: 1.6,
-                                    fontStyle: 'italic'
-                                }}>
-                                    "Hành trình nghìn dặm bắt đầu từ bước chân đầu tiên"
-                                </Typography>
-                                <Typography variant="body1" sx={{
-                                    opacity: 0.85,
-                                    color: 'rgba(255,255,255,0.8)',
-                                    fontWeight: 500,
-                                    lineHeight: 1.7,
-                                    maxWidth: 600,
-                                    mx: 'auto'
-                                }}>
-                                    Hãy bắt đầu với các bước cơ bản và từ từ nâng cao độ khó.
-                                    Nhớ luôn chú ý đến kỹ thuật để đạt hiệu quả tối ưu và tránh chấn thương! 💪
-                                </Typography>
-                            </Box>
-
-                            {/* Action Buttons */}
-                            <Box sx={{
-                                display: 'flex',
-                                gap: 4,
-                                justifyContent: 'center',
-                                flexWrap: 'wrap',
-                                alignItems: 'center'
-                            }}>
-                                <Button
-                                    variant="contained"
-                                    size="large"
-                                    sx={{
-                                        background: 'linear-gradient(135deg, #00c851 0%, #00ff00 50%, #007e33 100%)',
-                                        color: 'white',
-                                        border: '2px solid rgba(255,255,255,0.4)',
-                                        px: 6,
-                                        py: 2.5,
-                                        borderRadius: 6,
-                                        fontWeight: 800,
-                                        fontSize: '1.2rem',
-                                        minWidth: 260,
-                                        textTransform: 'none',
-                                        boxShadow: '0 12px 30px rgba(0, 200, 81, 0.4)',
-                                        position: 'relative',
-                                        overflow: 'hidden',
-                                        '&::before': {
-                                            content: '""',
-                                            position: 'absolute',
-                                            top: 0,
-                                            left: '-100%',
-                                            width: '100%',
-                                            height: '100%',
-                                            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
-                                            transition: 'left 0.6s ease'
-                                        },
-                                        '&:hover': {
-                                            background: 'linear-gradient(135deg, #007e33 0%, #00c851 50%, #00ff00 100%)',
-                                            transform: 'translateY(-6px) scale(1.05)',
-                                            boxShadow: '0 20px 45px rgba(0, 200, 81, 0.6)',
+                                <Box sx={{ position: 'relative', zIndex: 2 }}>
+                                    {/* Hero Icon Section */}
+                                    <Box sx={{
+                                        mb: 4,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 2
+                                    }}>
+                                        <Box sx={{
+                                            background: 'linear-gradient(135deg, #ffd700 0%, #ffb300 100%)',
+                                            borderRadius: '50%',
+                                            p: 3,
+                                            boxShadow: '0 20px 40px rgba(255, 215, 0, 0.3)',
+                                            border: '3px solid rgba(255,255,255,0.3)',
+                                            position: 'relative',
+                                            animation: 'pulse 2s ease-in-out infinite',
                                             '&::before': {
-                                                left: '100%'
+                                                content: '""',
+                                                position: 'absolute',
+                                                inset: -5,
+                                                borderRadius: '50%',
+                                                background: 'linear-gradient(135deg, rgba(255,215,0,0.3), transparent)',
+                                                zIndex: -1
+                                            },
+                                            '@keyframes pulse': {
+                                                '0%, 100%': { transform: 'scale(1)' },
+                                                '50%': { transform: 'scale(1.05)' }
                                             }
-                                        }
-                                    }}
-                                    startIcon={<PlayArrow sx={{ fontSize: '2rem' }} />}
-                                    onClick={() => {
-                                        console.log('Starting workout with:', exercise.name);
-                                        // TODO: Add workout start logic
-                                    }}
-                                >
-                                    Bắt đầu luyện tập
-                                </Button>
+                                        }}>
+                                            <EmojiEvents sx={{
+                                                fontSize: 56,
+                                                color: 'white',
+                                                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))'
+                                            }} />
+                                        </Box>
+                                    </Box>
 
-                                <Button
-                                    variant="outlined"
-                                    size="large"
-                                    sx={{
-                                        color: 'white',
-                                        borderColor: 'rgba(255,255,255,0.6)',
-                                        borderWidth: '2px',
-                                        px: 5,
-                                        py: 2.5,
-                                        borderRadius: 6,
-                                        fontWeight: 700,
-                                        fontSize: '1.1rem',
-                                        textTransform: 'none',
-                                        backdropFilter: 'blur(15px)',
-                                        background: 'rgba(255,255,255,0.05)',
-                                        minWidth: 200,
-                                        position: 'relative',
-                                        overflow: 'hidden',
-                                        '&::before': {
-                                            content: '""',
-                                            position: 'absolute',
-                                            top: 0,
-                                            left: 0,
-                                            right: 0,
-                                            bottom: 0,
-                                            background: 'linear-gradient(135deg, rgba(255,255,255,0.1), transparent)',
-                                            opacity: 0,
-                                            transition: 'opacity 0.3s ease'
-                                        },
-                                        '&:hover': {
-                                            borderColor: 'white',
-                                            bgcolor: 'rgba(255,255,255,0.15)',
-                                            transform: 'translateY(-3px)',
-                                            boxShadow: '0 12px 25px rgba(255,255,255,0.2)',
-                                            '&::before': {
-                                                opacity: 1
-                                            }
-                                        }
-                                    }}
-                                    startIcon={<BookmarkBorder sx={{ fontSize: '1.4rem' }} />}
-                                >
-                                    Lưu bài tập
-                                </Button>
-                            </Box>
+                                    {/* Title & Description */}
+                                    <Typography variant="h3" sx={{
+                                        mb: 3,
+                                        fontWeight: 900,
+                                        background: 'linear-gradient(135deg, #fff 0%, #e3f2fd 50%, #fff 100%)',
+                                        backgroundClip: 'text',
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                        textShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                                        letterSpacing: '-1px',
+                                        lineHeight: 1.2
+                                    }}>
+                                        🚀 Sẵn sàng chinh phục thử thách?
+                                    </Typography>
 
-                            {/* Bottom Stats */}
-                            <Box sx={{
-                                mt: 5,
-                                pt: 4,
-                                borderTop: '1px solid rgba(255,255,255,0.1)',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                gap: 6,
-                                flexWrap: 'wrap'
-                            }}>
-                                <Box sx={{ textAlign: 'center' }}>
-                                    <Typography variant="h4" sx={{
-                                        fontWeight: 900,
-                                        color: '#4caf50',
-                                        textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                                    <Box sx={{
+                                        mb: 5,
+                                        maxWidth: 700,
+                                        mx: 'auto'
                                     }}>
-                                        {exercise.primaryMuscleGroups.length}+
-                                    </Typography>
-                                    <Typography variant="caption" sx={{
-                                        color: 'rgba(255,255,255,0.7)',
-                                        fontWeight: 600,
-                                        textTransform: 'uppercase',
-                                        letterSpacing: 1
+                                        <Typography variant="h5" sx={{
+                                            mb: 2,
+                                            opacity: 0.95,
+                                            color: 'rgba(255,255,255,0.9)',
+                                            fontWeight: 600,
+                                            lineHeight: 1.6,
+                                            fontStyle: 'italic'
+                                        }}>
+                                            "Hành trình nghìn dặm bắt đầu từ bước chân đầu tiên"
+                                        </Typography>
+                                        <Typography variant="body1" sx={{
+                                            opacity: 0.85,
+                                            color: 'rgba(255,255,255,0.8)',
+                                            fontWeight: 500,
+                                            lineHeight: 1.7,
+                                            maxWidth: 600,
+                                            mx: 'auto'
+                                        }}>
+                                            Hãy bắt đầu với các bước cơ bản và từ từ nâng cao độ khó.
+                                            Nhớ luôn chú ý đến kỹ thuật để đạt hiệu quả tối ưu và tránh chấn thương! 💪
+                                        </Typography>
+                                    </Box>
+
+                                    {/* Action Buttons */}
+                                    <Box sx={{
+                                        display: 'flex',
+                                        gap: 4,
+                                        justifyContent: 'center',
+                                        flexWrap: 'wrap',
+                                        alignItems: 'center'
                                     }}>
-                                        Nhóm cơ
-                                    </Typography>
-                                </Box>
-                                <Box sx={{ textAlign: 'center' }}>
-                                    <Typography variant="h4" sx={{
-                                        fontWeight: 900,
-                                        color: '#ff9800',
-                                        textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                                        <Button
+                                            variant="contained"
+                                            size="large"
+                                            sx={{
+                                                background: 'linear-gradient(135deg, #00c851 0%, #00ff00 50%, #007e33 100%)',
+                                                color: 'white',
+                                                border: '2px solid rgba(255,255,255,0.4)',
+                                                px: 6,
+                                                py: 2.5,
+                                                borderRadius: 6,
+                                                fontWeight: 800,
+                                                fontSize: '1.2rem',
+                                                minWidth: 260,
+                                                textTransform: 'none',
+                                                boxShadow: '0 12px 30px rgba(0, 200, 81, 0.4)',
+                                                position: 'relative',
+                                                overflow: 'hidden',
+                                                '&::before': {
+                                                    content: '""',
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    left: '-100%',
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                                                    transition: 'left 0.6s ease'
+                                                },
+                                                '&:hover': {
+                                                    background: 'linear-gradient(135deg, #007e33 0%, #00c851 50%, #00ff00 100%)',
+                                                    transform: 'translateY(-6px) scale(1.05)',
+                                                    boxShadow: '0 20px 45px rgba(0, 200, 81, 0.6)',
+                                                    '&::before': {
+                                                        left: '100%'
+                                                    }
+                                                }
+                                            }}
+                                            startIcon={<PlayArrow sx={{ fontSize: '2rem' }} />}
+                                            onClick={() => {
+                                                console.log('Starting workout with:', exercise.name);
+                                                // TODO: Add workout start logic
+                                            }}
+                                        >
+                                            Bắt đầu luyện tập
+                                        </Button>
+
+                                        <Button
+                                            variant="outlined"
+                                            size="large"
+                                            sx={{
+                                                color: 'white',
+                                                borderColor: 'rgba(255,255,255,0.6)',
+                                                borderWidth: '2px',
+                                                px: 5,
+                                                py: 2.5,
+                                                borderRadius: 6,
+                                                fontWeight: 700,
+                                                fontSize: '1.1rem',
+                                                textTransform: 'none',
+                                                backdropFilter: 'blur(15px)',
+                                                background: 'rgba(255,255,255,0.05)',
+                                                minWidth: 200,
+                                                position: 'relative',
+                                                overflow: 'hidden',
+                                                '&::before': {
+                                                    content: '""',
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    left: 0,
+                                                    right: 0,
+                                                    bottom: 0,
+                                                    background: 'linear-gradient(135deg, rgba(255,255,255,0.1), transparent)',
+                                                    opacity: 0,
+                                                    transition: 'opacity 0.3s ease'
+                                                },
+                                                '&:hover': {
+                                                    borderColor: 'white',
+                                                    bgcolor: 'rgba(255,255,255,0.15)',
+                                                    transform: 'translateY(-3px)',
+                                                    boxShadow: '0 12px 25px rgba(255,255,255,0.2)',
+                                                    '&::before': {
+                                                        opacity: 1
+                                                    }
+                                                }
+                                            }}
+                                            startIcon={<BookmarkBorder sx={{ fontSize: '1.4rem' }} />}
+                                        >
+                                            Lưu bài tập
+                                        </Button>
+                                    </Box>
+
+                                    {/* Bottom Stats */}
+                                    <Box sx={{
+                                        mt: 5,
+                                        pt: 4,
+                                        borderTop: '1px solid rgba(255,255,255,0.1)',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        gap: 6,
+                                        flexWrap: 'wrap'
                                     }}>
-                                        {exercise.caloriesPerMinute}
-                                    </Typography>
-                                    <Typography variant="caption" sx={{
-                                        color: 'rgba(255,255,255,0.7)',
-                                        fontWeight: 600,
-                                        textTransform: 'uppercase',
-                                        letterSpacing: 1
-                                    }}>
-                                        Cal/phút
-                                    </Typography>
-                                </Box>
-                                <Box sx={{ textAlign: 'center' }}>
-                                    <Typography variant="h4" sx={{
-                                        fontWeight: 900,
-                                        color: '#2196f3',
-                                        textShadow: '0 2px 4px rgba(0,0,0,0.3)'
-                                    }}>
-                                        {exercise.instructions.length}
-                                    </Typography>
-                                    <Typography variant="caption" sx={{
-                                        color: 'rgba(255,255,255,0.7)',
-                                        fontWeight: 600,
-                                        textTransform: 'uppercase',
-                                        letterSpacing: 1
-                                    }}>
-                                        Bước
-                                    </Typography>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <Typography variant="h4" sx={{
+                                                fontWeight: 900,
+                                                color: '#4caf50',
+                                                textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                                            }}>
+                                                {exercise.primaryMuscleGroups.length}+
+                                            </Typography>
+                                            <Typography variant="caption" sx={{
+                                                color: 'rgba(255,255,255,0.7)',
+                                                fontWeight: 600,
+                                                textTransform: 'uppercase',
+                                                letterSpacing: 1
+                                            }}>
+                                                Nhóm cơ
+                                            </Typography>
+                                        </Box>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <Typography variant="h4" sx={{
+                                                fontWeight: 900,
+                                                color: '#ff9800',
+                                                textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                                            }}>
+                                                {exercise.caloriesPerMinute}
+                                            </Typography>
+                                            <Typography variant="caption" sx={{
+                                                color: 'rgba(255,255,255,0.7)',
+                                                fontWeight: 600,
+                                                textTransform: 'uppercase',
+                                                letterSpacing: 1
+                                            }}>
+                                                Cal/phút
+                                            </Typography>
+                                        </Box>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <Typography variant="h4" sx={{
+                                                fontWeight: 900,
+                                                color: '#2196f3',
+                                                textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                                            }}>
+                                                {exercise.instructions.length}
+                                            </Typography>
+                                            <Typography variant="caption" sx={{
+                                                color: 'rgba(255,255,255,0.7)', fontWeight: 600,
+                                                textTransform: 'uppercase',
+                                                letterSpacing: 1
+                                            }}>
+                                                Bước
+                                            </Typography>
+                                        </Box>
+                                    </Box>
                                 </Box>
                             </Box>
                         </Box>
-                    </Box>
-                </Box>
-            </Paper>
+                    </Paper>
+                </Box> {/* End Main Content Area */}
+            </Box> {/* End Timeline + Content Layout */}
         </Box>
     );
 };

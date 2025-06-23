@@ -81,16 +81,17 @@ const Navbar: React.FC = () => {
                             },
                         }),
                     }}
-                >                    <Box
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        px: { xs: 2, sm: 3, md: 4 },
-                        py: { xs: 1.5, sm: 2 },
-                        minHeight: '64px',
-                    }}
                 >
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            px: { xs: 2, sm: 3, md: 4 },
+                            py: { xs: 1.5, sm: 2 },
+                            minHeight: '64px',
+                        }}
+                    >
                         {/* Left Section: Logo + Brand + Mobile Menu */}
                         <Box
                             sx={{
