@@ -31,17 +31,21 @@ import {
     BookmarkBorder,
     Timer,
     LocalFireDepartment,
-    FitnessCenter,
-    NavigateNext,
-    TrendingUp, Group,
+    FitnessCenter, NavigateNext,
+    TrendingUp,
+    Group,
     Verified,
     Refresh,
     Whatshot,
     PlayCircleOutline as PlayCircleOutlineIcon,
     Gif as GifBoxIcon,
-    PlayArrow,
     CheckCircle,
     Build,
+    ListAlt,
+    Transform, Category,
+    Speed,
+    AutoAwesome,
+    Psychology,
 } from '@mui/icons-material';
 import { ExerciseService } from '../../services/exerciseService';
 // import { useExercise } from '../../hooks/useExercises'; // 🚀 Commented out for mock data testing
@@ -640,7 +644,9 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                         </Box>
                     </Box>
                 )}
-            </Paper>{/* Stats Cards */}
+            </Paper>
+
+            {/* Stats Cards */}
             <Box
                 sx={{
                     display: 'grid',
@@ -769,126 +775,625 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                     precautions={exercise.precautions}
                     contraindications={exercise.contraindications}
                 />
-            </Paper>
-
-            {/* Exercise Summary Section */}
+            </Paper>            {/* 🎯 Enhanced Exercise Summary Section - Completely Redesigned */}
             <Paper
                 elevation={0}
                 sx={{
-                    mb: 4,
-                    borderRadius: 3,
+                    mb: 6,
+                    borderRadius: 4,
                     overflow: 'hidden',
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: 'white'
+                    position: 'relative',
+                    '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.1) 100%)',
+                        pointerEvents: 'none'
+                    }
                 }}
             >
-                <Box sx={{ p: 4 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                        <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 48, height: 48, mr: 2 }}>
-                            <CheckCircle sx={{ fontSize: 28 }} />
-                        </Avatar>
-                        <Box>
-                            <Typography variant="h5" component="h2" fontWeight="bold">
-                                Tóm tắt bài tập
-                            </Typography>
-                            <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                                Những điểm quan trọng cần nhớ
-                            </Typography>
-                        </Box>
-                    </Box>                    <Grid container spacing={3}>
-                        {/* Quick Stats */}
-                        {/* @ts-ignore */}
-                        <Grid size={{ xs: 12, md: 4 }}>
-                            <Box sx={{ textAlign: 'center', p: 3, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
-                                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
-                                    {exercise.instructions.length}
-                                </Typography>
-                                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                                    Bước thực hiện
-                                </Typography>
-                            </Box>
-                        </Grid>
-                        {/* @ts-ignore */}
-                        <Grid size={{ xs: 12, md: 4 }}>
-                            <Box sx={{ textAlign: 'center', p: 3, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
-                                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
-                                    {exercise.primaryMuscleGroups.length}
-                                </Typography>
-                                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                                    Nhóm cơ chính
-                                </Typography>
-                            </Box>
-                        </Grid>
-                        {/* @ts-ignore */}
-                        <Grid size={{ xs: 12, md: 4 }}>
-                            <Box sx={{ textAlign: 'center', p: 3, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
-                                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
-                                    {exercise.variations?.length || 0}
-                                </Typography>
-                                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                                    Biến thể
-                                </Typography>
-                            </Box>
-                        </Grid>
-                    </Grid>
-
-                    {/* Key Points */}
-                    <Box sx={{ mt: 4 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                            🎯 Điểm quan trọng
-                        </Typography>
-                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <CheckCircle sx={{ fontSize: 20 }} />
-                                <Typography variant="body2">
-                                    Mức độ: <strong>{exercise.difficulty}</strong>
-                                </Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <CheckCircle sx={{ fontSize: 20 }} />
-                                <Typography variant="body2">
-                                    Loại: <strong>{exercise.category}</strong>
-                                </Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <CheckCircle sx={{ fontSize: 20 }} />
-                                <Typography variant="body2">
-                                    Calories: <strong>~{exercise.caloriesPerMinute}/phút</strong>
-                                </Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <CheckCircle sx={{ fontSize: 20 }} />
-                                <Typography variant="body2">
-                                    Cường độ: <strong>{exercise.averageIntensity}/10</strong>
-                                </Typography>
-                            </Box>
-                        </Box>
-                    </Box>
-
-                    {/* Call to Action */}
-                    <Box sx={{ mt: 4, textAlign: 'center' }}>
-                        <Typography variant="body1" sx={{ mb: 2, opacity: 0.95 }}>
-                            Sẵn sàng thử bài tập này? Hãy bắt đầu với các bước cơ bản!
-                        </Typography>
-                        <Button
-                            variant="contained"
-                            size="large"
-                            sx={{
+                <Box sx={{ p: 4, position: 'relative', zIndex: 1 }}>
+                    {/* Section Header with improved layout */}
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        mb: 4,
+                        position: 'relative',
+                    }}>
+                        <Box sx={{
+                            position: 'relative',
+                            mr: 3
+                        }}>
+                            <Avatar sx={{
                                 bgcolor: 'rgba(255,255,255,0.2)',
-                                color: 'white',
-                                border: '1px solid rgba(255,255,255,0.3)',
-                                px: 4,
-                                py: 1.5,
-                                '&:hover': {
-                                    bgcolor: 'rgba(255,255,255,0.3)',
-                                    transform: 'translateY(-2px)',
-                                }
-                            }}
-                            startIcon={<PlayArrow />}
-                        >
-                            Bắt đầu luyện tập
-                        </Button>
+                                width: 70,
+                                height: 70,
+                                boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                                border: '3px solid rgba(255,255,255,0.3)',
+                                backdropFilter: 'blur(10px)'
+                            }}>
+                                <AutoAwesome sx={{ fontSize: 36, color: 'white' }} />
+                            </Avatar>
+                            <Box sx={{
+                                position: 'absolute',
+                                top: -5,
+                                right: -5,
+                                width: 28,
+                                height: 28,
+                                borderRadius: '50%',
+                                bgcolor: '#4caf50',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: '3px solid white',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                            }}>
+                                <CheckCircle sx={{ fontSize: 16, color: 'white' }} />
+                            </Box>
+                        </Box>
+                        <Box sx={{ flex: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                                {/* <Box sx={{
+                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    borderRadius: '16px',
+                                    p: 1.5,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    boxShadow: '0 8px 32px rgba(102, 126, 234, 0.4)',
+                                    position: 'relative',
+                                    '&::before': {
+                                        content: '""',
+                                        position: 'absolute',
+                                        inset: 0,
+                                        borderRadius: '16px',
+                                        padding: '2px',
+                                        background: 'linear-gradient(135deg, rgba(255,255,255,0.6), rgba(255,255,255,0.1))',
+                                        WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                                        WebkitMaskComposite: 'xor',
+                                        maskComposite: 'exclude'
+                                    }
+                                }}>
+                                    <AutoAwesome sx={{ fontSize: 32, color: 'white' }} />
+                                </Box> */}
+                                <Typography variant="h3" component="h2" fontWeight="800" sx={{
+                                    background: 'linear-gradient(135deg, #fff 0%, #e3f2fd 100%)',
+                                    backgroundClip: 'text',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                    textShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                                    letterSpacing: '-0.5px'
+                                }}>
+                                    Tóm tắt bài tập
+                                </Typography>
+                            </Box>
+                            <Typography variant="h6" sx={{
+                                opacity: 0.95,
+                                fontWeight: 500,
+                                color: 'rgba(255,255,255,0.9)',
+                                fontStyle: 'italic',
+                                position: 'relative',
+
+                            }}>
+                                Khám phá chi tiết và những điểm quan trọng để thành công
+                            </Typography>
+                        </Box>
                     </Box>
+                    {/* Modern Stats Grid với glassmorphism design */}
+                    <Box
+                        sx={{
+                            display: 'grid',
+                            gridTemplateColumns: {
+                                xs: 'repeat(2, 1fr)',
+                                sm: 'repeat(4, 1fr)'
+                            },
+                            gap: 3,
+                            mb: 5
+                        }}
+                    >                        {/* Instructions Count Card */}
+                        <Card sx={{
+                            position: 'relative',
+                            background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.15) 0%, rgba(21, 101, 192, 0.05) 100%)',
+                            borderRadius: 4,
+                            border: '1px solid rgba(33, 150, 243, 0.3)',
+                            backdropFilter: 'blur(20px)',
+                            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                            cursor: 'pointer',
+                            overflow: 'hidden',
+                            '&:hover': {
+                                transform: 'translateY(-12px) scale(1.03)',
+                                background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.25) 0%, rgba(21, 101, 192, 0.15) 100%)',
+                                boxShadow: '0 25px 50px rgba(33, 150, 243, 0.3)',
+                                border: '1px solid rgba(33, 150, 243, 0.5)'
+                            }
+                        }}>
+                            <CardContent sx={{ textAlign: 'center', p: 3.5 }}>
+                                <Box sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: 2
+                                }}>
+                                    <Box sx={{
+                                        background: 'linear-gradient(135deg, #2196f3, #1976d2)',
+                                        borderRadius: '20px',
+                                        p: 2.5,
+                                        boxShadow: '0 12px 24px rgba(33, 150, 243, 0.4)',
+                                        border: '2px solid rgba(255,255,255,0.2)',
+                                        position: 'relative',
+                                        '&::before': {
+                                            content: '""',
+                                            position: 'absolute',
+                                            inset: 0,
+                                            borderRadius: '20px',
+                                            background: 'linear-gradient(135deg, rgba(255,255,255,0.2), transparent)',
+                                            zIndex: 1
+                                        }
+                                    }}>
+                                        <ListAlt sx={{ fontSize: 32, color: 'white', position: 'relative', zIndex: 2 }} />
+                                    </Box>
+                                    <Typography variant="h1" sx={{
+                                        fontWeight: '900',
+                                        color: 'white',
+                                        textShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                                        lineHeight: 1,
+                                        fontSize: '3rem'
+                                    }}>
+                                        {exercise.instructions.length}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{
+                                        opacity: 0.95,
+                                        fontWeight: 700,
+                                        color: 'white',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: 1,
+                                        fontSize: '0.75rem'
+                                    }}>
+                                        Bước thực hiện
+                                    </Typography>
+                                </Box>
+                            </CardContent>
+                        </Card>                        {/* Muscle Groups Card */}
+                        <Card sx={{
+                            position: 'relative',
+                            background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(139, 195, 74, 0.05) 100%)',
+                            borderRadius: 4,
+                            border: '1px solid rgba(76, 175, 80, 0.3)',
+                            backdropFilter: 'blur(20px)',
+                            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                            cursor: 'pointer',
+                            overflow: 'hidden',
+                            '&:hover': {
+                                transform: 'translateY(-12px) scale(1.03)',
+                                background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.25) 0%, rgba(139, 195, 74, 0.15) 100%)',
+                                boxShadow: '0 25px 50px rgba(76, 175, 80, 0.3)',
+                                border: '1px solid rgba(76, 175, 80, 0.5)'
+                            }
+                        }}>
+                            <CardContent sx={{ textAlign: 'center', p: 3.5 }}>
+                                <Box sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: 2
+                                }}>
+                                    <Box sx={{
+                                        background: 'linear-gradient(135deg, #4caf50, #388e3c)',
+                                        borderRadius: '20px',
+                                        p: 2.5,
+                                        boxShadow: '0 12px 24px rgba(76, 175, 80, 0.4)',
+                                        border: '2px solid rgba(255,255,255,0.2)',
+                                        position: 'relative',
+                                        '&::before': {
+                                            content: '""',
+                                            position: 'absolute',
+                                            inset: 0,
+                                            borderRadius: '20px',
+                                            background: 'linear-gradient(135deg, rgba(255,255,255,0.2), transparent)',
+                                            zIndex: 1
+                                        }
+                                    }}>
+                                        <Group sx={{ fontSize: 32, color: 'white', position: 'relative', zIndex: 2 }} />
+                                    </Box>
+                                    <Typography variant="h1" sx={{
+                                        fontWeight: '900',
+                                        color: 'white',
+                                        textShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                                        lineHeight: 1,
+                                        fontSize: '3rem'
+                                    }}>
+                                        {exercise.primaryMuscleGroups.length}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{
+                                        opacity: 0.95,
+                                        fontWeight: 700,
+                                        color: 'white',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: 1,
+                                        fontSize: '0.75rem'
+                                    }}>
+                                        Nhóm cơ chính
+                                    </Typography>
+                                </Box>
+                            </CardContent>
+                        </Card>                        {/* Variations Card */}
+                        <Card sx={{
+                            position: 'relative',
+                            background: 'linear-gradient(135deg, rgba(156, 39, 176, 0.15) 0%, rgba(233, 30, 99, 0.05) 100%)',
+                            borderRadius: 4,
+                            border: '1px solid rgba(156, 39, 176, 0.3)',
+                            backdropFilter: 'blur(20px)',
+                            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                            cursor: 'pointer',
+                            overflow: 'hidden',
+                            '&:hover': {
+                                transform: 'translateY(-12px) scale(1.03)',
+                                background: 'linear-gradient(135deg, rgba(156, 39, 176, 0.25) 0%, rgba(233, 30, 99, 0.15) 100%)',
+                                boxShadow: '0 25px 50px rgba(156, 39, 176, 0.3)',
+                                border: '1px solid rgba(156, 39, 176, 0.5)'
+                            }
+                        }}>
+                            <CardContent sx={{ textAlign: 'center', p: 3.5 }}>
+                                <Box sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: 2
+                                }}>
+                                    <Box sx={{
+                                        background: 'linear-gradient(135deg, #9c27b0, #7b1fa2)',
+                                        borderRadius: '20px',
+                                        p: 2.5,
+                                        boxShadow: '0 12px 24px rgba(156, 39, 176, 0.4)',
+                                        border: '2px solid rgba(255,255,255,0.2)',
+                                        position: 'relative',
+                                        '&::before': {
+                                            content: '""',
+                                            position: 'absolute',
+                                            inset: 0,
+                                            borderRadius: '20px',
+                                            background: 'linear-gradient(135deg, rgba(255,255,255,0.2), transparent)',
+                                            zIndex: 1
+                                        }
+                                    }}>
+                                        <Transform sx={{ fontSize: 32, color: 'white', position: 'relative', zIndex: 2 }} />
+                                    </Box>
+                                    <Typography variant="h1" sx={{
+                                        fontWeight: '900',
+                                        color: 'white',
+                                        textShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                                        lineHeight: 1,
+                                        fontSize: '3rem'
+                                    }}>
+                                        {exercise.variations?.length || 0}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{
+                                        opacity: 0.95,
+                                        fontWeight: 700,
+                                        color: 'white',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: 1,
+                                        fontSize: '0.75rem'
+                                    }}>
+                                        Biến thể
+                                    </Typography>
+                                </Box>
+                            </CardContent>
+                        </Card>                        {/* Calories Card */}
+                        <Card sx={{
+                            position: 'relative',
+                            background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(255, 87, 34, 0.05) 100%)',
+                            borderRadius: 4,
+                            border: '1px solid rgba(255, 152, 0, 0.3)',
+                            backdropFilter: 'blur(20px)',
+                            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                            cursor: 'pointer',
+                            overflow: 'hidden',
+                            '&:hover': {
+                                transform: 'translateY(-12px) scale(1.03)',
+                                background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.25) 0%, rgba(255, 87, 34, 0.15) 100%)',
+                                boxShadow: '0 25px 50px rgba(255, 152, 0, 0.3)',
+                                border: '1px solid rgba(255, 152, 0, 0.5)'
+                            }
+                        }}>
+                            <CardContent sx={{ textAlign: 'center', p: 3.5 }}>
+                                <Box sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: 2
+                                }}>
+                                    <Box sx={{
+                                        background: 'linear-gradient(135deg, #ff9800, #f57c00)',
+                                        borderRadius: '20px',
+                                        p: 2.5,
+                                        boxShadow: '0 12px 24px rgba(255, 152, 0, 0.4)',
+                                        border: '2px solid rgba(255,255,255,0.2)',
+                                        position: 'relative',
+                                        '&::before': {
+                                            content: '""',
+                                            position: 'absolute',
+                                            inset: 0,
+                                            borderRadius: '20px',
+                                            background: 'linear-gradient(135deg, rgba(255,255,255,0.2), transparent)',
+                                            zIndex: 1
+                                        }
+                                    }}>
+                                        <LocalFireDepartment sx={{ fontSize: 32, color: 'white', position: 'relative', zIndex: 2 }} />
+                                    </Box>
+                                    <Typography variant="h1" sx={{
+                                        fontWeight: '900',
+                                        color: 'white',
+                                        textShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                                        lineHeight: 1,
+                                        fontSize: '3rem'
+                                    }}>
+                                        {exercise.caloriesPerMinute}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{
+                                        opacity: 0.95,
+                                        fontWeight: 700,
+                                        color: 'white',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: 1,
+                                        fontSize: '0.75rem'
+                                    }}>
+                                        Cal/phút
+                                    </Typography>
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    </Box>                    {/* Enhanced Key Details Grid với premium design */}
+                    <Box sx={{ mb: 5 }}>
+                        <Box sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 3,
+                            mb: 4
+                        }}>
+                            <Box sx={{
+                                background: 'linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)',
+                                borderRadius: '20px',
+                                p: 2,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 12px 24px rgba(255, 107, 107, 0.4)',
+                                border: '2px solid rgba(255,255,255,0.2)',
+                                position: 'relative',
+                                '&::before': {
+                                    content: '""',
+                                    position: 'absolute',
+                                    inset: 0,
+                                    borderRadius: '20px',
+                                    background: 'linear-gradient(135deg, rgba(255,255,255,0.2), transparent)',
+                                    zIndex: 1
+                                }
+                            }}>
+                                <Psychology sx={{ fontSize: 28, color: 'white', position: 'relative', zIndex: 2 }} />
+                            </Box>
+                            <Typography variant="h4" sx={{
+                                fontWeight: 800,
+                                color: 'white',
+                                background: 'linear-gradient(135deg, #fff 0%, #e3f2fd 100%)',
+                                backgroundClip: 'text',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                textShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                                letterSpacing: '-0.5px'
+                            }}>
+                                Thông số chi tiết
+                            </Typography>
+                        </Box>
+
+                        <Box sx={{
+                            display: 'grid',
+                            gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+                            gap: 3
+                        }}>                            {/* Difficulty Level */}
+                            <Card sx={{
+                                position: 'relative',
+                                background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.12) 0%, rgba(255, 152, 0, 0.08) 100%)',
+                                borderRadius: 4,
+                                border: '1px solid rgba(244, 67, 54, 0.25)',
+                                backdropFilter: 'blur(15px)',
+                                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                overflow: 'hidden',
+                                '&:hover': {
+                                    background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.18) 0%, rgba(255, 152, 0, 0.12) 100%)',
+                                    transform: 'translateY(-4px)',
+                                    boxShadow: '0 16px 32px rgba(244, 67, 54, 0.2)',
+                                    border: '1px solid rgba(244, 67, 54, 0.4)'
+                                }
+                            }}>
+                                <CardContent sx={{ p: 3 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+                                        <Avatar sx={{
+                                            background: 'linear-gradient(135deg, #f44336, #d32f2f)',
+                                            width: 50,
+                                            height: 50,
+                                            boxShadow: '0 8px 16px rgba(244, 67, 54, 0.3)',
+                                            border: '2px solid rgba(255,255,255,0.2)'
+                                        }}>
+                                            <TrendingUp sx={{ fontSize: 24, color: 'white' }} />
+                                        </Avatar>
+                                        <Box sx={{ flex: 1 }}>
+                                            <Typography variant="body2" sx={{
+                                                opacity: 0.9,
+                                                color: 'white',
+                                                fontWeight: 600,
+                                                textTransform: 'uppercase',
+                                                letterSpacing: 0.5,
+                                                fontSize: '0.75rem',
+                                                mb: 0.5
+                                            }}>
+                                                Mức độ khó
+                                            </Typography>
+                                            <Typography variant="h6" sx={{
+                                                fontWeight: 800,
+                                                color: 'white',
+                                                fontSize: '1.1rem'
+                                            }}>
+                                                {exercise.difficulty === 'beginner' ? '🟢 Người mới' :
+                                                    exercise.difficulty === 'intermediate' ? '🟡 Trung cấp' : '🔴 Nâng cao'}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                </CardContent>
+                            </Card>                            {/* Category */}
+                            <Card sx={{
+                                position: 'relative',
+                                background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.12) 0%, rgba(63, 81, 181, 0.08) 100%)',
+                                borderRadius: 4,
+                                border: '1px solid rgba(33, 150, 243, 0.25)',
+                                backdropFilter: 'blur(15px)',
+                                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                overflow: 'hidden',
+                                '&:hover': {
+                                    background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.18) 0%, rgba(63, 81, 181, 0.12) 100%)',
+                                    transform: 'translateY(-4px)',
+                                    boxShadow: '0 16px 32px rgba(33, 150, 243, 0.2)',
+                                    border: '1px solid rgba(33, 150, 243, 0.4)'
+                                }
+                            }}>
+                                <CardContent sx={{ p: 3 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+                                        <Avatar sx={{
+                                            background: 'linear-gradient(135deg, #2196f3, #1976d2)',
+                                            width: 50,
+                                            height: 50,
+                                            boxShadow: '0 8px 16px rgba(33, 150, 243, 0.3)',
+                                            border: '2px solid rgba(255,255,255,0.2)'
+                                        }}>
+                                            <Category sx={{ fontSize: 24, color: 'white' }} />
+                                        </Avatar>
+                                        <Box sx={{ flex: 1 }}>
+                                            <Typography variant="body2" sx={{
+                                                opacity: 0.9,
+                                                color: 'white',
+                                                fontWeight: 600,
+                                                textTransform: 'uppercase',
+                                                letterSpacing: 0.5,
+                                                fontSize: '0.75rem',
+                                                mb: 0.5
+                                            }}>
+                                                Loại bài tập
+                                            </Typography>
+                                            <Typography variant="h6" sx={{
+                                                fontWeight: 800,
+                                                color: 'white',
+                                                fontSize: '1.1rem'
+                                            }}>
+                                                💪 {exercise.category === 'strength' ? 'Sức mạnh' :
+                                                    exercise.category === 'cardio' ? 'Tim mạch' : 'Linh hoạt'}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                </CardContent>
+                            </Card>                            {/* Intensity */}
+                            <Card sx={{
+                                position: 'relative',
+                                background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.12) 0%, rgba(139, 195, 74, 0.08) 100%)',
+                                borderRadius: 4,
+                                border: '1px solid rgba(76, 175, 80, 0.25)',
+                                backdropFilter: 'blur(15px)',
+                                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                overflow: 'hidden',
+                                '&:hover': {
+                                    background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.18) 0%, rgba(139, 195, 74, 0.12) 100%)',
+                                    transform: 'translateY(-4px)',
+                                    boxShadow: '0 16px 32px rgba(76, 175, 80, 0.2)',
+                                    border: '1px solid rgba(76, 175, 80, 0.4)'
+                                }
+                            }}>
+                                <CardContent sx={{ p: 3 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+                                        <Avatar sx={{
+                                            background: 'linear-gradient(135deg, #4caf50, #388e3c)',
+                                            width: 50,
+                                            height: 50,
+                                            boxShadow: '0 8px 16px rgba(76, 175, 80, 0.3)',
+                                            border: '2px solid rgba(255,255,255,0.2)'
+                                        }}>
+                                            <Speed sx={{ fontSize: 24, color: 'white' }} />
+                                        </Avatar>
+                                        <Box sx={{ flex: 1 }}>
+                                            <Typography variant="body2" sx={{
+                                                opacity: 0.9,
+                                                color: 'white',
+                                                fontWeight: 600,
+                                                textTransform: 'uppercase',
+                                                letterSpacing: 0.5,
+                                                fontSize: '0.75rem',
+                                                mb: 0.5
+                                            }}>
+                                                Cường độ
+                                            </Typography>
+                                            <Typography variant="h6" sx={{
+                                                fontWeight: 800,
+                                                color: 'white',
+                                                fontSize: '1.1rem'
+                                            }}>
+                                                ⚡ {exercise.averageIntensity}/10
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                </CardContent>
+                            </Card>                            {/* Equipment */}
+                            <Card sx={{
+                                position: 'relative',
+                                background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.12) 0%, rgba(255, 87, 34, 0.08) 100%)',
+                                borderRadius: 4,
+                                border: '1px solid rgba(255, 152, 0, 0.25)',
+                                backdropFilter: 'blur(15px)',
+                                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                overflow: 'hidden',
+                                '&:hover': {
+                                    background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.18) 0%, rgba(255, 87, 34, 0.12) 100%)',
+                                    transform: 'translateY(-4px)',
+                                    boxShadow: '0 16px 32px rgba(255, 152, 0, 0.2)',
+                                    border: '1px solid rgba(255, 152, 0, 0.4)'
+                                }
+                            }}>
+                                <CardContent sx={{ p: 3 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+                                        <Avatar sx={{
+                                            background: 'linear-gradient(135deg, #ff9800, #f57c00)',
+                                            width: 50,
+                                            height: 50,
+                                            boxShadow: '0 8px 16px rgba(255, 152, 0, 0.3)',
+                                            border: '2px solid rgba(255,255,255,0.2)'
+                                        }}>
+                                            <FitnessCenter sx={{ fontSize: 24, color: 'white' }} />
+                                        </Avatar>
+                                        <Box sx={{ flex: 1 }}>
+                                            <Typography variant="body2" sx={{
+                                                opacity: 0.9,
+                                                color: 'white',
+                                                fontWeight: 600,
+                                                textTransform: 'uppercase',
+                                                letterSpacing: 0.5,
+                                                fontSize: '0.75rem',
+                                                mb: 0.5
+                                            }}>
+                                                Thiết bị cần
+                                            </Typography>
+                                            <Typography variant="h6" sx={{
+                                                fontWeight: 800,
+                                                color: 'white',
+                                                fontSize: '1.1rem'
+                                            }}>
+                                                🏋️ {exercise.equipment.length} loại
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                </CardContent>
+                            </Card>
+                        </Box>                    </Box>
                 </Box>
             </Paper>
         </Box>
@@ -1334,7 +1839,7 @@ const VideoGifSection: React.FC<VideoGifSectionProps> = ({ exercise }) => {
             {/* Header */}
             <Box sx={{
                 p: 3,
-                background: 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)',
+                background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
                 color: 'white',
                 display: 'flex',
                 alignItems: 'center',
