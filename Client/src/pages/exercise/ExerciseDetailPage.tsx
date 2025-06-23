@@ -65,13 +65,15 @@ import {
     Assignment,
 } from '@mui/icons-material';
 import { ExerciseService } from '../../services/exerciseService';
-// import { useExerciseByIdOrSlug } from '../../hooks/useExercises'; // 🚀 For future API implementation
-// import { useExercise } from '../../hooks/useExercises'; // 🚀 Commented out for mock data testing
+import { useExerciseByIdOrSlug } from '../../hooks/useExercises'; // ✅ Now using real API
+// import { useExercise } from '../../hooks/useExercises'; // 🚀 Legacy hook - kept for reference
 
 /**
- * 🚀 MOCK DATA - For UI testing before API implementation
+ * 🚀 MOCK DATA - Kept for reference and fallback testing
+ * Comment out to avoid unused variable warning when using real API
  */
-const mockExerciseData = {
+/*
+// const mockExerciseData = {
     id: 'mock-flying-bell-456',
     slug: 'flying-lateral-raises-bay-vai',
     name: 'Flying Lateral Raises (Bay vai)',
@@ -144,10 +146,10 @@ const mockExerciseData = {
                 'Cúi người về phía trước 45 độ, giữ lưng thẳng',
                 'Nâng tạ lên sau lưng theo chuyển động cung tròn',
                 'Tập trung vào cơ vai sau'
-            ]
-        }
+            ]        }
     ]
 };
+*/
 
 /**
  * ExerciseDetailPage - Trang chi tiết bài tập với React Query và design system
@@ -186,17 +188,14 @@ const ExerciseDetailPage: React.FC = () => {
 const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> = ({
     exerciseSlug,
     navigate
-}) => {    // 🚀 MOCK DATA - Comment out React Query and use mock data for UI testing
-    // const { data: exercise, isLoading, error } = useExerciseByIdOrSlug(exerciseSlug);    // ✅ Using Mock Data for UI Preview
-    const exercise = mockExerciseData;
-    const isLoading = false;
-    const error = null;
+}) => {
+    // ✅ REAL API - Using React Query hook to fetch exercise data
+    const { data: exercise, isLoading, error } = useExerciseByIdOrSlug(exerciseSlug);
 
-    // TODO: Uncomment this when API is ready
-    // const { data: exercise, isLoading, error } = useExerciseByIdOrSlug(exerciseSlug);
-
-    // 📝 Note: exerciseSlug will be used when API is implemented
-    console.log('Exercise slug for future API:', exerciseSlug);
+    // 🚀 MOCK DATA - Fallback to mock data when API is not available
+    // const exercise = mockExerciseData;
+    // const isLoading = false;
+    // const error = null;
 
     // 🗺️ Section Navigation State & Refs
     const [activeSection, setActiveSection] = useState<string>('overview');
@@ -229,7 +228,9 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
             });
             setActiveSection(sectionId);
         }
-    };    // 👁️ Intersection Observer để update active section
+    };
+
+    // 👁️ Intersection Observer để update active section
     useEffect(() => {
         const observerOptions = {
             root: null,
@@ -295,7 +296,7 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
     const [isPending, startTransition] = useTransition();
 
     // ✅ Update optimistic state when exercise data changes
-    React.useEffect(() => {
+    useEffect(() => {
         if (exercise?.likeCount !== undefined) {
             // Reset optimistic state to match actual data
             addOptimisticLike({ isLiked: false, count: exercise.likeCount });
@@ -305,7 +306,9 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
     // ✅ React Query: Loading state
     if (isLoading) {
         return <ExerciseDetailSkeleton />;
-    }    // ✅ React Query: Error state - User-friendly "Not Found" UI
+    }
+
+    // ✅ React Query: Error state - User-friendly "Not Found" UI
     if (error || !exercise) {
         return (
             <Box
@@ -426,7 +429,7 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
 
         startTransition(async () => {
             try {
-                await ExerciseService.toggleLike(exercise.id);
+                await ExerciseService.toggleLike(exercise._id);
             } catch (error) {
                 console.error('Failed to like exercise:', error);
                 // React tự động revert optimistic update nếu có lỗi
@@ -440,7 +443,7 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
 
         startTransition(async () => {
             try {
-                await ExerciseService.toggleBookmark(exercise.id);
+                await ExerciseService.toggleBookmark(exercise._id);
             } catch (error) {
                 console.error('Failed to bookmark exercise:', error);
             }
