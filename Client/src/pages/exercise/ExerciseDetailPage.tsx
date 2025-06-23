@@ -173,7 +173,7 @@ const ExerciseDetailPage: React.FC = () => {
                 pt: { xs: 10, md: 12 },
             }}
         >
-            <Container maxWidth="lg">
+            <Container maxWidth="xl">
                 <ExerciseDetailContent exerciseId={id} navigate={navigate} />
             </Container>
         </Box>
@@ -710,14 +710,15 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                 {/* 📄 Main Content Area */}
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                     {/* Back Button */}
-                    <Button
+                    {/* <Button
                         startIcon={<ArrowBack />}
                         onClick={() => navigate(-1)}
                         sx={{ mb: 3 }}
                         variant="outlined"
                     >
                         Quay lại
-                    </Button>            {/* Hero Section with Image Background */}
+                    </Button> */}
+                    {/* Hero Section with Image Background */}
                     <Paper
                         ref={overviewRef}
                         data-section="overview"
@@ -2622,7 +2623,7 @@ const EnhancedSafetyTab: React.FC<{
         )}
 
         {/* Bottom Summary Card */}
-        <Box sx={{ mt: 4 }}>
+        {/* <Box sx={{ mt: 4 }}>
             <Card
                 elevation={0}
                 sx={{
@@ -2648,7 +2649,8 @@ const EnhancedSafetyTab: React.FC<{
                     </Typography>
                 </CardContent>
             </Card>
-        </Box>    </Box>
+        </Box> */}
+    </Box>
 );
 
 /**
