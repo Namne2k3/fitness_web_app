@@ -49,6 +49,9 @@ import {
     AutoAwesome,
     EmojiEvents,
     Psychology,
+    Warning,
+    Block,
+    Info,
 } from '@mui/icons-material';
 import { ExerciseService } from '../../services/exerciseService';
 // import { useExercise } from '../../hooks/useExercises'; // 🚀 Commented out for mock data testing
@@ -760,23 +763,87 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                         </Box>
                     </Paper>
                 </Grid>
-            </Grid>
-
-            {/* Safety Section */}
-            <Paper elevation={0} sx={{ mb: 4, p: 4, borderRadius: 3, border: '1px solid rgba(244, 67, 54, 0.2)', background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <Avatar sx={{ bgcolor: '#f44336', width: 40, height: 40, mr: 2 }}>
-                        <Verified />
+            </Grid>            {/* Enhanced Safety Section */}
+            <Paper
+                elevation={0}
+                sx={{
+                    mb: 4,
+                    borderRadius: 4,
+                    overflow: 'hidden',
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%)',
+                    backdropFilter: 'blur(15px)',
+                    border: '1px solid rgba(244, 67, 54, 0.2)',
+                    boxShadow: '0 8px 32px rgba(244, 67, 54, 0.1)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 12px 40px rgba(244, 67, 54, 0.15)',
+                        border: '1px solid rgba(244, 67, 54, 0.3)'
+                    }
+                }}
+            >
+                {/* Enhanced Header with Gradient Background */}
+                <Box sx={{
+                    p: 3,
+                    background: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    position: 'relative',
+                    '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.05) 100%)',
+                        pointerEvents: 'none'
+                    }
+                }}>
+                    <Avatar sx={{
+                        bgcolor: 'rgba(255,255,255,0.2)',
+                        width: 48,
+                        height: 48,
+                        border: '2px solid rgba(255,255,255,0.3)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                    }}>
+                        <Verified sx={{ fontSize: 28 }} />
                     </Avatar>
-                    <Typography variant="h5" component="h2" fontWeight="bold" color="#d32f2f">
-                        Hướng dẫn an toàn
-                    </Typography>
+                    <Box sx={{ flex: 1 }}>
+                        <Typography variant="h5" component="h2" fontWeight="bold" sx={{ mb: 0.5 }}>
+                            Hướng dẫn an toàn
+                        </Typography>
+                        <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                            Thông tin quan trọng để tránh chấn thương và tập luyện hiệu quả
+                        </Typography>
+                    </Box>
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        background: 'rgba(255,255,255,0.15)',
+                        px: 2,
+                        py: 1,
+                        borderRadius: 2,
+                        border: '1px solid rgba(255,255,255,0.2)'
+                    }}>
+                        <Warning sx={{ fontSize: 20 }} />
+                        <Typography variant="caption" fontWeight="600">
+                            BẮT BUỘC ĐỌC
+                        </Typography>
+                    </Box>
                 </Box>
-                <SafetyTab
-                    precautions={exercise.precautions}
-                    contraindications={exercise.contraindications}
-                />
-            </Paper>            {/* 🎯 Enhanced Exercise Summary Section - Completely Redesigned */}
+
+                {/* Enhanced Content Area */}
+                <Box sx={{ p: 4 }}>
+                    <EnhancedSafetyTab
+                        precautions={exercise.precautions}
+                        contraindications={exercise.contraindications}
+                    />
+                </Box>
+            </Paper>{/* 🎯 Enhanced Exercise Summary Section - Completely Redesigned */}
             <Paper
                 elevation={0}
                 sx={{
@@ -2008,46 +2075,244 @@ const InstructionsTab: React.FC<{ instructions: string[] }> = ({ instructions })
  * Muscle Groups Tab Component
  */
 /**
- * Safety Tab Component
+ * Enhanced Safety Tab Component - Modern Design with Glassmorphism
  */
-const SafetyTab: React.FC<{
+const EnhancedSafetyTab: React.FC<{
     precautions: string[];
     contraindications: string[];
 }> = ({ precautions, contraindications }) => (
     <Box>
+        {/* Precautions Section */}
         {precautions && precautions.length > 0 && (
-            <Alert severity="warning" sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                    Lưu ý an toàn
-                </Typography>
-                <Box component="ul" sx={{ mb: 0 }}>
-                    {precautions.map((precaution, index) => (
-                        <li key={index}>
-                            <Typography variant="body2">{precaution}</Typography>
-                        </li>
-                    ))}
-                </Box>
-            </Alert>
+            <Box sx={{ mb: 4 }}>
+                <Card
+                    elevation={0}
+                    sx={{
+                        background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.1) 0%, rgba(255, 193, 7, 0.05) 100%)',
+                        border: '1px solid rgba(255, 152, 0, 0.2)',
+                        borderRadius: 3,
+                        overflow: 'hidden',
+                        backdropFilter: 'blur(10px)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                            transform: 'translateY(-1px)',
+                            boxShadow: '0 8px 24px rgba(255, 152, 0, 0.15)',
+                            border: '1px solid rgba(255, 152, 0, 0.3)'
+                        }
+                    }}
+                >
+                    {/* Header */}
+                    <Box sx={{
+                        p: 2.5,
+                        background: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2
+                    }}>
+                        <Avatar sx={{
+                            bgcolor: 'rgba(255,255,255,0.2)',
+                            width: 36,
+                            height: 36
+                        }}>
+                            <Warning sx={{ fontSize: 20 }} />
+                        </Avatar>
+                        <Box>
+                            <Typography variant="h6" fontWeight="bold" sx={{ mb: 0.5 }}>
+                                ⚠️ Lưu ý quan trọng
+                            </Typography>
+                            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                                Các điều cần chú ý khi thực hiện bài tập
+                            </Typography>
+                        </Box>
+                    </Box>
+
+                    {/* Content */}
+                    <CardContent sx={{ p: 3 }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {precautions.map((precaution, index) => (
+                                <Box
+                                    key={index}
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        gap: 2,
+                                        p: 2.5,
+                                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%)',
+                                        borderRadius: 2,
+                                        border: '1px solid rgba(255, 152, 0, 0.1)',
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': {
+                                            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 100%)',
+                                            transform: 'translateX(4px)',
+                                            borderColor: 'rgba(255, 152, 0, 0.2)'
+                                        }
+                                    }}
+                                >
+                                    <Box sx={{
+                                        minWidth: 28,
+                                        height: 28,
+                                        borderRadius: '50%',
+                                        background: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)',
+                                        color: 'white',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontWeight: 'bold',
+                                        fontSize: '13px',
+                                        boxShadow: '0 2px 8px rgba(255, 152, 0, 0.3)',
+                                        mt: 0.2
+                                    }}>
+                                        {index + 1}
+                                    </Box>
+                                    <Typography
+                                        variant="body1"
+                                        sx={{
+                                            lineHeight: 1.6,
+                                            color: 'text.primary',
+                                            fontWeight: 500
+                                        }}
+                                    >
+                                        {precaution}
+                                    </Typography>
+                                </Box>
+                            ))}
+                        </Box>
+                    </CardContent>
+                </Card>
+            </Box>
         )}
 
+        {/* Contraindications Section */}
         {contraindications && contraindications.length > 0 && (
-            <Alert severity="error">
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                    Chống chỉ định
-                </Typography>
-                <Box component="ul" sx={{ mb: 0 }}>
-                    {contraindications.map((contraindication, index) => (
-                        <li key={index}>
-                            <Typography variant="body2">{contraindication}</Typography>
-                        </li>
-                    ))}
-                </Box>
-            </Alert>
+            <Box>
+                <Card
+                    elevation={0}
+                    sx={{
+                        background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.1) 0%, rgba(211, 47, 47, 0.05) 100%)',
+                        border: '1px solid rgba(244, 67, 54, 0.2)',
+                        borderRadius: 3,
+                        overflow: 'hidden',
+                        backdropFilter: 'blur(10px)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                            transform: 'translateY(-1px)',
+                            boxShadow: '0 8px 24px rgba(244, 67, 54, 0.15)',
+                            border: '1px solid rgba(244, 67, 54, 0.3)'
+                        }
+                    }}
+                >
+                    {/* Header */}
+                    <Box sx={{
+                        p: 2.5,
+                        background: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2
+                    }}>
+                        <Avatar sx={{
+                            bgcolor: 'rgba(255,255,255,0.2)',
+                            width: 36,
+                            height: 36
+                        }}>
+                            <Block sx={{ fontSize: 20 }} />
+                        </Avatar>
+                        <Box>
+                            <Typography variant="h6" fontWeight="bold" sx={{ mb: 0.5 }}>
+                                🚫 Chống chỉ định
+                            </Typography>
+                            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                                Các trường hợp KHÔNG nên thực hiện bài tập này
+                            </Typography>
+                        </Box>
+                    </Box>
+
+                    {/* Content */}
+                    <CardContent sx={{ p: 3 }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {contraindications.map((contraindication, index) => (
+                                <Box
+                                    key={index}
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        gap: 2,
+                                        p: 2.5,
+                                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%)',
+                                        borderRadius: 2,
+                                        border: '1px solid rgba(244, 67, 54, 0.1)',
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': {
+                                            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 100%)',
+                                            transform: 'translateX(4px)',
+                                            borderColor: 'rgba(244, 67, 54, 0.2)'
+                                        }
+                                    }}
+                                >
+                                    <Box sx={{
+                                        minWidth: 28,
+                                        height: 28,
+                                        borderRadius: '50%',
+                                        background: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)',
+                                        color: 'white',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontWeight: 'bold',
+                                        fontSize: '13px',
+                                        boxShadow: '0 2px 8px rgba(244, 67, 54, 0.3)',
+                                        mt: 0.2
+                                    }}>
+                                        <Block sx={{ fontSize: 16 }} />
+                                    </Box>
+                                    <Typography
+                                        variant="body1"
+                                        sx={{
+                                            lineHeight: 1.6,
+                                            color: 'text.primary',
+                                            fontWeight: 500
+                                        }}
+                                    >
+                                        {contraindication}
+                                    </Typography>
+                                </Box>
+                            ))}
+                        </Box>
+                    </CardContent>
+                </Card>
+            </Box>
         )}
-    </Box>
+
+        {/* Bottom Summary Card */}
+        <Box sx={{ mt: 4 }}>
+            <Card
+                elevation={0}
+                sx={{
+                    background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(21, 101, 192, 0.05) 100%)',
+                    border: '1px solid rgba(33, 150, 243, 0.2)',
+                    borderRadius: 3,
+                    backdropFilter: 'blur(10px)'
+                }}
+            >
+                <CardContent sx={{ p: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                        <Avatar sx={{ bgcolor: '#2196f3', width: 32, height: 32 }}>
+                            <Info sx={{ fontSize: 18 }} />
+                        </Avatar>
+                        <Typography variant="h6" fontWeight="600" color="primary.main">
+                            Lời khuyên từ chuyên gia
+                        </Typography>
+                    </Box>
+                    <Typography variant="body1" sx={{ lineHeight: 1.6, color: 'text.secondary' }}>
+                        💡 <strong>Luôn khởi động kỹ trước khi tập</strong> và nghe cơ thể của bạn.
+                        Nếu cảm thấy đau hoặc khó chịu, hãy dừng lại ngay lập tức.
+                        Tham khảo ý kiến bác sĩ hoặc chuyên gia thể hình khi có nghi ngờ.
+                    </Typography>
+                </CardContent>
+            </Card>
+        </Box>    </Box>
 );
-
-
 
 /**
  * VideoGifSection Component - Toggle between video and GIF display
