@@ -165,4 +165,50 @@ router.use(exerciseRateLimit);
  */
 router.post('/list', ExerciseController.getExercises);
 
+/**
+ * @swagger
+ * /exercises/{id}:
+ *   get:
+ *     summary: Get exercise by ID
+ *     tags: [Exercises]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Exercise ObjectId
+ *     responses:
+ *       200:
+ *         description: Exercise retrieved successfully
+ *       404:
+ *         description: Exercise not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/:id', ExerciseController.getExerciseById);
+
+/**
+ * @swagger
+ * /exercises/slug/{slug}:
+ *   get:
+ *     summary: Get exercise by slug
+ *     tags: [Exercises]
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Exercise slug (URL-friendly identifier)
+ *     responses:
+ *       200:
+ *         description: Exercise retrieved successfully
+ *       404:
+ *         description: Exercise not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/slug/:slug', ExerciseController.getExerciseBySlug);
+
 export default router;

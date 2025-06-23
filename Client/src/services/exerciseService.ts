@@ -66,10 +66,35 @@ export class ExerciseService {
     }
 
     /**
-     * Get exercise by ID - alias cho React 19 use() hook
+     * Get exercise by slug (preferred method)
+     */
+    static async getExerciseBySlug(slug: string): Promise<Exercise> {
+        const response = await api.get<Exercise>(`/exercises/slug/${slug}`);
+        if (!response.data) {
+            throw new Error('Exercise not found');
+        }
+        return response.data;
+    }
+
+    /**
+     * Get exercise by ID or slug - automatic detection
+     */
+    static async getExerciseByIdOrSlug(identifier: string): Promise<Exercise> {
+        // Check if identifier looks like MongoDB ObjectId (24 hex chars)
+        const isMongoId = /^[0-9a-fA-F]{24}$/.test(identifier);
+
+        if (isMongoId) {
+            return this.getExercise(identifier);
+        } else {
+            return this.getExerciseBySlug(identifier);
+        }
+    }
+
+    /**
+     * Get exercise by ID - alias for React 19 use() hook (deprecated, use getExerciseByIdOrSlug)
      */
     static async getExerciseById(id: string): Promise<Exercise> {
-        return this.getExercise(id);
+        return this.getExerciseByIdOrSlug(id);
     }
 
     /**
@@ -84,12 +109,27 @@ export class ExerciseService {
      */
     static async toggleBookmark(exerciseId: string): Promise<void> {
         await api.post(`/exercises/${exerciseId}/toggle-bookmark`);
-    }
-
-    /**
+    }    /**
      * ✅ React Query: Generate stable query key for single exercise
      */
     static getExerciseQueryKey(id: string): (string | string)[] {
         return ['exercises', 'detail', id];
+    }
+
+    /**
+     * ✅ React Query: Generate stable query key for exercise by slug
+     */
+    static getExerciseBySlugQueryKey(slug: string): (string | string)[] {
+        return ['exercises', 'detail', 'slug', slug];
+    }
+
+    /**
+     * ✅ React Query: Generate stable query key for exercise by ID or slug
+     */
+    static getExerciseByIdOrSlugQueryKey(identifier: string): (string | string)[] {
+        const isMongoId = /^[0-9a-fA-F]{24}$/.test(identifier);
+        return isMongoId
+            ? ['exercises', 'detail', 'id', identifier]
+            : ['exercises', 'detail', 'slug', identifier];
     }
 }

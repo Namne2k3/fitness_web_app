@@ -68,7 +68,7 @@ export default function AppRouter() {
                                 <Route path="/profile" element={<ProfilePage />} />
                                 <Route path="/logout" element={<LogoutPage />} />                                <Route path="/workouts/browse" element={<WorkoutPage />} />
                                 <Route path="/library/exercises" element={<ExercisePage />} />
-                                <Route path="/exercises/:id" element={<ExerciseDetailPage />} />
+                                <Route path="/exercises/:slug" element={<ExerciseDetailPage />} />
                                 <Route path="/font-demo" element={<FontDemo />} />
                                 <Route path="*" element={<NotFoundPage />} />
                             </Routes>

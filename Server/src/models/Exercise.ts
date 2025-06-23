@@ -57,6 +57,14 @@ const ExerciseSchema = new Schema<IExercise>({
         maxlength: [100, 'Exercise name cannot exceed 100 characters'],
         index: true
     },
+    slug: {
+        type: String,
+        unique: true,
+        trim: true,
+        lowercase: true,
+        index: true,
+        maxlength: [120, 'Slug cannot exceed 120 characters']
+    },
     description: {
         type: String,
         trim: true,
@@ -183,6 +191,7 @@ const ExerciseSchema = new Schema<IExercise>({
 // 🎯 Indexes
 // ================================
 ExerciseSchema.index({ name: 1 }); // unique already applied
+ExerciseSchema.index({ slug: 1 }); // unique slug index  
 ExerciseSchema.index({ category: 1, difficulty: 1 });
 ExerciseSchema.index({ primaryMuscleGroups: 1 });
 ExerciseSchema.index({ equipment: 1 });
@@ -313,6 +322,53 @@ ExerciseSchema.statics.findByDifficulty = function (difficulty: string) {
 // ================================
 // 🔧 Middleware
 // ================================
+
+/**
+ * Helper function to generate slug from exercise name
+ */
+function generateSlug(name: string): string {
+    return name
+        .toString()
+        .toLowerCase()
+        .trim()
+        // Remove Vietnamese accents
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        // Replace special characters and spaces
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+}
+
+/**
+ * Pre-save middleware to auto-generate slug from name
+ */
+ExerciseSchema.pre('save', async function (this: IExercise, next) {
+    // Generate slug if it doesn't exist or name has changed
+    if (!this.slug || this.isModified('name')) {
+        const baseSlug = generateSlug(this.name);
+        let slug = baseSlug;
+        let counter = 1;
+
+        // Check for slug uniqueness
+        while (true) {
+            const existingExercise = await mongoose.model('Exercise').findOne({
+                slug,
+                _id: { $ne: this._id }
+            });
+
+            if (!existingExercise) {
+                this.slug = slug;
+                break;
+            }
+
+            slug = `${baseSlug}-${counter}`;
+            counter++;
+        }
+    }
+    next();
+});
 
 /**
  * Pre-save middleware to auto-calculate difficulty if not set

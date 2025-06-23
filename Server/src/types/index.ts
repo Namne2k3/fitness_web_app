@@ -137,6 +137,7 @@ export interface WorkoutExercise {
 export interface Exercise {
     _id?: string;
     name: string; // unique, required
+    slug?: string; // URL-friendly unique identifier, auto-generated from name
     description?: string;
     instructions: string[]; // step-by-step
     category: 'strength' | 'cardio' | 'flexibility';
