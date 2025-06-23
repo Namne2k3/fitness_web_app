@@ -31,7 +31,8 @@ import {
     BookmarkBorder,
     Timer,
     LocalFireDepartment,
-    FitnessCenter, NavigateNext,
+    FitnessCenter,
+    NavigateNext,
     TrendingUp,
     Group,
     Verified,
@@ -39,12 +40,14 @@ import {
     Whatshot,
     PlayCircleOutline as PlayCircleOutlineIcon,
     Gif as GifBoxIcon,
+    PlayArrow,
     CheckCircle,
     Build,
     ListAlt,
     Transform, Category,
     Speed,
     AutoAwesome,
+    EmojiEvents,
     Psychology,
 } from '@mui/icons-material';
 import { ExerciseService } from '../../services/exerciseService';
@@ -644,9 +647,7 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                         </Box>
                     </Box>
                 )}
-            </Paper>
-
-            {/* Stats Cards */}
+            </Paper>{/* Stats Cards */}
             <Box
                 sx={{
                     display: 'grid',
@@ -834,32 +835,8 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                             }}>
                                 <CheckCircle sx={{ fontSize: 16, color: 'white' }} />
                             </Box>
-                        </Box>
-                        <Box sx={{ flex: 1 }}>
+                        </Box>                        <Box sx={{ flex: 1 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                                {/* <Box sx={{
-                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                    borderRadius: '16px',
-                                    p: 1.5,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    boxShadow: '0 8px 32px rgba(102, 126, 234, 0.4)',
-                                    position: 'relative',
-                                    '&::before': {
-                                        content: '""',
-                                        position: 'absolute',
-                                        inset: 0,
-                                        borderRadius: '16px',
-                                        padding: '2px',
-                                        background: 'linear-gradient(135deg, rgba(255,255,255,0.6), rgba(255,255,255,0.1))',
-                                        WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                                        WebkitMaskComposite: 'xor',
-                                        maskComposite: 'exclude'
-                                    }
-                                }}>
-                                    <AutoAwesome sx={{ fontSize: 32, color: 'white' }} />
-                                </Box> */}
                                 <Typography variant="h3" component="h2" fontWeight="800" sx={{
                                     background: 'linear-gradient(135deg, #fff 0%, #e3f2fd 100%)',
                                     backgroundClip: 'text',
@@ -877,13 +854,24 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                 color: 'rgba(255,255,255,0.9)',
                                 fontStyle: 'italic',
                                 position: 'relative',
-
+                                '&::before': {
+                                    content: '""',
+                                    fontSize: '2rem',
+                                    color: 'rgba(255,255,255,0.3)',
+                                    position: 'absolute',
+                                    left: '-20px',
+                                    top: '-10px'
+                                },
+                                '&::after': {
+                                    content: '""',
+                                    fontSize: '2rem',
+                                    color: 'rgba(255,255,255,0.3)'
+                                }
                             }}>
                                 Khám phá chi tiết và những điểm quan trọng để thành công
                             </Typography>
                         </Box>
-                    </Box>
-                    {/* Modern Stats Grid với glassmorphism design */}
+                    </Box>                    {/* Modern Stats Grid với glassmorphism design */}
                     <Box
                         sx={{
                             display: 'grid',
@@ -894,7 +882,8 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                             gap: 3,
                             mb: 5
                         }}
-                    >                        {/* Instructions Count Card */}
+                    >
+                        {/* Instructions Count Card */}
                         <Card sx={{
                             position: 'relative',
                             background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.15) 0%, rgba(21, 101, 192, 0.05) 100%)',
@@ -957,7 +946,9 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                     </Typography>
                                 </Box>
                             </CardContent>
-                        </Card>                        {/* Muscle Groups Card */}
+                        </Card>
+
+                        {/* Muscle Groups Card */}
                         <Card sx={{
                             position: 'relative',
                             background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(139, 195, 74, 0.05) 100%)',
@@ -1020,7 +1011,9 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                     </Typography>
                                 </Box>
                             </CardContent>
-                        </Card>                        {/* Variations Card */}
+                        </Card>
+
+                        {/* Variations Card */}
                         <Card sx={{
                             position: 'relative',
                             background: 'linear-gradient(135deg, rgba(156, 39, 176, 0.15) 0%, rgba(233, 30, 99, 0.05) 100%)',
@@ -1083,7 +1076,9 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                     </Typography>
                                 </Box>
                             </CardContent>
-                        </Card>                        {/* Calories Card */}
+                        </Card>
+
+                        {/* Calories Card */}
                         <Card sx={{
                             position: 'relative',
                             background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(255, 87, 34, 0.05) 100%)',
@@ -1194,7 +1189,8 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                             display: 'grid',
                             gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
                             gap: 3
-                        }}>                            {/* Difficulty Level */}
+                        }}>
+                            {/* Difficulty Level */}
                             <Card sx={{
                                 position: 'relative',
                                 background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.12) 0%, rgba(255, 152, 0, 0.08) 100%)',
@@ -1203,6 +1199,7 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                 backdropFilter: 'blur(15px)',
                                 transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                                 overflow: 'hidden',
+                                cursor: 'pointer',
                                 '&:hover': {
                                     background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.18) 0%, rgba(255, 152, 0, 0.12) 100%)',
                                     transform: 'translateY(-4px)',
@@ -1244,7 +1241,9 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                         </Box>
                                     </Box>
                                 </CardContent>
-                            </Card>                            {/* Category */}
+                            </Card>
+
+                            {/* Category */}
                             <Card sx={{
                                 position: 'relative',
                                 background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.12) 0%, rgba(63, 81, 181, 0.08) 100%)',
@@ -1253,6 +1252,7 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                 backdropFilter: 'blur(15px)',
                                 transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                                 overflow: 'hidden',
+                                cursor: 'pointer',
                                 '&:hover': {
                                     background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.18) 0%, rgba(63, 81, 181, 0.12) 100%)',
                                     transform: 'translateY(-4px)',
@@ -1294,7 +1294,9 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                         </Box>
                                     </Box>
                                 </CardContent>
-                            </Card>                            {/* Intensity */}
+                            </Card>
+
+                            {/* Intensity */}
                             <Card sx={{
                                 position: 'relative',
                                 background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.12) 0%, rgba(139, 195, 74, 0.08) 100%)',
@@ -1303,6 +1305,7 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                 backdropFilter: 'blur(15px)',
                                 transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                                 overflow: 'hidden',
+                                cursor: 'pointer',
                                 '&:hover': {
                                     background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.18) 0%, rgba(139, 195, 74, 0.12) 100%)',
                                     transform: 'translateY(-4px)',
@@ -1343,7 +1346,9 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                         </Box>
                                     </Box>
                                 </CardContent>
-                            </Card>                            {/* Equipment */}
+                            </Card>
+
+                            {/* Equipment */}
                             <Card sx={{
                                 position: 'relative',
                                 background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.12) 0%, rgba(255, 87, 34, 0.08) 100%)',
@@ -1352,6 +1357,7 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                 backdropFilter: 'blur(15px)',
                                 transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                                 overflow: 'hidden',
+                                cursor: 'pointer',
                                 '&:hover': {
                                     background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.18) 0%, rgba(255, 87, 34, 0.12) 100%)',
                                     transform: 'translateY(-4px)',
@@ -1393,7 +1399,276 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
                                     </Box>
                                 </CardContent>
                             </Card>
-                        </Box>                    </Box>
+                        </Box>
+                    </Box>                    {/* Revolutionary Call to Action Area với modern glassmorphism */}
+                    <Box sx={{
+                        textAlign: 'center',
+                        p: 5,
+                        position: 'relative',
+                        borderRadius: 6,
+                        overflow: 'hidden',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        backdropFilter: 'blur(25px)',
+                        background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)',
+                        '&::before': {
+                            content: '""',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 50%, rgba(255, 107, 107, 0.05) 100%)',
+                            pointerEvents: 'none',
+                            animation: 'shimmer 3s ease-in-out infinite'
+                        },
+                        '@keyframes shimmer': {
+                            '0%, 100%': { opacity: 0.5 },
+                            '50%': { opacity: 0.8 }
+                        }
+                    }}>
+                        <Box sx={{ position: 'relative', zIndex: 2 }}>
+                            {/* Hero Icon Section */}
+                            <Box sx={{
+                                mb: 4,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 2
+                            }}>
+                                <Box sx={{
+                                    background: 'linear-gradient(135deg, #ffd700 0%, #ffb300 100%)',
+                                    borderRadius: '50%',
+                                    p: 3,
+                                    boxShadow: '0 20px 40px rgba(255, 215, 0, 0.3)',
+                                    border: '3px solid rgba(255,255,255,0.3)',
+                                    position: 'relative',
+                                    animation: 'pulse 2s ease-in-out infinite',
+                                    '&::before': {
+                                        content: '""',
+                                        position: 'absolute',
+                                        inset: -5,
+                                        borderRadius: '50%',
+                                        background: 'linear-gradient(135deg, rgba(255,215,0,0.3), transparent)',
+                                        zIndex: -1
+                                    },
+                                    '@keyframes pulse': {
+                                        '0%, 100%': { transform: 'scale(1)' },
+                                        '50%': { transform: 'scale(1.05)' }
+                                    }
+                                }}>
+                                    <EmojiEvents sx={{
+                                        fontSize: 56,
+                                        color: 'white',
+                                        filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))'
+                                    }} />
+                                </Box>
+                            </Box>
+
+                            {/* Title & Description */}
+                            <Typography variant="h3" sx={{
+                                mb: 3,
+                                fontWeight: 900,
+                                background: 'linear-gradient(135deg, #fff 0%, #e3f2fd 50%, #fff 100%)',
+                                backgroundClip: 'text',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                textShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                                letterSpacing: '-1px',
+                                lineHeight: 1.2
+                            }}>
+                                🚀 Sẵn sàng chinh phục thử thách?
+                            </Typography>
+
+                            <Box sx={{
+                                mb: 5,
+                                maxWidth: 700,
+                                mx: 'auto'
+                            }}>
+                                <Typography variant="h5" sx={{
+                                    mb: 2,
+                                    opacity: 0.95,
+                                    color: 'rgba(255,255,255,0.9)',
+                                    fontWeight: 600,
+                                    lineHeight: 1.6,
+                                    fontStyle: 'italic'
+                                }}>
+                                    "Hành trình nghìn dặm bắt đầu từ bước chân đầu tiên"
+                                </Typography>
+                                <Typography variant="body1" sx={{
+                                    opacity: 0.85,
+                                    color: 'rgba(255,255,255,0.8)',
+                                    fontWeight: 500,
+                                    lineHeight: 1.7,
+                                    maxWidth: 600,
+                                    mx: 'auto'
+                                }}>
+                                    Hãy bắt đầu với các bước cơ bản và từ từ nâng cao độ khó.
+                                    Nhớ luôn chú ý đến kỹ thuật để đạt hiệu quả tối ưu và tránh chấn thương! 💪
+                                </Typography>
+                            </Box>
+
+                            {/* Action Buttons */}
+                            <Box sx={{
+                                display: 'flex',
+                                gap: 4,
+                                justifyContent: 'center',
+                                flexWrap: 'wrap',
+                                alignItems: 'center'
+                            }}>
+                                <Button
+                                    variant="contained"
+                                    size="large"
+                                    sx={{
+                                        background: 'linear-gradient(135deg, #00c851 0%, #00ff00 50%, #007e33 100%)',
+                                        color: 'white',
+                                        border: '2px solid rgba(255,255,255,0.4)',
+                                        px: 6,
+                                        py: 2.5,
+                                        borderRadius: 6,
+                                        fontWeight: 800,
+                                        fontSize: '1.2rem',
+                                        minWidth: 260,
+                                        textTransform: 'none',
+                                        boxShadow: '0 12px 30px rgba(0, 200, 81, 0.4)',
+                                        position: 'relative',
+                                        overflow: 'hidden',
+                                        '&::before': {
+                                            content: '""',
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: '-100%',
+                                            width: '100%',
+                                            height: '100%',
+                                            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                                            transition: 'left 0.6s ease'
+                                        },
+                                        '&:hover': {
+                                            background: 'linear-gradient(135deg, #007e33 0%, #00c851 50%, #00ff00 100%)',
+                                            transform: 'translateY(-6px) scale(1.05)',
+                                            boxShadow: '0 20px 45px rgba(0, 200, 81, 0.6)',
+                                            '&::before': {
+                                                left: '100%'
+                                            }
+                                        }
+                                    }}
+                                    startIcon={<PlayArrow sx={{ fontSize: '2rem' }} />}
+                                    onClick={() => {
+                                        console.log('Starting workout with:', exercise.name);
+                                        // TODO: Add workout start logic
+                                    }}
+                                >
+                                    Bắt đầu luyện tập
+                                </Button>
+
+                                <Button
+                                    variant="outlined"
+                                    size="large"
+                                    sx={{
+                                        color: 'white',
+                                        borderColor: 'rgba(255,255,255,0.6)',
+                                        borderWidth: '2px',
+                                        px: 5,
+                                        py: 2.5,
+                                        borderRadius: 6,
+                                        fontWeight: 700,
+                                        fontSize: '1.1rem',
+                                        textTransform: 'none',
+                                        backdropFilter: 'blur(15px)',
+                                        background: 'rgba(255,255,255,0.05)',
+                                        minWidth: 200,
+                                        position: 'relative',
+                                        overflow: 'hidden',
+                                        '&::before': {
+                                            content: '""',
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            right: 0,
+                                            bottom: 0,
+                                            background: 'linear-gradient(135deg, rgba(255,255,255,0.1), transparent)',
+                                            opacity: 0,
+                                            transition: 'opacity 0.3s ease'
+                                        },
+                                        '&:hover': {
+                                            borderColor: 'white',
+                                            bgcolor: 'rgba(255,255,255,0.15)',
+                                            transform: 'translateY(-3px)',
+                                            boxShadow: '0 12px 25px rgba(255,255,255,0.2)',
+                                            '&::before': {
+                                                opacity: 1
+                                            }
+                                        }
+                                    }}
+                                    startIcon={<BookmarkBorder sx={{ fontSize: '1.4rem' }} />}
+                                >
+                                    Lưu bài tập
+                                </Button>
+                            </Box>
+
+                            {/* Bottom Stats */}
+                            <Box sx={{
+                                mt: 5,
+                                pt: 4,
+                                borderTop: '1px solid rgba(255,255,255,0.1)',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                gap: 6,
+                                flexWrap: 'wrap'
+                            }}>
+                                <Box sx={{ textAlign: 'center' }}>
+                                    <Typography variant="h4" sx={{
+                                        fontWeight: 900,
+                                        color: '#4caf50',
+                                        textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                                    }}>
+                                        {exercise.primaryMuscleGroups.length}+
+                                    </Typography>
+                                    <Typography variant="caption" sx={{
+                                        color: 'rgba(255,255,255,0.7)',
+                                        fontWeight: 600,
+                                        textTransform: 'uppercase',
+                                        letterSpacing: 1
+                                    }}>
+                                        Nhóm cơ
+                                    </Typography>
+                                </Box>
+                                <Box sx={{ textAlign: 'center' }}>
+                                    <Typography variant="h4" sx={{
+                                        fontWeight: 900,
+                                        color: '#ff9800',
+                                        textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                                    }}>
+                                        {exercise.caloriesPerMinute}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{
+                                        color: 'rgba(255,255,255,0.7)',
+                                        fontWeight: 600,
+                                        textTransform: 'uppercase',
+                                        letterSpacing: 1
+                                    }}>
+                                        Cal/phút
+                                    </Typography>
+                                </Box>
+                                <Box sx={{ textAlign: 'center' }}>
+                                    <Typography variant="h4" sx={{
+                                        fontWeight: 900,
+                                        color: '#2196f3',
+                                        textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                                    }}>
+                                        {exercise.instructions.length}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{
+                                        color: 'rgba(255,255,255,0.7)',
+                                        fontWeight: 600,
+                                        textTransform: 'uppercase',
+                                        letterSpacing: 1
+                                    }}>
+                                        Bước
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        </Box>
+                    </Box>
                 </Box>
             </Paper>
         </Box>
