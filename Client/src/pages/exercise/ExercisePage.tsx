@@ -101,13 +101,13 @@ const ExercisePage: React.FC = () => {
     };
 
     // ✅ Get exercise data để lấy total count cho filters
-    const { data: exerciseData } = useExercises(exerciseParams);
-
-    // ================================
+    const { data: exerciseData } = useExercises(exerciseParams);    // ================================
     // 🎯 Event Handlers
     // ================================
     const handleExerciseClick = (exercise: Exercise) => {
-        navigate(`/exercises/${exercise._id}`);
+        // Use slug if available, fallback to id for backward compatibility
+        const identifier = exercise.slug || exercise._id;
+        navigate(`/exercises/${identifier}`);
     };
 
     const handlePageChange = (_: React.ChangeEvent<unknown>, newPage: number) => {

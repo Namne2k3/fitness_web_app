@@ -28,7 +28,7 @@ export const useExercises = (
 };
 
 /**
- * ✅ Hook để fetch single exercise
+ * ✅ Hook để fetch single exercise by ID (deprecated, use useExerciseByIdOrSlug)
  */
 export const useExercise = (
     exerciseId: string
@@ -37,6 +37,38 @@ export const useExercise = (
         queryKey: ExerciseService.getExerciseQueryKey(exerciseId),
         queryFn: () => ExerciseService.getExercise(exerciseId),
         enabled: !!exerciseId, // Only run if exerciseId exists
+        staleTime: 10 * 60 * 1000, // 10 minutes
+        gcTime: 30 * 60 * 1000, // 30 minutes
+        refetchOnWindowFocus: false
+    });
+};
+
+/**
+ * ✅ Hook để fetch single exercise by slug
+ */
+export const useExerciseBySlug = (
+    slug: string
+): UseQueryResult<Exercise, Error> => {
+    return useQuery({
+        queryKey: ExerciseService.getExerciseBySlugQueryKey(slug),
+        queryFn: () => ExerciseService.getExerciseBySlug(slug),
+        enabled: !!slug, // Only run if slug exists
+        staleTime: 10 * 60 * 1000, // 10 minutes
+        gcTime: 30 * 60 * 1000, // 30 minutes
+        refetchOnWindowFocus: false
+    });
+};
+
+/**
+ * ✅ Hook để fetch single exercise by ID or slug (auto-detect)
+ */
+export const useExerciseByIdOrSlug = (
+    identifier: string
+): UseQueryResult<Exercise, Error> => {
+    return useQuery({
+        queryKey: ExerciseService.getExerciseByIdOrSlugQueryKey(identifier),
+        queryFn: () => ExerciseService.getExerciseByIdOrSlug(identifier),
+        enabled: !!identifier, // Only run if identifier exists
         staleTime: 10 * 60 * 1000, // 10 minutes
         gcTime: 30 * 60 * 1000, // 30 minutes
         refetchOnWindowFocus: false

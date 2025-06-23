@@ -57,5 +57,89 @@ export class ExerciseController {
         } catch (error) {
             next(error);
         }
+    }    /**
+     * Get exercise by ID
+     * @route GET /exercises/:id
+     */
+    static async getExerciseById(
+        req: Request,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { id } = req.params;
+
+            if (!id) {
+                res.status(400).json({
+                    success: false,
+                    data: null,
+                    message: 'Exercise ID is required'
+                });
+                return;
+            }
+
+            const exercise = await ExerciseService.getExerciseById(id);
+
+            if (!exercise) {
+                res.status(404).json({
+                    success: false,
+                    data: null,
+                    message: 'Exercise not found'
+                });
+                return;
+            }
+
+            res.status(200).json({
+                success: true,
+                data: exercise,
+                message: 'Exercise retrieved successfully'
+            });
+
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * Get exercise by slug
+     * @route GET /exercises/slug/:slug
+     */
+    static async getExerciseBySlug(
+        req: Request,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { slug } = req.params;
+
+            if (!slug) {
+                res.status(400).json({
+                    success: false,
+                    data: null,
+                    message: 'Exercise slug is required'
+                });
+                return;
+            }
+
+            const exercise = await ExerciseService.getExerciseBySlug(slug);
+
+            if (!exercise) {
+                res.status(404).json({
+                    success: false,
+                    data: null,
+                    message: 'Exercise not found'
+                });
+                return;
+            }
+
+            res.status(200).json({
+                success: true,
+                data: exercise,
+                message: 'Exercise retrieved successfully'
+            });
+
+        } catch (error) {
+            next(error);
+        }
     }
 }

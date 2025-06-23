@@ -57,9 +57,7 @@ import {
     AutoAwesome,
     EmojiEvents,
     Psychology,
-    Warning,
-    Block,
-    Info,
+    Warning, Block,
     Visibility,
     Movie,
     SettingsEthernet,
@@ -67,6 +65,7 @@ import {
     Assignment,
 } from '@mui/icons-material';
 import { ExerciseService } from '../../services/exerciseService';
+// import { useExerciseByIdOrSlug } from '../../hooks/useExercises'; // 🚀 For future API implementation
 // import { useExercise } from '../../hooks/useExercises'; // 🚀 Commented out for mock data testing
 
 /**
@@ -74,6 +73,7 @@ import { ExerciseService } from '../../services/exerciseService';
  */
 const mockExerciseData = {
     id: 'mock-flying-bell-456',
+    slug: 'flying-lateral-raises-bay-vai',
     name: 'Flying Lateral Raises (Bay vai)',
     description: 'Bài tập Bay vai với tạ đơn là một bài tập cô lập tuyệt vời để phát triển cơ vai trước và giữa. Bài tập này giúp tạo độ rộng cho vai và cải thiện đường nét cơ thể phần trên.',
     category: 'Strength Training',
@@ -153,13 +153,13 @@ const mockExerciseData = {
  * ExerciseDetailPage - Trang chi tiết bài tập với React Query và design system
  */
 const ExerciseDetailPage: React.FC = () => {
-    const { id } = useParams<{ id: string }>();
+    const { slug } = useParams<{ slug: string }>();
     const navigate = useNavigate();
 
-    if (!id) {
+    if (!slug) {
         return (
             <Container maxWidth="lg" sx={{ py: 4 }}>
-                <Alert severity="error">Exercise ID not found</Alert>
+                <Alert severity="error">Exercise slug not found</Alert>
             </Container>
         );
     }
@@ -174,7 +174,7 @@ const ExerciseDetailPage: React.FC = () => {
             }}
         >
             <Container maxWidth="xl">
-                <ExerciseDetailContent exerciseId={id} navigate={navigate} />
+                <ExerciseDetailContent exerciseSlug={slug} navigate={navigate} />
             </Container>
         </Box>
     );
@@ -183,15 +183,20 @@ const ExerciseDetailPage: React.FC = () => {
 /**
  * Main content component với React Query
  */
-const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = ({
-    exerciseId,
+const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> = ({
+    exerciseSlug,
     navigate
-}) => {
-    // 🚀 MOCK DATA - Comment out React Query and use mock data for UI testing
-    // const { data: exercise, isLoading, error } = useExercise(exerciseId);    // ✅ Using Mock Data for UI Preview
+}) => {    // 🚀 MOCK DATA - Comment out React Query and use mock data for UI testing
+    // const { data: exercise, isLoading, error } = useExerciseByIdOrSlug(exerciseSlug);    // ✅ Using Mock Data for UI Preview
     const exercise = mockExerciseData;
     const isLoading = false;
     const error = null;
+
+    // TODO: Uncomment this when API is ready
+    // const { data: exercise, isLoading, error } = useExerciseByIdOrSlug(exerciseSlug);
+
+    // 📝 Note: exerciseSlug will be used when API is implemented
+    console.log('Exercise slug for future API:', exerciseSlug);
 
     // 🗺️ Section Navigation State & Refs
     const [activeSection, setActiveSection] = useState<string>('overview');
@@ -421,7 +426,7 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
 
         startTransition(async () => {
             try {
-                await ExerciseService.toggleLike(exerciseId);
+                await ExerciseService.toggleLike(exercise.id);
             } catch (error) {
                 console.error('Failed to like exercise:', error);
                 // React tự động revert optimistic update nếu có lỗi
@@ -435,7 +440,7 @@ const ExerciseDetailContent: React.FC<{ exerciseId: string; navigate: any }> = (
 
         startTransition(async () => {
             try {
-                await ExerciseService.toggleBookmark(exerciseId);
+                await ExerciseService.toggleBookmark(exercise.id);
             } catch (error) {
                 console.error('Failed to bookmark exercise:', error);
             }

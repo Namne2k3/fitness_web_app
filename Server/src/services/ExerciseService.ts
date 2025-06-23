@@ -227,9 +227,52 @@ export class ExerciseService {
                 filters: filters, // Return applied filters
                 sort: sort // Return applied sort
             };
-
         } catch (error) {
             console.error('Error in ExerciseService.getExercises:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get single exercise by ID
+     * @param id Exercise ObjectId
+     * @returns Exercise document
+     */
+    static async getExerciseById(id: string): Promise<Exercise | null> {
+        try {
+            const exercise = await ExerciseModel.findById(id)
+                .populate('createdBy', 'username profile.firstName profile.lastName')
+                .lean();
+
+            if (!exercise) {
+                return null;
+            }
+
+            return exercise as Exercise;
+        } catch (error) {
+            console.error('Error in ExerciseService.getExerciseById:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get single exercise by slug
+     * @param slug Exercise slug
+     * @returns Exercise document
+     */
+    static async getExerciseBySlug(slug: string): Promise<Exercise | null> {
+        try {
+            const exercise = await ExerciseModel.findOne({ slug })
+                .populate('createdBy', 'username profile.firstName profile.lastName')
+                .lean();
+
+            if (!exercise) {
+                return null;
+            }
+
+            return exercise as Exercise;
+        } catch (error) {
+            console.error('Error in ExerciseService.getExerciseBySlug:', error);
             throw error;
         }
     }
