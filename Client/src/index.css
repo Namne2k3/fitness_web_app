@@ -1,3 +1,94 @@
+/* Import custom fonts */
+@import './styles/fonts.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Global font settings */
+@layer base {
+
+    html,
+    body {
+        font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+        font-weight: 400;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Ensure all headings use Roboto */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+    }
+
+    /* Button and input elements */
+    button,
+    input,
+    textarea,
+    select {
+        font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+    }
+}
+
+/* Custom font utility classes */
+@layer utilities {
+    .font-roboto-thin {
+        font-weight: 100;
+    }
+
+    .font-roboto-extralight {
+        font-weight: 200;
+    }
+
+    .font-roboto-light {
+        font-weight: 300;
+    }
+
+    .font-roboto-regular {
+        font-weight: 400;
+    }
+
+    .font-roboto-medium {
+        font-weight: 500;
+    }
+
+    .font-roboto-semibold {
+        font-weight: 600;
+    }
+
+    .font-roboto-bold {
+        font-weight: 700;
+    }
+
+    .font-roboto-extrabold {
+        font-weight: 800;
+    }
+
+    .font-roboto-black {
+        font-weight: 900;
+    }
+
+    .font-roboto-italic {
+        font-style: italic;
+    }
+
+    /* Glassmorphism text enhancements */
+    .glass-text-shadow {
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .glass-text-contrast {
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        color: rgba(0, 0, 0, 0.87);
+    }
+
+    .glass-text-light {
+        color: rgba(255, 255, 255, 0.95);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+}

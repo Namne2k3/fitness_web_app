@@ -26,9 +26,9 @@ export default {
                     500: '#2c3e50',
                     600: '#34495e',
                 }
-            },
-            fontFamily: {
-                'sans': ['Segoe UI', 'Tahoma', 'Geneva', 'Verdana', 'sans-serif'],
+            }, fontFamily: {
+                'sans': ['Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                'roboto': ['Roboto', 'Helvetica', 'Arial', 'sans-serif'],
             },
             animation: {
                 'fade-in': 'fadeIn 0.5s ease-in-out',
