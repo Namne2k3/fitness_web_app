@@ -3,8 +3,7 @@
  * API calls cho workout operations với advanced filtering
  */
 
-import { ApiResponse } from '../types/app.interface';
-import { Workout } from '../types/workout.interface';
+import { DifficultyLevel, Workout, WorkoutCategory, WorkoutExercise } from '../types/workout.interface';
 import { api } from './api';
 
 export interface WorkoutFilters {
@@ -50,6 +49,71 @@ export interface WorkoutListResponse {
  * Workout Service Class với React 19 patterns
  */
 export class WorkoutService {    /**
+     * Create a new workout
+     * Returns Promise cho useMutation hook
+     */
+    static async createWorkout(workoutData: {
+        status: string;
+        name: string;
+        description: string;
+        category: WorkoutCategory;
+        difficulty: DifficultyLevel;
+        estimatedDuration: number;
+        tags: string[];
+        isPublic: boolean;
+        exercises: WorkoutExercise[];
+    }): Promise<Workout> {
+        try {
+            // ✅ In development, create mock workout response
+            if (import.meta.env.DEV) {
+                console.log('🔗 WorkoutService.createWorkout (DEV MODE - Mock Response):', workoutData);
+
+                // Create mock workout that matches Workout interface
+                const mockWorkout: Workout = {
+                    _id: `workout_${Date.now()}`,
+                    userId: 'current_user_id', // In real app, get from auth context
+                    name: workoutData.name,
+                    description: workoutData.description,
+                    category: workoutData.category,
+                    difficulty: workoutData.difficulty,
+                    estimatedDuration: workoutData.estimatedDuration,
+                    tags: workoutData.tags,
+                    isPublic: workoutData.isPublic,
+                    exercises: workoutData.exercises,
+                    muscleGroups: ['chest', 'shoulders'], // Mock data
+                    equipment: ['dumbbells', 'barbell'], // Mock data
+                    caloriesBurned: Math.round(workoutData.estimatedDuration * 8), // 8 calories per minute estimate
+                    views: 0,
+                    completions: 0,
+                    averageRating: 0,
+                    totalRatings: 0,
+                    likeCount: 0,
+                    saveCount: 0,
+                    shares: 0,
+                    isSponsored: false,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                };
+
+                // Simulate API delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                return mockWorkout;
+            }
+
+            console.log("🔗 WorkoutService.createWorkout (API Call):", workoutData);
+            const response = await api.post<Workout>('/workouts', workoutData);
+
+            if (!response.success || !response.data) {
+                throw new Error(response.error || 'Failed to create workout');
+            }
+
+            return response.data;
+        } catch (error) {
+            console.error('❌ WorkoutService.createWorkout Error:', error);
+            throw error instanceof Error ? error : new Error('Failed to create workout');
+        }
+    }/**
      * Get workouts với advanced filtering và pagination
      * Returns Promise cho use() hook
      */
@@ -70,23 +134,15 @@ export class WorkoutService {    /**
                     includeExerciseData: false
                 },
                 ...params
-            };
-
-            const response = await api.post<ApiResponse<WorkoutListResponse>>('/workouts/list', requestBody);
+            }; const response = await api.post<WorkoutListResponse>('/workouts/list', requestBody);
 
             // Type assertion for API response
-            const apiResponse = {
-                success: response.success,
-                error: response.error,
-                data: response.data as WorkoutListResponse
-            };
-
-            if (!apiResponse.success) {
-                throw new Error(apiResponse.error || 'Failed to fetch workouts');
+            if (!response.success || !response.data) {
+                throw new Error(response.error || 'Failed to fetch workouts');
             }
 
             // Transform server response to match client expectations
-            const serverData = apiResponse.data;
+            const serverData = response.data;
             return {
                 data: serverData.data || [],
                 pagination: {

@@ -83,9 +83,9 @@ const NAV_MENUS: NavMenu[] = [
         path: '/library/exercises',
         subItems: [
             { icon: <SportsGymnastics fontSize="small" />, label: 'Tất cả động tác', path: '/library/exercises' },
-            { icon: <FitnessCenter fontSize="small" />, label: 'Theo nhóm cơ', path: '/library/muscle-groups' },
-            { icon: <Inventory fontSize="small" />, label: 'Theo thiết bị', path: '/library/equipment' },
-            { icon: <BarChart fontSize="small" />, label: 'Theo độ khó', path: '/library/difficulty' },
+            // { icon: <FitnessCenter fontSize="small" />, label: 'Theo nhóm cơ', path: '/library/muscle-groups' },
+            // { icon: <Inventory fontSize="small" />, label: 'Theo thiết bị', path: '/library/equipment' },
+            // { icon: <BarChart fontSize="small" />, label: 'Theo độ khó', path: '/library/difficulty' },
             'divider',
             { icon: <Videocam fontSize="small" />, label: 'Video hướng dẫn', path: '/library/videos' },
             { icon: <Favorite fontSize="small" />, label: 'Yêu thích', path: '/library/favorites' },
