@@ -127,7 +127,7 @@ const ExercisePage: React.FC = () => {
                 pb: '10rem'
             }}
         >
-            <Container maxWidth="xl">
+            <Container maxWidth="lg">
                 {/* ================================ */}
                 {/* 🎯 COMPACT HEADER */}
                 {/* ================================ */}
