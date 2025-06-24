@@ -7,12 +7,20 @@ import { WorkoutModel, IWorkout } from '../models/Workout';
 import { ExerciseModel } from '../models/Exercise';
 import { UserModel } from '../models/User';
 import { FilterWorkout } from '../controllers/WorkoutController';
+import { CreateWorkoutDtoInput } from '../dtos/CreateWorkoutDto';
 import {
     Workout,
     WorkoutExercise,
     Exercise,
     PaginatedResult
 } from '../types';
+
+/**
+ * Input interface for creating a workout (without Mongoose Document properties)
+ */
+export interface CreateWorkoutInput extends Omit<CreateWorkoutDtoInput, 'userId'> {
+    userId: string;
+}
 
 export class WorkoutService {
     /**
@@ -275,11 +283,34 @@ export class WorkoutService {
             console.error('Error in WorkoutService.getWorkouts:', error);
             throw new Error(`Failed to retrieve workouts: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
-    }
-    static async createWorkout(workoutData: IWorkout): Promise<IWorkout> {
+    }    /**
+     * Create new workout với validated data
+     * @param workoutData Validated workout data from DTO
+     * @returns Created workout document
+     */
+    static async createWorkout(workoutData: CreateWorkoutInput): Promise<IWorkout> {
         try {
+            // Create default values for optional fields
+            const workoutInput = {
+                ...workoutData,
+                isPublic: workoutData.isPublic ?? false,
+                tags: workoutData.tags ?? [],
+                views: 0,
+                likeCount: 0,
+                saveCount: 0,
+                shares: 0,
+                completions: 0,
+                totalRatings: 0,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                // Auto-calculate fields if not provided
+                muscleGroups: workoutData.muscleGroups ?? [],
+                equipment: workoutData.equipment ?? [],
+                caloriesBurned: workoutData.caloriesBurned ?? 0
+            };
+
             // Validate and process workout data
-            const newWorkout = new WorkoutModel(workoutData);
+            const newWorkout = new WorkoutModel(workoutInput);
             await newWorkout.save();
 
             // Populate related data if needed

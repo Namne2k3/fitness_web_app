@@ -1,0 +1,262 @@
+/* Create Workout Page - Modern Styles */
+
+/* Custom scrollbar for exercise list */
+.exercise-list-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+
+.exercise-list-scroll::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+.exercise-list-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #1976d2, #ff9800);
+    border-radius: 4px;
+}
+
+.exercise-list-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #1565c0, #f57c00);
+}
+
+/* Gradient text effect */
+.gradient-text {
+    background: linear-gradient(45deg, #1976d2 30%, #ff9800 90%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: bold;
+}
+
+/* Glassmorphism effect */
+.glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+}
+
+/* Floating animation */
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.floating {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Pulse animation for loading states */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Smooth hover transitions */
+.hover-lift {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+}
+
+/* Custom focus states */
+.custom-focus:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
+    border-color: #1976d2;
+}
+
+/* Exercise card hover effects */
+.exercise-card {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.exercise-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent);
+    transition: left 0.5s;
+}
+
+.exercise-card:hover::before {
+    left: 100%;
+}
+
+/* Responsive grid */
+@media (max-width: 768px) {
+    .mobile-stack {
+        flex-direction: column !important;
+    }
+
+    .mobile-full {
+        width: 100% !important;
+    }
+}
+
+/* Loading spinner */
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(25, 118, 210, 0.1);
+    border-left: 4px solid #1976d2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Success/Error animations */
+@keyframes slideInFromTop {
+    0% {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.slide-in {
+    animation: slideInFromTop 0.5s ease-out;
+}
+
+/* Chip hover effects */
+.custom-chip {
+    transition: all 0.2s ease;
+}
+
+.custom-chip:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Form validation styles */
+.form-field-error {
+    border-color: #f44336 !important;
+    background-color: rgba(244, 67, 54, 0.05);
+}
+
+.form-field-success {
+    border-color: #4caf50 !important;
+    background-color: rgba(76, 175, 80, 0.05);
+}
+
+/* Button gradients */
+.gradient-button {
+    background: linear-gradient(45deg, #1976d2 30%, #ff9800 90%);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.gradient-button:hover {
+    background: linear-gradient(45deg, #1565c0 30%, #f57c00 90%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.gradient-button:disabled {
+    background: rgba(0, 0, 0, 0.12);
+    transform: none;
+    box-shadow: none;
+}
+
+/* Workout stats cards */
+.stats-card {
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+    border: 1px solid rgba(76, 175, 80, 0.2);
+    transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(76, 175, 80, 0.15);
+}
+
+/* Hero section enhancements */
+.hero-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-gradient::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+/* Smooth reveal animations */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: reveal 0.6s ease forwards;
+}
+
+@keyframes reveal {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.reveal-delay-1 {
+    animation-delay: 0.1s;
+}
+
+.reveal-delay-2 {
+    animation-delay: 0.2s;
+}
+
+.reveal-delay-3 {
+    animation-delay: 0.3s;
+}

@@ -61,45 +61,46 @@ export class WorkoutService {    /**
         estimatedDuration: number;
         tags: string[];
         isPublic: boolean;
+        muscleGroups: string[];
+        equipment: string[];
+        caloriesBurned: number;
         exercises: WorkoutExercise[];
     }): Promise<Workout> {
         try {
             // ✅ In development, create mock workout response
-            if (import.meta.env.DEV) {
-                console.log('🔗 WorkoutService.createWorkout (DEV MODE - Mock Response):', workoutData);
+            // if (import.meta.env.DEV) {
+            //     console.log('🔗 WorkoutService.createWorkout (DEV MODE - Mock Response):', workoutData);                // Create mock workout that matches Workout interface
+            //     const mockWorkout: Workout = {
+            //         _id: `workout_${Date.now()}`,
+            //         userId: 'current_user_id', // In real app, get from auth context
+            //         name: workoutData.name,
+            //         description: workoutData.description,
+            //         category: workoutData.category,
+            //         difficulty: workoutData.difficulty,
+            //         estimatedDuration: workoutData.estimatedDuration,
+            //         tags: workoutData.tags,
+            //         isPublic: workoutData.isPublic,
+            //         exercises: workoutData.exercises,
+            //         muscleGroups: workoutData.muscleGroups,
+            //         equipment: workoutData.equipment,
+            //         caloriesBurned: workoutData.caloriesBurned,
+            //         views: 0,
+            //         completions: 0,
+            //         averageRating: 0,
+            //         totalRatings: 0,
+            //         likeCount: 0,
+            //         saveCount: 0,
+            //         shares: 0,
+            //         isSponsored: false,
+            //         createdAt: new Date(),
+            //         updatedAt: new Date()
+            //     };
 
-                // Create mock workout that matches Workout interface
-                const mockWorkout: Workout = {
-                    _id: `workout_${Date.now()}`,
-                    userId: 'current_user_id', // In real app, get from auth context
-                    name: workoutData.name,
-                    description: workoutData.description,
-                    category: workoutData.category,
-                    difficulty: workoutData.difficulty,
-                    estimatedDuration: workoutData.estimatedDuration,
-                    tags: workoutData.tags,
-                    isPublic: workoutData.isPublic,
-                    exercises: workoutData.exercises,
-                    muscleGroups: ['chest', 'shoulders'], // Mock data
-                    equipment: ['dumbbells', 'barbell'], // Mock data
-                    caloriesBurned: Math.round(workoutData.estimatedDuration * 8), // 8 calories per minute estimate
-                    views: 0,
-                    completions: 0,
-                    averageRating: 0,
-                    totalRatings: 0,
-                    likeCount: 0,
-                    saveCount: 0,
-                    shares: 0,
-                    isSponsored: false,
-                    createdAt: new Date(),
-                    updatedAt: new Date()
-                };
+            //     // Simulate API delay
+            //     await new Promise(resolve => setTimeout(resolve, 1000));
 
-                // Simulate API delay
-                await new Promise(resolve => setTimeout(resolve, 1000));
-
-                return mockWorkout;
-            }
+            //     return mockWorkout;
+            // }
 
             console.log("🔗 WorkoutService.createWorkout (API Call):", workoutData);
             const response = await api.post<Workout>('/workouts', workoutData);

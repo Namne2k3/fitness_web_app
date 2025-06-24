@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 
 import { RequestWithUser, ApiResponse } from '../types';
-import { ResponseHelper, requireAuth, validateRequiredFields } from '../utils/responseHelper';
-import { WorkoutService } from '../services/WorkoutService';
+import { ResponseHelper, requireAuth } from '../utils/responseHelper';
+import { WorkoutService, CreateWorkoutInput } from '../services/WorkoutService';
+import { CreateWorkoutDto } from '../dtos/CreateWorkoutDto';
 
 /**
  * 🏋️ Workout Controller Class
@@ -58,7 +59,11 @@ export class WorkoutController {
         } catch (error) {
             next(error);
         }
-    } static async createWorkout(
+    }    /**
+     * Create a new workout with robust validation
+     * @route POST /api/v1/workouts
+     */
+    static async createWorkout(
         req: RequestWithUser,
         res: Response<ApiResponse>,
         next: NextFunction
@@ -69,29 +74,32 @@ export class WorkoutController {
                 return;
             }
 
-            const workoutData = req.body;
             const userId = req.user!._id;
 
-            // Validate required fields
-            const validation = validateRequiredFields(workoutData, [
-                'name',
-                'description',
-                'category',
-                'difficulty',
-                'estimatedDuration',
-                'exercises'
-            ]);
+            // Validate request body using DTO
+            const workoutDto = new CreateWorkoutDto(req.body);
+            const validation = workoutDto.getValidationResult();
 
             if (!validation.isValid) {
-                return ResponseHelper.badRequest(res, `Missing required fields: ${validation.missingFields.join(', ')}`);
+                return ResponseHelper.badRequest(
+                    res,
+                    `Validation failed: ${validation.errors.join(', ')}`
+                );
+            }
+
+            // Get validated data
+            const validatedData = workoutDto.getValidatedData();
+            if (!validatedData) {
+                return ResponseHelper.badRequest(res, 'Invalid workout data provided');
             }
 
             // Add userId to workout data
-            const workoutWithUser = {
-                ...workoutData,
+            const workoutWithUser: CreateWorkoutInput = {
+                ...validatedData,
                 userId
             };
 
+            // Create workout through service
             const result = await WorkoutService.createWorkout(workoutWithUser);
 
             res.status(201).json({
