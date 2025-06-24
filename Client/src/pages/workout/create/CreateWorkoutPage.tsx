@@ -36,7 +36,9 @@ import {
     SelfImprovement,
     LocalOffer as TagIcon,
     Public as PublicIcon,
+    DragIndicator as DragIcon,
 } from '@mui/icons-material';
+import { DragDropContext, Droppable, Draggable, DropResult, DraggableProvidedDragHandleProps } from '@hello-pangea/dnd';
 import { useNavigate } from 'react-router-dom';
 import { Exercise, WorkoutExercise } from '../../../types';
 import { ExerciseCategory } from '../../../types/exercise.interface';
@@ -295,180 +297,218 @@ interface WorkoutExerciseWithName extends WorkoutExercise {
     completed: boolean; // Required for validation
 }
 
-// ✅ Selected Exercise Card Component
+// ✅ Selected Exercise Card Component with Drag & Drop
 const SelectedExerciseCard: React.FC<{
     exercise: WorkoutExerciseWithName;
     index: number;
     onUpdate: (index: number, field: keyof WorkoutExercise, value: string | number | boolean) => void;
     onRemove: (index: number) => void;
-}> = ({ exercise, index, onUpdate, onRemove }) => {
+    dragHandleProps?: DraggableProvidedDragHandleProps | null;
+    isDragging?: boolean;
+}> = ({ exercise, index, onUpdate, onRemove, dragHandleProps, isDragging = false }) => {
     const [isEditing, setIsEditing] = useState(false);
 
-    return (
-        <Card
-            sx={{
-                mb: 2,
-                background: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)',
-                border: '1px solid rgba(255, 152, 0, 0.2)',
-                borderRadius: 2,
-            }}
-        >
-            <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Avatar sx={{ bgcolor: '#ff9800', width: 32, height: 32 }}>
-                            <FitnessCenterIcon sx={{ fontSize: 18 }} />
-                        </Avatar>
-                        <Box>
-                            <Typography variant="h6" fontWeight="600" color="#f57c00">
-                                {exercise.name}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                Exercise #{index + 1}
-                            </Typography>
-                        </Box>
+    return (<Card
+        sx={{
+            // Remove margin bottom from card - handle by parent container
+            mb: isDragging ? 0 : 0, // Consistent spacing handled by parent
+            background: isDragging
+                ? 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)'
+                : 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)',
+            border: isDragging
+                ? '1px solid #2196f3'
+                : '1px solid rgba(255, 152, 0, 0.2)',
+            borderRadius: 2,
+            transform: isDragging ? 'scale(1.02)' : 'scale(1)',
+            transition: 'all 0.3s ease',
+            boxShadow: isDragging
+                ? '0 8px 32px rgba(33, 150, 243, 0.3)'
+                : '0 2px 8px rgba(0,0,0,0.1)',
+        }}
+    >
+        <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>                        {/* Drag Handle */}
+                    <Box
+                        {...dragHandleProps}
+                        sx={{
+                            cursor: 'grab',
+                            color: isDragging ? '#2196f3' : '#f57c00',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '4px',
+                            borderRadius: '4px',
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                                color: isDragging ? '#1976d2' : '#ef6c00',
+                                backgroundColor: 'rgba(0,0,0,0.04)',
+                            },
+                            '&:active': {
+                                cursor: 'grabbing',
+                                backgroundColor: 'rgba(0,0,0,0.08)',
+                            },
+                        }}
+                    >
+                        <DragIcon />
                     </Box>
 
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                        <IconButton
-                            size="small"
-                            onClick={() => setIsEditing(!isEditing)}
-                            sx={{ color: '#f57c00' }}
-                        >
-                            <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                            size="small"
-                            onClick={() => onRemove(index)}
-                            sx={{ color: '#d32f2f' }}
-                        >
-                            <DeleteIcon fontSize="small" />
-                        </IconButton>
+                    <Avatar sx={{
+                        bgcolor: isDragging ? '#2196f3' : '#ff9800',
+                        width: 32,
+                        height: 32
+                    }}>
+                        <FitnessCenterIcon sx={{ fontSize: 18 }} />
+                    </Avatar>
+                    <Box>
+                        <Typography variant="h6" fontWeight="600" color={isDragging ? "#1565c0" : "#f57c00"}>
+                            {exercise.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            Exercise #{index + 1}
+                        </Typography>
                     </Box>
-                </Box>                {isEditing ? (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        {/* Exercise metrics grid */}
-                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 2 }}>
-                            <TextField
-                                label="Sets"
-                                type="number"
-                                value={exercise.sets}
-                                onChange={(e) => onUpdate(index, 'sets', Number(e.target.value))}
-                                inputProps={{ min: 1, max: 20 }}
-                                size="small"
-                            />
-                            <TextField
-                                label="Reps"
-                                type="number"
-                                value={exercise.reps}
-                                onChange={(e) => onUpdate(index, 'reps', Number(e.target.value))}
-                                inputProps={{ min: 1, max: 100 }}
-                                size="small"
-                            />
-                            <TextField
-                                label="Weight (kg)"
-                                type="number"
-                                value={exercise.weight || 0}
-                                onChange={(e) => onUpdate(index, 'weight', Number(e.target.value))}
-                                inputProps={{ min: 0, max: 500 }}
-                                size="small"
-                            />
-                            <TextField
-                                label="Rest (sec)"
-                                type="number"
-                                value={exercise.restTime || 60}
-                                onChange={(e) => onUpdate(index, 'restTime', Number(e.target.value))}
-                                inputProps={{ min: 0, max: 600 }}
-                                size="small"
-                            />
-                        </Box>
-                        {/* Notes field */}
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                    <IconButton
+                        size="small"
+                        onClick={() => setIsEditing(!isEditing)}
+                        sx={{ color: isDragging ? '#1565c0' : '#f57c00' }}
+                    >
+                        <EditIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                        size="small"
+                        onClick={() => onRemove(index)}
+                        sx={{ color: '#d32f2f' }}
+                    >
+                        <DeleteIcon fontSize="small" />
+                    </IconButton>
+                </Box>
+            </Box>{isEditing ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {/* Exercise metrics grid */}
+                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 2 }}>
                         <TextField
-                            label="Exercise Notes (optional)"
-                            value={exercise.notes || ''}
-                            onChange={(e) => onUpdate(index, 'notes', e.target.value)}
-                            placeholder="Add any specific instructions or modifications..."
-                            multiline
-                            rows={2}
+                            label="Sets"
+                            type="number"
+                            value={exercise.sets}
+                            onChange={(e) => onUpdate(index, 'sets', Number(e.target.value))}
+                            inputProps={{ min: 1, max: 20 }}
                             size="small"
-                            fullWidth
-                            sx={{
-                                '& .MuiOutlinedInput-root': {
-                                    backgroundColor: 'rgba(255,255,255,0.8)',
-                                }
-                            }}
                         />
+                        <TextField
+                            label="Reps"
+                            type="number"
+                            value={exercise.reps}
+                            onChange={(e) => onUpdate(index, 'reps', Number(e.target.value))}
+                            inputProps={{ min: 1, max: 100 }}
+                            size="small"
+                        />
+                        <TextField
+                            label="Weight (kg)"
+                            type="number"
+                            value={exercise.weight || 0}
+                            onChange={(e) => onUpdate(index, 'weight', Number(e.target.value))}
+                            inputProps={{ min: 0, max: 500 }}
+                            size="small"
+                        />
+                        <TextField
+                            label="Rest (sec)"
+                            type="number"
+                            value={exercise.restTime || 60}
+                            onChange={(e) => onUpdate(index, 'restTime', Number(e.target.value))}
+                            inputProps={{ min: 0, max: 600 }}
+                            size="small"
+                        />
+                    </Box>
+                    {/* Notes field */}
+                    <TextField
+                        label="Exercise Notes (optional)"
+                        value={exercise.notes || ''}
+                        onChange={(e) => onUpdate(index, 'notes', e.target.value)}
+                        placeholder="Add any specific instructions or modifications..."
+                        multiline
+                        rows={2}
+                        size="small"
+                        fullWidth
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                backgroundColor: 'rgba(255,255,255,0.8)',
+                            }
+                        }}
+                    />
 
-                        {/* Completed checkbox */}
-                        <FormControlLabel
-                            control={
-                                <Switch
-                                    checked={exercise.completed || false}
-                                    onChange={(e) => onUpdate(index, 'completed', e.target.checked)}
-                                    color="success"
-                                />
-                            }
-                            label={
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <Typography variant="body2">Mark as completed</Typography>
-                                    <Chip
-                                        label={exercise.completed ? "Done" : "Pending"}
-                                        size="small"
-                                        color={exercise.completed ? "success" : "default"}
-                                    />
-                                </Box>
-                            }
-                        />
-                    </Box>) : (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>                        {/* Exercise metrics */}
-                        <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', alignItems: 'center' }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="body2" fontWeight="600">Sets:</Typography>
-                                <Chip label={exercise.sets} size="small" color="primary" />
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="body2" fontWeight="600">Reps:</Typography>
-                                <Chip label={exercise.reps} size="small" color="primary" />
-                            </Box>
-                            {exercise.weight && exercise.weight > 0 && (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <Typography variant="body2" fontWeight="600">Weight:</Typography>
-                                    <Chip label={`${exercise.weight}kg`} size="small" color="secondary" />
-                                </Box>
-                            )}
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="body2" fontWeight="600">Rest:</Typography>
-                                <Chip label={`${exercise.restTime || 60}s`} size="small" color="info" />
-                            </Box>
-                            {/* Completion status */}
-                            <Chip
-                                label={exercise.completed ? "✓ Completed" : "○ Pending"}
-                                size="small"
-                                color={exercise.completed ? "success" : "default"}
-                                variant={exercise.completed ? "filled" : "outlined"}
+                    {/* Completed checkbox */}
+                    <FormControlLabel
+                        control={
+                            <Switch
+                                checked={exercise.completed || false}
+                                onChange={(e) => onUpdate(index, 'completed', e.target.checked)}
+                                color="success"
                             />
+                        }
+                        label={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Typography variant="body2">Mark as completed</Typography>
+                                <Chip
+                                    label={exercise.completed ? "Done" : "Pending"}
+                                    size="small"
+                                    color={exercise.completed ? "success" : "default"}
+                                />
+                            </Box>
+                        }
+                    />
+                </Box>) : (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>                        {/* Exercise metrics */}
+                    <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', alignItems: 'center' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="body2" fontWeight="600">Sets:</Typography>
+                            <Chip label={exercise.sets} size="small" color="primary" />
                         </Box>
-
-                        {/* Notes display */}
-                        {exercise.notes && exercise.notes.trim() && (
-                            <Box sx={{
-                                p: 2,
-                                backgroundColor: 'rgba(25, 118, 210, 0.08)',
-                                borderRadius: 2,
-                                border: '1px solid rgba(25, 118, 210, 0.2)'
-                            }}>
-                                <Typography variant="body2" fontWeight="600" color="primary.main" sx={{ mb: 1 }}>
-                                    Notes:
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    {exercise.notes}
-                                </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="body2" fontWeight="600">Reps:</Typography>
+                            <Chip label={exercise.reps} size="small" color="primary" />
+                        </Box>
+                        {exercise.weight && exercise.weight > 0 && (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Typography variant="body2" fontWeight="600">Weight:</Typography>
+                                <Chip label={`${exercise.weight}kg`} size="small" color="secondary" />
                             </Box>
                         )}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="body2" fontWeight="600">Rest:</Typography>
+                            <Chip label={`${exercise.restTime || 60}s`} size="small" color="info" />
+                        </Box>
+                        {/* Completion status */}
+                        <Chip
+                            label={exercise.completed ? "✓ Completed" : "○ Pending"}
+                            size="small"
+                            color={exercise.completed ? "success" : "default"}
+                            variant={exercise.completed ? "filled" : "outlined"}
+                        />
                     </Box>
-                )}
-            </CardContent>
-        </Card>
+
+                    {/* Notes display */}
+                    {exercise.notes && exercise.notes.trim() && (
+                        <Box sx={{
+                            p: 2,
+                            backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                            borderRadius: 2,
+                            border: '1px solid rgba(25, 118, 210, 0.2)'
+                        }}>
+                            <Typography variant="body2" fontWeight="600" color="primary.main" sx={{ mb: 1 }}>
+                                Notes:
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                {exercise.notes}
+                            </Typography>
+                        </Box>
+                    )}
+                </Box>
+            )}
+        </CardContent>
+    </Card>
     );
 };
 
@@ -619,6 +659,27 @@ const CreateWorkoutPage: React.FC = () => {
                 order: i + 1 // Start from 1, not 0
             }))
         );
+    };
+
+    // ✅ Handle drag and drop reordering
+    const handleDragEnd = (result: DropResult) => {
+        if (!result.destination) return;
+
+        const { source, destination } = result;
+
+        if (source.index === destination.index) return;
+
+        setSelectedExercises(prev => {
+            const items = Array.from(prev);
+            const [reorderedItem] = items.splice(source.index, 1);
+            items.splice(destination.index, 0, reorderedItem);
+
+            // Update order numbers after reordering
+            return items.map((exercise, index) => ({
+                ...exercise,
+                order: index + 1 // Start from 1, not 0
+            }));
+        });
     };// Calculate total estimated calories and duration
     const totalCalories = selectedExercises.reduce((total, exercise) => {
         const exerciseData = mockExercises.find(e => e._id === exercise.exerciseId);
@@ -1114,19 +1175,73 @@ const CreateWorkoutPage: React.FC = () => {
                                                     </Box>
                                                 )}
                                             </Box>
-                                        </Box>
+                                        </Box>                                        <DragDropContext onDragEnd={handleDragEnd}>
+                                            <Droppable droppableId="selected-exercises">
+                                                {(provided, snapshot) => (
+                                                    <Box
+                                                        ref={provided.innerRef}
+                                                        {...provided.droppableProps}
+                                                        sx={{
+                                                            maxHeight: 600,
+                                                            overflowY: 'auto',
+                                                            backgroundColor: 'transparent',
+                                                            borderRadius: 2,
+                                                            minHeight: 60,
+                                                            position: 'relative',
+                                                            '&::before': {
+                                                                content: '""',
+                                                                position: 'absolute',
+                                                                top: 0,
+                                                                left: 0,
+                                                                right: 0,
+                                                                bottom: 0,
+                                                                borderRadius: 2,
+                                                                backgroundColor: snapshot.isDraggingOver
+                                                                    ? 'rgba(25, 118, 210, 0.05)'
+                                                                    : 'transparent',
+                                                                transition: 'background-color 0.2s ease',
+                                                                pointerEvents: 'none',
+                                                                zIndex: 0,
+                                                            }
+                                                        }}
+                                                    >
+                                                        {selectedExercises.map((exercise, index) => (
+                                                            <Draggable
+                                                                key={`${exercise.exerciseId}-${exercise.order}`}
+                                                                draggableId={`${exercise.exerciseId}-${exercise.order}`}
+                                                                index={index}
+                                                            >
+                                                                {(provided, snapshot) => (
+                                                                    <Box
+                                                                        ref={provided.innerRef}
+                                                                        {...provided.draggableProps}
+                                                                        sx={{
+                                                                            mb: 1.5,
+                                                                            position: 'relative',
+                                                                            zIndex: snapshot.isDragging ? 1000 : 1,
+                                                                            // Giữ nguyên style của draggable
+                                                                            ...provided.draggableProps.style,
+                                                                        }}
+                                                                    >
+                                                                        <SelectedExerciseCard
+                                                                            exercise={exercise}
+                                                                            index={index}
+                                                                            onUpdate={handleExerciseUpdate}
+                                                                            onRemove={handleExerciseRemove}
+                                                                            dragHandleProps={provided.dragHandleProps}
+                                                                            isDragging={snapshot.isDragging}
+                                                                        />
+                                                                    </Box>
+                                                                )}
+                                                            </Draggable>
+                                                        ))}
 
-                                        <Box sx={{ maxHeight: 600, overflowY: 'auto' }}>
-                                            {selectedExercises.map((exercise, index) => (
-                                                <SelectedExerciseCard
-                                                    key={`${exercise.exerciseId}-${index}`}
-                                                    exercise={exercise}
-                                                    index={index}
-                                                    onUpdate={handleExerciseUpdate}
-                                                    onRemove={handleExerciseRemove}
-                                                />
-                                            ))}
-                                        </Box>
+                                                        {/* Placeholder sẽ giữ khoảng trống khi drag để tránh container bị co lại */}
+                                                        {provided.placeholder}
+                                                    </Box>
+                                                )}
+                                            </Droppable>
+                                        </DragDropContext>
                                     </Paper>
                                 )}
 
