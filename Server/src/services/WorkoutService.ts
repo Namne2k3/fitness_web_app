@@ -276,5 +276,20 @@ export class WorkoutService {
             throw new Error(`Failed to retrieve workouts: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
+    static async createWorkout(workoutData: IWorkout): Promise<IWorkout> {
+        try {
+            // Validate and process workout data
+            const newWorkout = new WorkoutModel(workoutData);
+            await newWorkout.save();
 
+            // Populate related data if needed
+            await newWorkout.populate('exercises.exerciseId');
+            await newWorkout.populate('userId');
+
+            return newWorkout;
+        } catch (error) {
+            console.error('Error creating workout:', error);
+            throw new Error(`Failed to create workout: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
 }

@@ -1,0 +1,23 @@
+{
+    "name": "TrackMe Fitness App",
+    "short_name": "TrackMe",
+    "description": "Professional fitness tracking and workout creation platform",
+    "theme_color": "#1976d2",
+    "background_color": "#ffffff",
+    "display": "standalone",
+    "orientation": "portrait",
+    "scope": "/",
+    "start_url": "/",
+    "icons": [
+        {
+            "src": "/fitness_2262725.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/fitness_2262746.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

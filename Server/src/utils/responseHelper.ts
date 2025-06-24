@@ -296,3 +296,22 @@ export const validateRequired = (res: Response<ApiResponse>, fields: Record<stri
 
     return true;
 };
+
+/**
+ * Simple validation helper without response - returns validation result
+ */
+export const validateRequiredFields = (data: any, requiredFields: string[]): { isValid: boolean; missingFields: string[] } => {
+    const missingFields: string[] = [];
+
+    requiredFields.forEach(field => {
+        const value = data[field];
+        if (!value || (typeof value === 'string' && value.trim() === '') || (Array.isArray(value) && value.length === 0)) {
+            missingFields.push(field);
+        }
+    });
+
+    return {
+        isValid: missingFields.length === 0,
+        missingFields
+    };
+};

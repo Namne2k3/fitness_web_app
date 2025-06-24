@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
 import { RequestWithUser, ApiResponse } from '../types';
-import { ResponseHelper, requireAuth, validateRequired } from '../utils/responseHelper';
+import { ResponseHelper, requireAuth, validateRequiredFields } from '../utils/responseHelper';
 import { WorkoutService } from '../services/WorkoutService';
 
 /**
@@ -53,6 +53,51 @@ export class WorkoutController {
                 success: true,
                 data: result,
                 message: 'Workouts retrieved successfully'
+            });
+
+        } catch (error) {
+            next(error);
+        }
+    } static async createWorkout(
+        req: RequestWithUser,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            // Check authentication
+            if (!requireAuth(res, req.user)) {
+                return;
+            }
+
+            const workoutData = req.body;
+            const userId = req.user!._id;
+
+            // Validate required fields
+            const validation = validateRequiredFields(workoutData, [
+                'name',
+                'description',
+                'category',
+                'difficulty',
+                'estimatedDuration',
+                'exercises'
+            ]);
+
+            if (!validation.isValid) {
+                return ResponseHelper.badRequest(res, `Missing required fields: ${validation.missingFields.join(', ')}`);
+            }
+
+            // Add userId to workout data
+            const workoutWithUser = {
+                ...workoutData,
+                userId
+            };
+
+            const result = await WorkoutService.createWorkout(workoutWithUser);
+
+            res.status(201).json({
+                success: true,
+                data: result,
+                message: 'Workout created successfully'
             });
 
         } catch (error) {
