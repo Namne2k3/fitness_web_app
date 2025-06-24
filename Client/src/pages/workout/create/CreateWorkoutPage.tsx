@@ -71,9 +71,9 @@ const mockExercises: Exercise[] = [{
     primaryMuscleGroups: ['chest', 'shoulders', 'triceps'],
     secondaryMuscleGroups: [],
     equipment: ['bodyweight'],
-    difficulty: 'beginner',
-    instructions: ['Start in plank position', 'Lower body to ground', 'Push back up'],
+    difficulty: 'beginner', instructions: ['Start in plank position', 'Lower body to ground', 'Push back up'],
     images: [],
+    gifUrl: 'https://i.pinimg.com/originals/20/28/c4/2028c4df1b7c5d6b8d025c1caccf2c94.gif', // Push-up animation
     caloriesPerMinute: 8,
     variations: [],
     precautions: [],
@@ -91,9 +91,9 @@ const mockExercises: Exercise[] = [{
     primaryMuscleGroups: ['quadriceps', 'glutes', 'hamstrings'],
     secondaryMuscleGroups: [],
     equipment: ['bodyweight'],
-    difficulty: 'beginner',
-    instructions: ['Stand with feet shoulder-width apart', 'Lower hips back and down', 'Return to standing'],
+    difficulty: 'beginner', instructions: ['Stand with feet shoulder-width apart', 'Lower hips back and down', 'Return to standing'],
     images: [],
+    gifUrl: 'https://i.pinimg.com/originals/77/f0/14/77f014c1deaaef30f5ed3c39cf8bd898.gif', // Squat animation
     caloriesPerMinute: 10,
     variations: [],
     precautions: [],
@@ -111,9 +111,9 @@ const mockExercises: Exercise[] = [{
     primaryMuscleGroups: ['full body'],
     secondaryMuscleGroups: [],
     equipment: ['bodyweight'],
-    difficulty: 'advanced',
-    instructions: ['Start standing', 'Drop to squat', 'Jump back to plank', 'Return to standing with jump'],
+    difficulty: 'advanced', instructions: ['Start standing', 'Drop to squat', 'Jump back to plank', 'Return to standing with jump'],
     images: [],
+    gifUrl: 'https://i.pinimg.com/originals/4c/80/b2/4c80b2b1e75ab6a13f4e9b7b44c2e3de.gif', // Burpee animation
     caloriesPerMinute: 15,
     variations: [],
     precautions: [],
@@ -129,12 +129,55 @@ const mockExercises: Exercise[] = [{
     description: 'Core strengthening exercise',
     category: ExerciseCategory.STRENGTH,
     primaryMuscleGroups: ['core', 'shoulders'],
-    secondaryMuscleGroups: [],
+    secondaryMuscleGroups: ['back'],
     equipment: ['bodyweight'],
     difficulty: 'intermediate',
     instructions: ['Start in forearm plank', 'Hold position', 'Keep body straight'],
     images: [],
+    gifUrl: 'https://i.pinimg.com/originals/8a/cf/8a/8acf8aa6e6c4c5f6dca9b55c4b9c4e13.gif', // Plank animation
     caloriesPerMinute: 5,
+    variations: [],
+    precautions: [],
+    contraindications: [],
+    isApproved: true,
+    createdBy: 'system',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+},
+{
+    _id: '5',
+    name: 'Jumping Jacks',
+    description: 'Full body cardio warm-up exercise',
+    category: ExerciseCategory.CARDIO,
+    primaryMuscleGroups: ['legs', 'shoulders', 'core'],
+    secondaryMuscleGroups: ['calves'],
+    equipment: ['bodyweight'],
+    difficulty: 'beginner',
+    instructions: ['Stand with feet together', 'Jump feet apart while raising arms', 'Return to starting position'],
+    images: [],
+    gifUrl: 'https://i.pinimg.com/originals/0e/f1/6d/0ef16d1b8cc4a9f1b0e69c4dda2bb3f4.gif', // Jumping Jacks animation
+    caloriesPerMinute: 12,
+    variations: [],
+    precautions: [],
+    contraindications: [],
+    isApproved: true,
+    createdBy: 'system',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+},
+{
+    _id: '6',
+    name: 'Mountain Climbers',
+    description: 'High-intensity cardio exercise',
+    category: ExerciseCategory.CARDIO,
+    primaryMuscleGroups: ['core', 'shoulders', 'legs'],
+    secondaryMuscleGroups: ['arms'],
+    equipment: ['bodyweight'],
+    difficulty: 'intermediate',
+    instructions: ['Start in plank position', 'Alternate bringing knees to chest', 'Maintain plank form'],
+    images: [],
+    gifUrl: 'https://i.pinimg.com/originals/fe/5f/09/fe5f09c68db3a9e4b1a1b8f26e0b1a02.gif', // Mountain Climbers animation
+    caloriesPerMinute: 14,
     variations: [],
     precautions: [],
     contraindications: [],
@@ -176,7 +219,7 @@ const ExerciseSearch: React.FC<{
                 background: 'linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%)',
                 borderRadius: 3,
                 border: '1px solid rgba(33, 150, 243, 0.1)',
-                mb: 3,
+                mb: 3
             }}
         >
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
@@ -227,13 +270,14 @@ const ExerciseSearch: React.FC<{
                     overflowY: 'auto',
                 }}
                 className="exercise-list-scroll"
-            >        {filteredExercises.map((exercise) => (
+            >            {filteredExercises.map((exercise) => (
                 <Card
                     key={exercise._id}
                     className="exercise-card hover-lift"
                     sx={{
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
+                        overflow: 'hidden',
                         '&:hover': {
                             transform: 'translateY(-2px)',
                             boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
@@ -241,28 +285,138 @@ const ExerciseSearch: React.FC<{
                     }}
                     onClick={() => onExerciseSelect(exercise)}
                 >
-                    <CardContent sx={{ p: 2 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                            <Typography variant="subtitle1" fontWeight="600" sx={{ flex: 1 }}>
-                                {exercise.name}
-                            </Typography>                <Chip
+                    {/* Exercise GIF Preview */}
+                    {exercise.gifUrl && (
+                        <Box
+                            sx={{
+                                position: 'relative',
+                                height: 120,
+                                background: 'linear-gradient(45deg, #f5f5f5 0%, #e0e0e0 100%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                overflow: 'hidden'
+                            }}
+                        >
+                            <img
+                                src={exercise.gifUrl}
+                                alt={`${exercise.name} demonstration`} style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                    transition: 'all 0.3s ease',
+                                    filter: 'brightness(0.95)',
+                                    opacity: 0, // Start invisible for smooth loading
+                                }} onError={(e) => {
+                                    // Fallback to default fitness icon if GIF fails
+                                    const target = e.currentTarget;
+                                    target.style.display = 'none';
+                                    const parent = target.parentElement;
+                                    if (parent) {
+                                        const fallbackDiv = document.createElement('div');
+                                        fallbackDiv.style.cssText = `
+                                            display: flex; 
+                                            align-items: center; 
+                                            justify-content: center; 
+                                            height: 100%; 
+                                            color: #666;
+                                            background: linear-gradient(45deg, #f8f9fa 0%, #e9ecef 100%);
+                                        `;
+                                        fallbackDiv.innerHTML = `
+                                            <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 16.29 22 18.43 19.86 19.86 21.29 21.29 19.86l-1.43-1.43L22 16.29z"/>
+                                            </svg>
+                                        `;
+                                        parent.appendChild(fallbackDiv);
+                                    }
+                                }}
+                                onLoad={(e) => {
+                                    // Smooth fade-in animation when GIF loads
+                                    e.currentTarget.style.opacity = '1';
+                                }}
+                            />
+                            {/* Exercise Category Badge */}
+                            <Chip
+                                label={exercise.category}
+                                size="small"
+                                sx={{
+                                    position: 'absolute',
+                                    top: 8,
+                                    left: 8,
+                                    backgroundColor: 'rgba(255,255,255,0.9)',
+                                    backdropFilter: 'blur(4px)',
+                                    fontSize: '0.7rem',
+                                    fontWeight: 600,
+                                }}
+                            />
+                            {/* Difficulty Badge */}
+                            <Chip
                                 label={exercise.difficulty}
                                 color={getDifficultyColor(exercise.difficulty) as 'success' | 'warning' | 'error' | 'default'}
                                 size="small"
-                                sx={{ ml: 1 }}
+                                sx={{
+                                    position: 'absolute',
+                                    top: 8,
+                                    right: 8,
+                                    backgroundColor: 'rgba(255,255,255,0.95)',
+                                    backdropFilter: 'blur(4px)',
+                                    fontSize: '0.7rem',
+                                    fontWeight: 600,
+                                }}
                             />
                         </Box>
+                    )}
 
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, minHeight: 40 }}>
+                    <CardContent sx={{ p: 2 }}>
+                        {/* Exercise Name */}
+                        <Typography
+                            variant="subtitle1"
+                            fontWeight="600"
+                            sx={{
+                                mb: 1,
+                                color: '#1565c0',
+                                lineHeight: 1.2,
+                            }}
+                        >
+                            {exercise.name}
+                        </Typography>
+
+                        {/* Description */}
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                                mb: 2,
+                                minHeight: 40,
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                lineHeight: 1.4,
+                            }}
+                        >
                             {exercise.description}
                         </Typography>
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                            <CaloriesIcon sx={{ fontSize: 16, color: 'orange' }} />
-                            <Typography variant="caption">
-                                {exercise.caloriesPerMinute} cal/min
-                            </Typography>
+                        {/* Calories & Equipment Info */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <CaloriesIcon sx={{ fontSize: 16, color: '#ff9800' }} />
+                                <Typography variant="caption" color="text.secondary">
+                                    {exercise.caloriesPerMinute} cal/min
+                                </Typography>
+                            </Box>                            {exercise.equipment.length > 0 && (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <FitnessCenterIcon sx={{ fontSize: 16, color: '#2196f3' }} />
+                                    <Typography variant="caption" color="text.secondary">
+                                        {exercise.equipment[0]}
+                                        {exercise.equipment.length > 1 && ` +${exercise.equipment.length - 1}`}
+                                    </Typography>
+                                </Box>
+                            )}
                         </Box>
+
+                        {/* Muscle Groups */}
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                             {exercise.primaryMuscleGroups.slice(0, 2).map((muscle: string) => (
                                 <Chip
@@ -270,7 +424,15 @@ const ExerciseSearch: React.FC<{
                                     label={muscle}
                                     size="small"
                                     variant="outlined"
-                                    sx={{ fontSize: '0.7rem', height: 20 }}
+                                    sx={{
+                                        fontSize: '0.7rem',
+                                        height: 20,
+                                        borderColor: '#2196f3',
+                                        color: '#1565c0',
+                                        '&:hover': {
+                                            backgroundColor: 'rgba(33, 150, 243, 0.08)',
+                                        },
+                                    }}
                                 />
                             ))}
                             {exercise.primaryMuscleGroups.length > 2 && (
@@ -278,7 +440,12 @@ const ExerciseSearch: React.FC<{
                                     label={`+${exercise.primaryMuscleGroups.length - 2}`}
                                     size="small"
                                     variant="outlined"
-                                    sx={{ fontSize: '0.7rem', height: 20 }}
+                                    sx={{
+                                        fontSize: '0.7rem',
+                                        height: 20,
+                                        borderColor: '#ff9800',
+                                        color: '#f57c00',
+                                    }}
                                 />
                             )}
                         </Box>
@@ -718,6 +885,7 @@ const CreateWorkoutPage: React.FC = () => {
                 minHeight: '100vh',
                 background: 'linear-gradient(135deg, #1976d2 0%, #ff9800 100%)',
                 py: 4,
+                paddingTop: '8rem'
             }}
         >
             <Container maxWidth="xl">
