@@ -175,7 +175,7 @@ const ExerciseDetailPage: React.FC = () => {
                 pt: { xs: 10, md: 12 },
             }}
         >
-            <Container maxWidth="xl">
+            <Container maxWidth="lg">
                 <ExerciseDetailContent exerciseSlug={slug} navigate={navigate} />
             </Container>
         </Box>
@@ -484,8 +484,11 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
                     }}
                 >
                     Thư viện bài tập
-                </Link>                <Typography color="text.primary">{exercise.name}</Typography>
-            </Breadcrumbs>            {/* 📱 Mobile Timeline Navigation - Horizontal Scroll */}
+                </Link>
+                <Typography color="text.primary">{exercise.name}</Typography>
+            </Breadcrumbs>
+
+            {/* 📱 Mobile Timeline Navigation - Horizontal Scroll */}
             <Box sx={{
                 display: { xs: 'block', lg: 'none' },
                 mb: 3,
@@ -1162,7 +1165,7 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
                                     Thông tin quan trọng để tránh chấn thương và tập luyện hiệu quả
                                 </Typography>
                             </Box>
-                            <Box sx={{
+                            {/* <Box sx={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 1,
@@ -1176,7 +1179,7 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
                                 <Typography variant="caption" fontWeight="600">
                                     BẮT BUỘC ĐỌC
                                 </Typography>
-                            </Box>
+                            </Box> */}
                         </Box>
 
                         {/* Enhanced Content Area */}
@@ -1812,7 +1815,8 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
                                         </CardContent>
                                     </Card>
                                 </Box>
-                            </Box>                    {/* Revolutionary Call to Action Area với modern glassmorphism */}
+                            </Box>
+                            {/* Revolutionary Call to Action Area với modern glassmorphism */}
                             <Box sx={{
                                 textAlign: 'center',
                                 p: 5,
@@ -1838,8 +1842,7 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
                                     '50%': { opacity: 0.8 }
                                 }
                             }}>
-                                <Box sx={{ position: 'relative', zIndex: 2 }}>
-                                    {/* Hero Icon Section */}
+                                <Box sx={{ position: 'relative', zIndex: 2 }}>                                    {/* Hero Icon Section */}
                                     <Box sx={{
                                         mb: 4,
                                         display: 'flex',
@@ -1848,10 +1851,10 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
                                         gap: 2
                                     }}>
                                         <Box sx={{
-                                            background: 'linear-gradient(135deg, #ffd700 0%, #ffb300 100%)',
+                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                                             borderRadius: '50%',
                                             p: 3,
-                                            boxShadow: '0 20px 40px rgba(255, 215, 0, 0.3)',
+                                            boxShadow: '0 20px 40px rgba(102, 126, 234, 0.3)',
                                             border: '3px solid rgba(255,255,255,0.3)',
                                             position: 'relative',
                                             animation: 'pulse 2s ease-in-out infinite',
@@ -1860,7 +1863,7 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
                                                 position: 'absolute',
                                                 inset: -5,
                                                 borderRadius: '50%',
-                                                background: 'linear-gradient(135deg, rgba(255,215,0,0.3), transparent)',
+                                                background: 'linear-gradient(135deg, rgba(102,126,234,0.3), transparent)',
                                                 zIndex: -1
                                             },
                                             '@keyframes pulse': {
@@ -1868,7 +1871,7 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
                                                 '50%': { transform: 'scale(1.05)' }
                                             }
                                         }}>
-                                            <EmojiEvents sx={{
+                                            <FitnessCenter sx={{
                                                 fontSize: 56,
                                                 color: 'white',
                                                 filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))'
@@ -1917,9 +1920,7 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
                                             Hãy bắt đầu với các bước cơ bản và từ từ nâng cao độ khó.
                                             Nhớ luôn chú ý đến kỹ thuật để đạt hiệu quả tối ưu và tránh chấn thương! 💪
                                         </Typography>
-                                    </Box>
-
-                                    {/* Action Buttons */}
+                                    </Box>                                    {/* Enhanced Action Buttons */}
                                     <Box sx={{
                                         display: 'flex',
                                         gap: 4,
@@ -1927,23 +1928,25 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
                                         flexWrap: 'wrap',
                                         alignItems: 'center'
                                     }}>
+                                        {/* 🎯 NEW: Enhanced "Bắt đầu luyện tập" Button */}
                                         <Button
                                             variant="contained"
                                             size="large"
                                             sx={{
-                                                background: 'linear-gradient(135deg, #00c851 0%, #00ff00 50%, #007e33 100%)',
+                                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                                                 color: 'white',
-                                                border: '2px solid rgba(255,255,255,0.4)',
+                                                border: '3px solid rgba(255,255,255,0.2)',
                                                 px: 6,
                                                 py: 2.5,
-                                                borderRadius: 6,
+                                                borderRadius: 8,
                                                 fontWeight: 800,
-                                                fontSize: '1.2rem',
-                                                minWidth: 260,
+                                                fontSize: '1.3rem',
+                                                minWidth: 280,
                                                 textTransform: 'none',
-                                                boxShadow: '0 12px 30px rgba(0, 200, 81, 0.4)',
                                                 position: 'relative',
                                                 overflow: 'hidden',
+                                                boxShadow: '0 20px 40px rgba(102, 126, 234, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+                                                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                                                 '&::before': {
                                                     content: '""',
                                                     position: 'absolute',
@@ -1951,27 +1954,57 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
                                                     left: '-100%',
                                                     width: '100%',
                                                     height: '100%',
-                                                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
-                                                    transition: 'left 0.6s ease'
+                                                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+                                                    transition: 'left 0.8s ease'
+                                                },
+                                                '&::after': {
+                                                    content: '""',
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    left: 0,
+                                                    right: 0,
+                                                    bottom: 0,
+                                                    background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.1) 100%)',
+                                                    pointerEvents: 'none'
                                                 },
                                                 '&:hover': {
-                                                    background: 'linear-gradient(135deg, #007e33 0%, #00c851 50%, #00ff00 100%)',
-                                                    transform: 'translateY(-6px) scale(1.05)',
-                                                    boxShadow: '0 20px 45px rgba(0, 200, 81, 0.6)',
+                                                    background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
+                                                    transform: 'translateY(-8px) scale(1.05)',
+                                                    boxShadow: '0 30px 60px rgba(102, 126, 234, 0.6), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.3)',
+                                                    border: '3px solid rgba(255,255,255,0.4)',
                                                     '&::before': {
                                                         left: '100%'
                                                     }
+                                                },
+                                                '&:active': {
+                                                    transform: 'translateY(-4px) scale(1.02)',
+                                                    transition: 'all 0.1s ease'
                                                 }
                                             }}
-                                            startIcon={<PlayArrow sx={{ fontSize: '2rem' }} />}
+                                            startIcon={
+                                                <Box sx={{
+                                                    background: 'linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1))',
+                                                    borderRadius: '50%',
+                                                    p: 1,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    mr: 1
+                                                }}>
+                                                    <PlayArrow sx={{ fontSize: '2rem', color: 'white' }} />
+                                                </Box>
+                                            }
                                             onClick={() => {
                                                 console.log('Starting workout with:', exercise.name);
                                                 // TODO: Add workout start logic
                                             }}
                                         >
-                                            Bắt đầu luyện tập
+                                            <Box sx={{ position: 'relative', zIndex: 1 }}>
+                                                Bắt đầu luyện tập
+                                            </Box>
                                         </Button>
 
+                                        {/* Enhanced "Lưu bài tập" Button */}
                                         <Button
                                             variant="outlined"
                                             size="large"
@@ -1981,15 +2014,16 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
                                                 borderWidth: '2px',
                                                 px: 5,
                                                 py: 2.5,
-                                                borderRadius: 6,
+                                                borderRadius: 8,
                                                 fontWeight: 700,
                                                 fontSize: '1.1rem',
                                                 textTransform: 'none',
                                                 backdropFilter: 'blur(15px)',
-                                                background: 'rgba(255,255,255,0.05)',
+                                                background: 'rgba(255,255,255,0.08)',
                                                 minWidth: 200,
                                                 position: 'relative',
                                                 overflow: 'hidden',
+                                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                                                 '&::before': {
                                                     content: '""',
                                                     position: 'absolute',
@@ -2004,8 +2038,8 @@ const ExerciseDetailContent: React.FC<{ exerciseSlug: string; navigate: any }> =
                                                 '&:hover': {
                                                     borderColor: 'white',
                                                     bgcolor: 'rgba(255,255,255,0.15)',
-                                                    transform: 'translateY(-3px)',
-                                                    boxShadow: '0 12px 25px rgba(255,255,255,0.2)',
+                                                    transform: 'translateY(-4px)',
+                                                    boxShadow: '0 16px 32px rgba(255,255,255,0.2)',
                                                     '&::before': {
                                                         opacity: 1
                                                     }
