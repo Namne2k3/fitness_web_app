@@ -35,7 +35,7 @@ import { Exercise, WorkoutExercise } from '../../../types';
 import { WorkoutCategory, DifficultyLevel } from '../../../types/workout.interface';
 import { WorkoutService } from '../../../services/workoutService';
 import ExercisePicker from '../../../components/exercise/ExercisePicker';
-import ExerciseLibraryModal from '../../../components/exercise/ExerciseLibraryModal_New';
+import ExerciseLibraryModal from '../../../components/exercise/ExerciseLibraryModal';
 import WorkoutExerciseCard from './components/WorkoutExerciseCard_Real';
 import './CreateWorkoutPage.css';
 
