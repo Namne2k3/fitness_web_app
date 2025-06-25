@@ -3,7 +3,7 @@
  * React 19 implementation với Material UI design system
  */
 
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import {
     Box,
     Grid,
@@ -39,7 +39,15 @@ const ExerciseList = ({ params, onExerciseClick, viewMode = 'grid' }: ExerciseLi
         isFetching
     } = useExercises(params);
 
-    const [internalViewMode] = useState<'grid' | 'list'>(viewMode);
+    const [internalViewMode, setInternalViewMode] = useState<'grid' | 'list'>(viewMode);
+    const [isPending, startTransition] = useTransition();
+
+    // Handle view mode change
+    const handleViewModeChange = (mode: 'grid' | 'list') => {
+        startTransition(() => {
+            setInternalViewMode(mode);
+        });
+    };
 
     // Loading state
     if (isLoading) {
@@ -80,7 +88,7 @@ const ExerciseList = ({ params, onExerciseClick, viewMode = 'grid' }: ExerciseLi
     }
 
     // Empty state
-    if (!exerciseData?.data || exerciseData.data.length === 0) {
+    if (!exerciseData?.exercises || exerciseData.exercises.length === 0) {
         return (
             <Box sx={{
                 display: 'flex',
@@ -107,7 +115,7 @@ const ExerciseList = ({ params, onExerciseClick, viewMode = 'grid' }: ExerciseLi
         );
     }
 
-    const exercises = exerciseData.data;
+    const exercises = exerciseData.exercises;
 
     return (
         <Box>
