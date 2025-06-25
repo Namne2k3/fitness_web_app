@@ -23,6 +23,7 @@ import { useExercises } from '../../hooks/useExercises';
 import ExerciseFilters, { ExerciseFilterState } from './components/ExerciseFilters';
 import ExerciseList from './components/ExerciseList';
 import ExercisePagination from './components/ExercisePagination';
+import WorkoutSelectionModal from '../../components/workout/WorkoutSelectionModal';
 
 interface ExercisePageState {
     success: boolean;
@@ -78,6 +79,12 @@ const ExercisePage: React.FC = () => {
         order: 'asc'
     });
 
+    // ================================
+    // 🆕 Workout Selection Modal State
+    // ================================
+    const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+    const [showWorkoutModal, setShowWorkoutModal] = useState(false);
+
     // Helper function để convert ExerciseFilterState sang ExerciseListParams['filters']
     const mapFiltersToParams = (filters: ExerciseFilterState): ExerciseListParams['filters'] => {
         return {
@@ -108,6 +115,18 @@ const ExercisePage: React.FC = () => {
         // Use slug if available, fallback to id for backward compatibility
         const identifier = exercise.slug || exercise._id;
         navigate(`/exercises/${identifier}`);
+    };
+
+    // 🆕 Handle Add to Workout
+    const handleAddToWorkout = (exercise: Exercise) => {
+        setSelectedExercise(exercise);
+        setShowWorkoutModal(true);
+    };
+
+    // 🆕 Handle Workout Selection Complete
+    const handleWorkoutSelected = (workoutId: string) => {
+        console.log(`Exercise ${selectedExercise?.name} added to workout ${workoutId}`);
+        // Show success message or navigate to workout
     };
 
     const handlePageChange = (_: React.ChangeEvent<unknown>, newPage: number) => {
@@ -201,6 +220,7 @@ const ExercisePage: React.FC = () => {
                     <ExerciseList
                         params={exerciseParams}
                         onExerciseClick={handleExerciseClick}
+                        onAddToWorkout={handleAddToWorkout}
                         viewMode={viewMode}
                     />
 
@@ -244,6 +264,19 @@ const ExercisePage: React.FC = () => {
                     <Add />
                 </Fab> */}
             </Container>
+
+            {/* ================================ */}
+            {/* 🆕 Workout Selection Modal */}
+            {/* ================================ */}
+            <WorkoutSelectionModal
+                isOpen={showWorkoutModal}
+                onClose={() => {
+                    setShowWorkoutModal(false);
+                    setSelectedExercise(null);
+                }}
+                exercise={selectedExercise}
+                onWorkoutSelected={handleWorkoutSelected}
+            />
         </Box>
     );
 };

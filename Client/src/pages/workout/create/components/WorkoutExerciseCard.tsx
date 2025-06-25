@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * 💪 ExerciseCard - Modern Fitness-Focused Design
  * React 19 implementation với Material UI design system
@@ -16,28 +17,18 @@ import {
     Fade,
     LinearProgress,
     useTheme,
-    alpha,
-    Menu,
-    MenuItem,
-    ListItemIcon,
-    ListItemText,
-    Tooltip
+    alpha
 } from '@mui/material';
 import {
+    FitnessCenter,
     PlayArrow,
     LocalFireDepartment,
     Favorite,
     FavoriteBorder,
     BookmarkBorder,
-    Bookmark,
-    MoreVert,
-    Add,
-    Share,
-    Info
+    Bookmark
 } from '@mui/icons-material';
-import { Exercise } from '../../../types';
-import { getCategoryLabel, getDifficultyLabel } from '../helpers';
-import WorkoutSelectionModal from '../../../components/workout/WorkoutSelectionModal';
+import { Exercise } from '../../../../types';
 
 interface ExerciseCardProps {
     exercise: Exercise;
@@ -59,13 +50,9 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
 }) => {
     const theme = useTheme();
     const [isHovered, setIsHovered] = useState(false);
-    const [, startTransition] = useTransition();
+    const [isPending, startTransition] = useTransition();
     const [isLiked, setIsLiked] = useState(false);
     const [isBookmarked, setIsBookmarked] = useState(false);
-
-    // Menu state
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false);
 
     // Handle click with transition
     const handleClick = () => {
@@ -84,39 +71,6 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
     const handleBookmark = (event: React.MouseEvent) => {
         event.stopPropagation();
         setIsBookmarked(!isBookmarked);
-    };
-
-    // Handle menu open
-    const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-        event.stopPropagation();
-        setAnchorEl(event.currentTarget);
-    };
-
-    // Handle menu close
-    const handleMenuClose = () => {
-        setAnchorEl(null);
-    };
-
-    // Handle add to workout
-    const handleAddToWorkout = (event: React.MouseEvent) => {
-        event.stopPropagation();
-        handleMenuClose();
-        setIsWorkoutModalOpen(true);
-    };
-
-    // Handle share
-    const handleShare = (event: React.MouseEvent) => {
-        event.stopPropagation();
-        handleMenuClose();
-        // TODO: Implement share functionality
-        console.log('Share exercise:', exercise.name);
-    };
-
-    // Handle view details
-    const handleViewDetails = (event: React.MouseEvent) => {
-        event.stopPropagation();
-        handleMenuClose();
-        onClick(); // Navigate to exercise details
     };
 
     // Get difficulty color
@@ -244,39 +198,19 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                         )}
                     </Box>
 
-                    {/* Actions */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {/* More Options Menu */}
-                        <Tooltip title="More options">
-                            <IconButton
-                                onClick={handleMenuOpen}
-                                size="small"
-                                sx={{
-                                    color: 'text.secondary',
-                                    '&:hover': {
-                                        bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                        color: theme.palette.primary.main,
-                                    }
-                                }}
-                            >
-                                <MoreVert />
-                            </IconButton>
-                        </Tooltip>
-
-                        {/* Play Button */}
-                        <IconButton
-                            sx={{
-                                bgcolor: theme.palette.primary.main,
-                                color: 'white',
-                                '&:hover': {
-                                    bgcolor: theme.palette.primary.dark,
-                                    transform: 'scale(1.1)',
-                                }
-                            }}
-                        >
-                            <PlayArrow />
-                        </IconButton>
-                    </Box>
+                    {/* Action Button */}
+                    <IconButton
+                        sx={{
+                            bgcolor: theme.palette.primary.main,
+                            color: 'white',
+                            '&:hover': {
+                                bgcolor: theme.palette.primary.dark,
+                                transform: 'scale(1.1)',
+                            }
+                        }}
+                    >
+                        <PlayArrow />
+                    </IconButton>
                 </Box>
             </Card>
         );
@@ -310,7 +244,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                 <CardMedia
                     component="img"
                     height={variant === 'standard' ? 200 : 160}
-                    image={exercise.images?.[0] ?? 'https://media.istockphoto.com/id/512085711/photo/deadlift.jpg?s=612x612&w=0&k=20&c=0FDKEliyGHJ8QJB1G_UO6yx8f4JPdkYeGmsqi-aV2y0='}
+                    image={exercise.images?.[0] || '/placeholder-exercise.jpg'}
                     alt={exercise.name}
                     sx={{
                         transition: 'transform 0.3s ease',
@@ -356,31 +290,9 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                     </Box>
                 </Fade>
 
-                {/* More Options Button */}
-                <Tooltip title="More options">
-                    <IconButton
-                        onClick={handleMenuOpen}
-                        sx={{
-                            position: 'absolute',
-                            top: 8,
-                            left: 8,
-                            bgcolor: 'rgba(0,0,0,0.6)',
-                            color: 'white',
-                            width: 32,
-                            height: 32,
-                            '&:hover': {
-                                bgcolor: 'rgba(0,0,0,0.8)',
-                                transform: 'scale(1.1)',
-                            }
-                        }}
-                    >
-                        <MoreVert sx={{ fontSize: 18 }} />
-                    </IconButton>
-                </Tooltip>
-
                 {/* Difficulty Badge */}
                 <Chip
-                    label={getDifficultyLabel(exercise.difficulty)}
+                    label={exercise.difficulty}
                     size="small"
                     sx={{
                         position: 'absolute',
@@ -460,7 +372,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                         borderRadius: 1,
                         fontWeight: 600
                     }}>
-                        {getCategoryIcon(exercise.category)} {getCategoryLabel(exercise.category)}
+                        {getCategoryIcon(exercise.category)} {exercise.category}
                     </Typography>
                 </Box>
 
@@ -506,50 +418,6 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                     </Box>
                 )}
             </CardContent>
-
-            {/* Options Menu */}
-            <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-                onClick={(e) => e.stopPropagation()}
-                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-                PaperProps={{
-                    sx: {
-                        mt: 1,
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                        borderRadius: 2,
-                        minWidth: 200
-                    }
-                }}
-            >
-                <MenuItem onClick={handleAddToWorkout}>
-                    <ListItemIcon>
-                        <Add sx={{ color: 'primary.main' }} />
-                    </ListItemIcon>
-                    <ListItemText primary="Add to Workout" />
-                </MenuItem>
-                <MenuItem onClick={handleShare}>
-                    <ListItemIcon>
-                        <Share sx={{ color: 'text.secondary' }} />
-                    </ListItemIcon>
-                    <ListItemText primary="Share Exercise" />
-                </MenuItem>
-                <MenuItem onClick={handleViewDetails}>
-                    <ListItemIcon>
-                        <Info sx={{ color: 'text.secondary' }} />
-                    </ListItemIcon>
-                    <ListItemText primary="View Details" />
-                </MenuItem>
-            </Menu>
-
-            {/* Workout Selection Modal */}
-            <WorkoutSelectionModal
-                isOpen={isWorkoutModalOpen}
-                onClose={() => setIsWorkoutModalOpen(false)}
-                exercise={exercise}
-            />
         </Card>
     );
 };

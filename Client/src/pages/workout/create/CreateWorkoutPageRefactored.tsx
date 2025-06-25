@@ -31,12 +31,12 @@ import {
 } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useNavigate } from 'react-router-dom';
-import { Exercise, WorkoutExercise } from '../../../types';
+import { Exercise, WorkoutExercise, ExerciseCategory } from '../../../types';
 import { WorkoutCategory, DifficultyLevel } from '../../../types/workout.interface';
 import { WorkoutService } from '../../../services/workoutService';
 import ExercisePicker from '../../../components/exercise/ExercisePicker';
-import ExerciseLibraryModal from '../../../components/exercise/ExerciseLibraryModal_New';
-import WorkoutExerciseCard from './components/WorkoutExerciseCard_Real';
+import ExerciseLibraryModal from '../../../components/exercise/ExerciseLibraryModal';
+import { WorkoutExerciseCard } from './components/WorkoutExerciseCard';
 import './CreateWorkoutPage.css';
 
 // ================================
@@ -280,10 +280,9 @@ const CreateWorkoutPage: React.FC = () => {
                 minHeight: '100vh',
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 py: 4,
-                pt: '8rem'
             }}
         >
-            <Container maxWidth="lg">
+            <Container maxWidth="xl">
                 <Box
                     sx={{
                         display: 'flex',
@@ -491,8 +490,29 @@ const CreateWorkoutPage: React.FC = () => {
                     <Box sx={{ flex: 2 }}>
                         {/* Exercise Picker Component */}
                         <ExercisePicker
-                            onQuickAdd={handleQuickAddExercise}
-                            onOpenLibrary={() => setShowExerciseLibrary(true)}
+                            selectedExercises={selectedExercises.map(ex => ({
+                                _id: ex.exerciseId,
+                                name: ex.name || `Exercise ${ex.exerciseId}`,
+                                description: '',
+                                category: ExerciseCategory.STRENGTH,
+                                primaryMuscleGroups: [],
+                                secondaryMuscleGroups: [],
+                                equipment: [],
+                                difficulty: 'beginner',
+                                instructions: [],
+                                images: [],
+                                caloriesPerMinute: 0,
+                                variations: [],
+                                precautions: [],
+                                contraindications: [],
+                                isApproved: true,
+                                createdBy: 'user',
+                                createdAt: new Date(),
+                                updatedAt: new Date()
+                            }))}
+                            onExerciseSelected={handleQuickAddExercise}
+                            onExerciseRemoved={(exercise) => handleRemoveExercise(exercise._id)}
+                            onLibraryOpen={() => setShowExerciseLibrary(true)}
                         />
 
                         {/* Selected Exercises */}
@@ -568,8 +588,8 @@ const CreateWorkoutPage: React.FC = () => {
                                                                 <WorkoutExerciseCard
                                                                     exercise={exercise}
                                                                     index={index}
-                                                                    dragHandleProps={provided.dragHandleProps || undefined}
-                                                                    onUpdate={(updates: Partial<WorkoutExercise>) =>
+                                                                    dragHandleProps={provided.dragHandleProps}
+                                                                    onUpdate={(updates) =>
                                                                         handleUpdateExercise(exercise.exerciseId, updates)
                                                                     }
                                                                     onRemove={() =>
