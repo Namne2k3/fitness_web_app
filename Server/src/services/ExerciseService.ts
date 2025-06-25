@@ -105,9 +105,38 @@ export class ExerciseService {
                 }
             }
 
-            // Search filter (text search)
+            // ================================
+            // 🔍 Enhanced Search Logic với Partial Matching
+            // ================================
             if (filters.search) {
-                query.$text = { $search: filters.search };
+                const searchTerm = filters.search.trim();
+
+                if (searchTerm.length > 0) {
+                    // Create regex pattern for partial matching (case-insensitive)
+                    const regexPattern = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+
+                    // Search across multiple fields với $or operator
+                    query.$or = [
+                        // Primary search: exercise name (highest priority)
+                        { name: { $regex: regexPattern } },
+
+                        // Secondary search: description
+                        { description: { $regex: regexPattern } },
+
+                        // Tertiary search: muscle groups (fix regex pattern)
+                        { primaryMuscleGroups: { $regex: regexPattern } },
+                        { secondaryMuscleGroups: { $regex: regexPattern } },
+
+                        // Equipment search (fix regex pattern)
+                        { equipment: { $regex: regexPattern } },
+
+                        // Instructions search (array element search)
+                        { instructions: { $elemMatch: { $regex: regexPattern } } },
+
+                        // Fallback: MongoDB text search cho exact phrase matching
+                        ...(searchTerm.includes(' ') ? [{ $text: { $search: `"${searchTerm}"` } }] : [])
+                    ];
+                }
             }
 
             // ================================

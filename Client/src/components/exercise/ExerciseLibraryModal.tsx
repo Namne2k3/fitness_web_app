@@ -1,21 +1,20 @@
 /**
- * 💪 ExerciseLibraryModal - Advanced Exercise Selection Modal
- * React 19 implementation với modern UI design và enhanced UX
+ * 💪 ExerciseLibraryModal - Enhanced Modern UI/UX
+ * React 19 implementation with improved design & user experience
  */
 
 import React, { useState, useTransition } from 'react';
 import {
     Dialog,
-    DialogTitle,
     DialogContent,
     DialogActions,
+    DialogTitle,
     Box,
     TextField,
     Button,
     IconButton,
     InputAdornment,
     Typography,
-    Chip,
     Stack,
     Paper,
     Badge,
@@ -23,23 +22,18 @@ import {
     CircularProgress,
     Alert,
     useTheme,
-    alpha,
     Avatar
 } from '@mui/material';
 import {
     Close as CloseIcon,
     Search as SearchIcon,
-    FilterList as FilterIcon,
     Add as AddIcon,
     Check as CheckIcon,
-    Category as CategoryIcon,
     FitnessCenter as FitnessCenterIcon,
     Clear as ClearIcon,
-    TuneRounded as TuneIcon,
-    SportsMma as SportsIcon
 } from '@mui/icons-material';
 import { Exercise, WorkoutExercise } from '../../types';
-import ExerciseCard from './ExerciseCard';
+import ExerciseCard from '../../pages/exercise/components/ExerciseCard';
 import { useExercises } from '../../hooks/useExercises';
 import { ExerciseListParams } from '../../services/exerciseService';
 
@@ -51,46 +45,6 @@ interface ExerciseLibraryModalProps {
     selectedExerciseIds?: string[];
     maxSelection?: number;
 }
-
-interface FilterState {
-    category: string;
-    difficulty: string;
-    muscleGroups: string[];
-    equipment: string[];
-}
-
-// ✅ Filter options data
-const filterOptions = {
-    categories: [
-        { value: '', label: 'Tất cả', icon: '🏋️' },
-        { value: 'strength', label: 'Sức mạnh', icon: '💪' },
-        { value: 'cardio', label: 'Tim mạch', icon: '❤️' },
-        { value: 'flexibility', label: 'Linh hoạt', icon: '🧘' },
-        { value: 'balance', label: 'Thăng bằng', icon: '⚖️' }
-    ],
-    difficulties: [
-        { value: '', label: 'Tất cả', color: '#666' },
-        { value: 'beginner', label: 'Người mới', color: '#4caf50' },
-        { value: 'intermediate', label: 'Trung bình', color: '#ff9800' },
-        { value: 'advanced', label: 'Nâng cao', color: '#f44336' }
-    ],
-    muscleGroups: [
-        { value: 'chest', label: 'Ngực', icon: '💪' },
-        { value: 'back', label: 'Lưng', icon: '🔙' },
-        { value: 'legs', label: 'Chân', icon: '🦵' },
-        { value: 'shoulders', label: 'Vai', icon: '🤷' },
-        { value: 'arms', label: 'Tay', icon: '💪' },
-        { value: 'core', label: 'Cơ lõi', icon: '🎯' }
-    ],
-    equipment: [
-        { value: 'bodyweight', label: 'Không TB', icon: '🤸' },
-        { value: 'dumbbells', label: 'Tạ đơn', icon: '🏋️' },
-        { value: 'barbell', label: 'Tạ đòn', icon: '🔗' },
-        { value: 'resistance_bands', label: 'Dây kháng', icon: '🎗️' },
-        { value: 'kettlebell', label: 'Kettlebell', icon: '⚫' },
-        { value: 'machine', label: 'Máy tập', icon: '🤖' }
-    ]
-};
 
 /**
  * ✅ Main ExerciseLibraryModal Component
@@ -105,24 +59,20 @@ const ExerciseLibraryModal: React.FC<ExerciseLibraryModalProps> = ({
     const theme = useTheme();
     const [isPending, startTransition] = useTransition();
 
-    // ================================
-    // 🎯 State Management
-    // ================================
+    // State Management
     const [searchQuery, setSearchQuery] = useState('');
-    const [showFilters, setShowFilters] = useState(false);
-    const [filters, setFilters] = useState<FilterState>({
+    const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
+    const [page, setPage] = useState(1);
+
+    // Filters for future implementation
+    const filters = {
         category: '',
         difficulty: '',
         muscleGroups: [],
         equipment: []
-    });
-    const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
-    const [page, setPage] = useState(1);
+    };
 
-    // ================================
-    // 🔍 Exercise Data Fetching
-    // ================================
-    // Build exercise query parameters with proper typing
+    // Exercise Data Fetching
     const exerciseParams: ExerciseListParams = {
         page,
         limit: 12,
@@ -139,87 +89,57 @@ const ExerciseLibraryModal: React.FC<ExerciseLibraryModalProps> = ({
 
     const { data: exerciseData, isLoading, isError } = useExercises(exerciseParams);
 
-    // ================================
-    // 🎯 Event Handlers
-    // ================================
+    // Event Handlers
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        startTransition(() => {
-            setSearchQuery(event.target.value);
-            setPage(1);
-        });
+        setSearchQuery(event.target.value);
+        setPage(1); // Reset page when searching
     };
 
-    const handleFilterChange = (key: keyof FilterState, value: string | string[]) => {
-        startTransition(() => {
-            setFilters(prev => ({ ...prev, [key]: value }));
-            setPage(1);
-        });
-    };
-
-    const handleExerciseToggle = (exercise: Exercise) => {
+    const handleExerciseSelect = (exercise: Exercise) => {
         setSelectedExercises(prev => {
-            const isSelected = prev.some(ex => ex._id === exercise._id);
+            const isSelected = prev.some(e => e._id === exercise._id);
 
             if (isSelected) {
-                return prev.filter(ex => ex._id !== exercise._id);
-            } else {
-                if (prev.length >= maxSelection) {
-                    return prev; // Don't add if max reached
-                }
+                return prev.filter(e => e._id !== exercise._id);
+            } else if (prev.length < maxSelection) {
                 return [...prev, exercise];
             }
+
+            return prev;
         });
     };
 
-    const handleConfirmSelection = () => {
-        const workoutExercises: WorkoutExercise[] = selectedExercises.map((exercise, index) => ({
-            exerciseId: exercise._id,
-            order: index + 1,
-            sets: 3,
-            reps: 12,
-            restTime: 60
-        }));
-
-        onExercisesSelect(workoutExercises);
-        onClose();
-
-        // Reset modal state
-        setSelectedExercises([]);
-        setSearchQuery('');
-        setFilters({
-            category: '',
-            difficulty: '',
-            muscleGroups: [],
-            equipment: []
-        });
-    };
-
-    const handleClearFilters = () => {
+    const handleAddToWorkout = () => {
         startTransition(() => {
-            setFilters({
-                category: '',
-                difficulty: '',
-                muscleGroups: [],
-                equipment: []
-            });
-            setSearchQuery('');
-            setPage(1);
+            const workoutExercises: WorkoutExercise[] = selectedExercises.map(exercise => ({
+                exerciseId: exercise._id,
+                exercise: exercise._id,
+                name: exercise.name,
+                sets: 3,
+                reps: 12,
+                weight: 0,
+                duration: exercise.averageIntensity ? exercise.averageIntensity * 30 : 60,
+                restTime: 60,
+                notes: '',
+                order: 0
+            }));
+
+            onExercisesSelect(workoutExercises);
+            onClose();
         });
     };
 
-    // ================================
-    // 🎨 Helper Functions
-    // ================================
-    const isExerciseSelected = (exerciseId: string) => {
-        return selectedExercises.some(ex => ex._id === exerciseId) ||
+    const handleClearSelection = () => {
+        setSelectedExercises([]);
+    };
+
+    const isExerciseSelected = (exerciseId: string): boolean => {
+        return selectedExercises.some(e => e._id === exerciseId) ||
             selectedExerciseIds.includes(exerciseId);
     };
 
     const isMaxSelectionReached = selectedExercises.length >= maxSelection;
 
-    // ================================
-    // 🎨 Render Component
-    // ================================
     return (
         <Dialog
             open={isOpen}
@@ -236,7 +156,7 @@ const ExerciseLibraryModal: React.FC<ExerciseLibraryModalProps> = ({
                 }
             }}
         >
-            {/* Enhanced Header with Gradient */}
+            {/* Enhanced Header */}
             <DialogTitle
                 sx={{
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -250,7 +170,7 @@ const ExerciseLibraryModal: React.FC<ExerciseLibraryModalProps> = ({
             >
                 <Box display="flex" alignItems="center" gap={2}>
                     <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 48, height: 48 }}>
-                        <FitnessCenterIcon sx={{ fontSize: 28, color: 'white' }} />
+                        <FitnessCenterIcon sx={{ fontSize: 28 }} />
                     </Avatar>
                     <Box>
                         <Typography variant="h5" fontWeight="bold" sx={{ mb: 0.5 }}>
@@ -270,10 +190,7 @@ const ExerciseLibraryModal: React.FC<ExerciseLibraryModalProps> = ({
                             '& .MuiBadge-badge': {
                                 bgcolor: '#ff4444',
                                 color: 'white',
-                                fontWeight: 'bold',
-                                fontSize: '0.75rem',
-                                minWidth: 20,
-                                height: 20
+                                fontWeight: 'bold'
                             }
                         }}
                     >
@@ -285,7 +202,6 @@ const ExerciseLibraryModal: React.FC<ExerciseLibraryModalProps> = ({
                                 bgcolor: 'rgba(255,255,255,0.15)',
                                 color: 'white',
                                 border: '1px solid rgba(255,255,255,0.2)',
-                                backdropFilter: 'blur(10px)',
                                 borderRadius: 2
                             }}
                         >
@@ -296,9 +212,9 @@ const ExerciseLibraryModal: React.FC<ExerciseLibraryModalProps> = ({
                     </Badge>
 
                     <Tooltip title="Đóng">
-                        <IconButton 
-                            onClick={onClose} 
-                            sx={{ 
+                        <IconButton
+                            onClick={onClose}
+                            sx={{
                                 color: 'white',
                                 bgcolor: 'rgba(255,255,255,0.1)',
                                 '&:hover': {
@@ -313,294 +229,204 @@ const ExerciseLibraryModal: React.FC<ExerciseLibraryModalProps> = ({
                     </Tooltip>
                 </Box>
             </DialogTitle>
-                                color: 'white',
-                                fontWeight: 'bold'
-                            }}
-                        />
-                    </Badge>
 
-                    <IconButton onClick={onClose} sx={{ color: 'white' }}>
-                        <CloseIcon />
-                    </IconButton>
-                </Box >
-            </DialogTitle >
-
-    {/* Content */ }
-    < DialogContent sx = {{ p: 0 }}>
-        {/* Search & Filters */ }
-        < Box sx = {{ p: 3, borderBottom: `1px solid ${theme.palette.divider}` }}>
-            <Stack spacing={2}>
-                {/* Search Bar */}
-                <TextField
-                    fullWidth
-                    placeholder="Tìm kiếm bài tập..."
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    InputProps={{
-                        startAdornment: (
-                            <InputAdornment position="start">
-                                <SearchIcon color="action" />
-                            </InputAdornment>
-                        ),
-                        endAdornment: searchQuery && (
-                            <InputAdornment position="end">
-                                <IconButton
-                                    size="small"
-                                    onClick={() => setSearchQuery('')}
-                                >
-                                    <CloseIcon fontSize="small" />
-                                </IconButton>
-                            </InputAdornment>
-                        )
-                    }}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                />
-
-                {/* Filter Toggle */}
-                <Box display="flex" alignItems="center" justifyContent="space-between">
-                    <Button
-                        startIcon={<FilterIcon />}
-                        onClick={() => setShowFilters(!showFilters)}
-                        variant={showFilters ? "contained" : "outlined"}
-                        size="small"
-                    >
-                        Bộ lọc
-                    </Button>
-
-                    {(filters.category || filters.difficulty ||
-                        filters.muscleGroups.length > 0 || filters.equipment.length > 0) && (
-                            <Button
-                                size="small"
-                                onClick={handleClearFilters}
-                                sx={{ color: theme.palette.text.secondary }}
-                            >
-                                Xóa bộ lọc
-                            </Button>
-                        )}
-                </Box>
-
-                {/* Filter Options */}
-                {showFilters && (
-                    <Paper
-                        elevation={0}
-                        sx={{
-                            p: 2,
-                            bgcolor: alpha(theme.palette.primary.main, 0.02),
-                            border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-                            borderRadius: 2
-                        }}
-                    >
-                        <Stack spacing={2}>
-                            {/* Category Filter */}
-                            <Box>
-                                <Typography variant="subtitle2" gutterBottom>
-                                    Danh mục
-                                </Typography>
-                                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                                    {filterOptions.categories.map((option) => (
-                                        <Chip
-                                            key={option.value}
-                                            label={`${option.icon} ${option.label}`}
-                                            variant={filters.category === option.value ? "filled" : "outlined"}
-                                            onClick={() => handleFilterChange('category',
-                                                filters.category === option.value ? '' : option.value
-                                            )}
-                                            size="small"
-                                        />
-                                    ))}
-                                </Stack>
-                            </Box>
-
-                            {/* Difficulty Filter */}
-                            <Box>
-                                <Typography variant="subtitle2" gutterBottom>
-                                    Độ khó
-                                </Typography>
-                                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                                    {filterOptions.difficulties.map((option) => (
-                                        <Chip
-                                            key={option.value}
-                                            label={option.label}
-                                            variant={filters.difficulty === option.value ? "filled" : "outlined"}
-                                            onClick={() => handleFilterChange('difficulty',
-                                                filters.difficulty === option.value ? '' : option.value
-                                            )}
-                                            size="small"
-                                            sx={{
-                                                color: filters.difficulty === option.value ? 'white' : option.color,
-                                                bgcolor: filters.difficulty === option.value ? option.color : 'transparent',
-                                                borderColor: option.color
-                                            }}
-                                        />
-                                    ))}
-                                </Stack>
-                            </Box>
-                        </Stack>
-                    </Paper>
-                )}
-            </Stack>
-                </Box >
-
-    {/* Exercise List */ }
-    < Box sx = {{ p: 3, minHeight: 400 }}>
-        { isLoading && (
-            <Box display="flex" justifyContent="center" alignItems="center" py={8}>
-                <CircularProgress size={40} />
-                <Typography variant="body1" sx={{ ml: 2 }}>
-                    Đang tải bài tập...
-                </Typography>
-            </Box>
-        )}
-
-{
-    isError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-            Không thể tải danh sách bài tập. Vui lòng thử lại.
-        </Alert>
-    )
-}
-
-{
-    exerciseData && exerciseData.data.length === 0 && (
-        <Box textAlign="center" py={8}>
-            <CategoryIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-                Không tìm thấy bài tập
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-                Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc
-            </Typography>
-        </Box>
-    )
-}
-
-{
-    exerciseData && exerciseData.data.length > 0 && (
-        <Box display="grid"
-            gridTemplateColumns={{
-                xs: '1fr',
-                sm: 'repeat(2, 1fr)',
-                md: 'repeat(3, 1fr)'
-            }}
-            gap={2}>
-            {exerciseData.data.map((exercise) => {
-                const isSelected = isExerciseSelected(exercise._id);
-                const isDisabled = !isSelected && isMaxSelectionReached;
-
-                return (
-                    <Box
-                        key={exercise._id}
-                        position="relative"
-                        sx={{
-                            opacity: isDisabled ? 0.6 : 1,
-                            transition: 'all 0.2s ease',
-                            '& .MuiCard-root': {
-                                border: isSelected ? `2px solid ${theme.palette.success.main}` : undefined,
-                                transform: isSelected ? 'scale(0.98)' : undefined,
-                            }
-                        }}
-                    >
-                        <ExerciseCard
-                            exercise={exercise}
-                            variant="compact"
-                            onExerciseClick={() => { }}
-                            isSelected={isSelected}
-                        />
-
-                        {/* Overlay Selection Button */}
-                        <Box
-                            position="absolute"
-                            top={8}
-                            right={8}
-                            zIndex={2}
-                        >
-                            <Tooltip
-                                title={
-                                    isDisabled
-                                        ? `Tối đa ${maxSelection} bài tập`
-                                        : isSelected
-                                            ? 'Bỏ chọn'
-                                            : 'Chọn bài tập'
-                                }
-                            >
-                                <span>
-                                    <IconButton
-                                        onClick={() => handleExerciseToggle(exercise)}
-                                        disabled={isDisabled}
-                                        size="small"
-                                        sx={{
-                                            bgcolor: isSelected ? 'success.main' : 'primary.main',
-                                            color: 'white',
-                                            boxShadow: 2,
-                                            '&:hover': {
-                                                bgcolor: isSelected ? 'success.dark' : 'primary.dark'
-                                            },
-                                            '&:disabled': {
-                                                bgcolor: 'grey.300',
-                                                color: 'grey.500'
-                                            }
-                                        }}
-                                    >
-                                        {isSelected ? <CheckIcon fontSize="small" /> : <AddIcon fontSize="small" />}
-                                    </IconButton>
-                                </span>
-                            </Tooltip>
-                        </Box>
-                    </Box>
-                );
-            })}
-        </Box>
-    )
-}
-
-{/* Load More Button */ }
-{
-    exerciseData && exerciseData.pagination &&
-    exerciseData.pagination.hasNextPage && (
-        <Box display="flex" justifyContent="center" mt={3}>
-            <Button
-                variant="outlined"
-                onClick={() => setPage(prev => prev + 1)}
-                disabled={isPending}
-                startIcon={isPending ? <CircularProgress size={16} /> : undefined}
-            >
-                {isPending ? 'Đang tải...' : 'Tải thêm'}
-            </Button>
-        </Box>
-    )
-}
-                </Box >
-            </DialogContent >
-
-    {/* Actions */ }
-    < DialogActions
-sx = {{
-    p: 3,
-        borderTop: `1px solid ${theme.palette.divider}`,
-            background: alpha(theme.palette.primary.main, 0.02)
-}}
-            >
-                <Button onClick={onClose} size="large">
-                    Hủy
-                </Button>
-                <Button
-                    variant="contained"
-                    onClick={handleConfirmSelection}
-                    disabled={selectedExercises.length === 0}
-                    size="large"
-                    startIcon={<CheckIcon />}
+            {/* Content */}
+            <DialogContent sx={{ p: 0, bgcolor: 'background.default' }}>
+                {/* Enhanced Search Section */}
+                <Paper
+                    elevation={0}
                     sx={{
-                        minWidth: 160,
-                        background: 'linear-gradient(45deg, #1976d2 30%, #ff9800 90%)',
-                        '&:hover': {
-                            background: 'linear-gradient(45deg, #1565c0 30%, #f57c00 90%)'
-                        }
+                        p: 3,
+                        borderBottom: `1px solid ${theme.palette.divider}`,
+                        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%)'
                     }}
                 >
-                    Thêm {selectedExercises.length} bài tập
-                </Button>
-            </DialogActions >
-        </Dialog >
+                    <TextField
+                        fullWidth
+                        variant="outlined"
+                        placeholder="Tìm kiếm bài tập... (ví dụ: Push-up, Squat, Deadlift)"
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <SearchIcon sx={{ color: 'text.secondary' }} />
+                                </InputAdornment>
+                            ),
+                            endAdornment: searchQuery && (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => setSearchQuery('')}
+                                        sx={{ color: 'text.secondary' }}
+                                    >
+                                        <ClearIcon />
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                            sx: {
+                                borderRadius: 3,
+                                bgcolor: 'white',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                                '& fieldset': {
+                                    border: '1px solid rgba(0,0,0,0.08)',
+                                },
+                                '&:hover fieldset': {
+                                    borderColor: theme.palette.primary.main,
+                                },
+                                '&.Mui-focused fieldset': {
+                                    borderColor: theme.palette.primary.main,
+                                    borderWidth: 2,
+                                }
+                            }
+                        }}
+                    />
+                </Paper>
+
+                {/* Exercise Grid */}
+                <Box sx={{ p: 3, minHeight: 400 }}>
+                    {isLoading && (
+                        <Box display="flex" justifyContent="center" py={4}>
+                            <CircularProgress />
+                        </Box>
+                    )}
+
+                    {isError && (
+                        <Alert severity="error" sx={{ mb: 3 }}>
+                            Có lỗi xảy ra khi tải danh sách bài tập. Vui lòng thử lại.
+                        </Alert>
+                    )}
+
+                    {exerciseData?.data && exerciseData.data.length > 0 ? (
+                        <Box
+                            sx={{
+                                display: 'grid',
+                                gridTemplateColumns: {
+                                    xs: '1fr',
+                                    sm: 'repeat(2, 1fr)',
+                                    md: 'repeat(3, 1fr)'
+                                },
+                                gap: 3
+                            }}
+                        >
+                            {exerciseData.data.map((exercise: Exercise) => (
+                                <Box key={exercise._id}>
+                                    <Box
+                                        sx={{
+                                            position: 'relative',
+                                            border: isExerciseSelected(exercise._id) ?
+                                                `2px solid ${theme.palette.primary.main}` :
+                                                '2px solid transparent',
+                                            borderRadius: 3,
+                                            overflow: 'hidden',
+                                            transition: 'all 0.3s ease',
+                                            cursor: 'pointer',
+                                            width: '100%'
+                                        }}
+                                        onClick={() => handleExerciseSelect(exercise)}
+                                    >
+                                        <ExerciseCard
+                                            exercise={exercise}
+                                            onClick={() => { }} // Empty since we handle in parent
+                                            variant="compact"
+                                        />
+
+                                        {/* Selection Indicator */}
+                                        {isExerciseSelected(exercise._id) && (
+                                            <Box
+                                                sx={{
+                                                    position: 'absolute',
+                                                    top: 8,
+                                                    right: 8,
+                                                    bgcolor: theme.palette.primary.main,
+                                                    color: 'white',
+                                                    borderRadius: '50%',
+                                                    width: 32,
+                                                    height: 32,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                                                }}
+                                            >
+                                                <CheckIcon sx={{ fontSize: 20 }} />
+                                            </Box>
+                                        )}
+
+                                        {/* Disabled Overlay for Max Selection */}
+                                        {!isExerciseSelected(exercise._id) && isMaxSelectionReached && (
+                                            <Box
+                                                sx={{
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    left: 0,
+                                                    right: 0,
+                                                    bottom: 0,
+                                                    bgcolor: 'rgba(0,0,0,0.5)',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    borderRadius: 3
+                                                }}
+                                            >
+                                                <Typography variant="body2" color="white" fontWeight="bold">
+                                                    Đã đạt giới hạn
+                                                </Typography>
+                                            </Box>
+                                        )}
+                                    </Box>
+                                </Box>
+                            ))}
+                        </Box>
+                    ) : !isLoading && (
+                        <Box textAlign="center" py={4}>
+                            <Typography variant="h6" color="text.secondary" gutterBottom>
+                                Không tìm thấy bài tập nào
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                Hãy thử thay đổi từ khóa tìm kiếm hoặc bộ lọc
+                            </Typography>
+                        </Box>
+                    )}
+                </Box>
+            </DialogContent>
+
+            {/* Actions */}
+            <DialogActions sx={{ p: 3, borderTop: `1px solid ${theme.palette.divider}` }}>
+                <Stack direction="row" spacing={2} width="100%" justifyContent="space-between">
+                    <Box>
+                        {selectedExercises.length > 0 && (
+                            <Button
+                                onClick={handleClearSelection}
+                                startIcon={<ClearIcon />}
+                                sx={{ mr: 2 }}
+                            >
+                                Xóa tất cả ({selectedExercises.length})
+                            </Button>
+                        )}
+                    </Box>
+
+                    <Stack direction="row" spacing={2}>
+                        <Button
+                            onClick={onClose}
+                            variant="outlined"
+                            sx={{ minWidth: 100 }}
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            onClick={handleAddToWorkout}
+                            variant="contained"
+                            disabled={selectedExercises.length === 0 || isPending}
+                            startIcon={isPending ? <CircularProgress size={20} /> : <AddIcon />}
+                            sx={{ minWidth: 120 }}
+                        >
+                            {isPending ? 'Đang thêm...' : `Thêm vào Workout (${selectedExercises.length})`}
+                        </Button>
+                    </Stack>
+                </Stack>
+            </DialogActions>
+        </Dialog>
     );
 };
 
