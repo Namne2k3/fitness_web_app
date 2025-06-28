@@ -23,13 +23,15 @@ import { ExerciseListParams } from '../../../services/exerciseService';
 import { Exercise } from '../../../types';
 import ExerciseCard from './ExerciseCard';
 
+
 interface ExerciseListProps {
     params: ExerciseListParams;
     onExerciseClick: (exercise: Exercise) => void;
+    onAddToWorkout?: (exercise: Exercise) => void;
     viewMode?: 'grid' | 'list';
 }
 
-const ExerciseList = ({ params, onExerciseClick, viewMode = 'grid' }: ExerciseListProps) => {
+const ExerciseList = ({ params, onExerciseClick, onAddToWorkout, viewMode = 'grid' }: ExerciseListProps) => {
     const {
         data: exerciseData,
         isLoading,
@@ -131,9 +133,9 @@ const ExerciseList = ({ params, onExerciseClick, viewMode = 'grid' }: ExerciseLi
 
             {/* Content */}
             {internalViewMode === 'grid' ? (
-                <ExerciseGridView exercises={exercises} onExerciseClick={onExerciseClick} />
+                <ExerciseGridView exercises={exercises} onExerciseClick={onExerciseClick} onAddToWorkout={onAddToWorkout} />
             ) : (
-                <ExerciseListView exercises={exercises} onExerciseClick={onExerciseClick} />
+                <ExerciseListView exercises={exercises} onExerciseClick={onExerciseClick} onAddToWorkout={onAddToWorkout} />
             )}
         </Box>
     );
@@ -187,12 +189,13 @@ const ExerciseListSkeleton = ({ viewMode }: { viewMode: 'grid' | 'list' }) => {
 interface ViewProps {
     exercises: Exercise[];
     onExerciseClick: (exercise: Exercise) => void;
+    onAddToWorkout?: (exercise: Exercise) => void;
 }
 
 // ================================
 // 🎯 Grid View Component
 // ================================
-const ExerciseGridView: React.FC<ViewProps> = ({ exercises, onExerciseClick }) => {
+const ExerciseGridView: React.FC<ViewProps> = ({ exercises, onExerciseClick, onAddToWorkout }) => {
     return (
         <Grid container spacing={{ xs: 2, sm: 3 }}>
             {exercises.map((exercise, index) => (
@@ -205,6 +208,8 @@ const ExerciseGridView: React.FC<ViewProps> = ({ exercises, onExerciseClick }) =
                             <ExerciseCard
                                 exercise={exercise}
                                 onClick={() => onExerciseClick(exercise)}
+                                onAddToWorkout={onAddToWorkout}
+                                actionMode="menu"
                                 variant="standard"
                                 showStats={true}
                                 showVideo={true}
@@ -220,7 +225,7 @@ const ExerciseGridView: React.FC<ViewProps> = ({ exercises, onExerciseClick }) =
 // ================================
 // 📋 List View Component - Using ExerciseCard
 // ================================
-const ExerciseListView: React.FC<ViewProps> = ({ exercises, onExerciseClick }) => {
+const ExerciseListView: React.FC<ViewProps> = ({ exercises, onExerciseClick, onAddToWorkout }) => {
     return (
         <Stack spacing={2}>
             {exercises.map((exercise, index) => (
@@ -229,6 +234,8 @@ const ExerciseListView: React.FC<ViewProps> = ({ exercises, onExerciseClick }) =
                         <ExerciseCard
                             exercise={exercise}
                             onClick={() => onExerciseClick(exercise)}
+                            onAddToWorkout={onAddToWorkout}
+                            actionMode="menu"
                             variant="list"
                             showStats={true}
                             showVideo={true}
