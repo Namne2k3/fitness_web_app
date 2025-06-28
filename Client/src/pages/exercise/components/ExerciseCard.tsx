@@ -134,10 +134,11 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
     const handleCardClick = () => {
         if (actionMode === 'direct' && onDirectAdd && !isDisabled) {
             handleDirectAdd({} as React.MouseEvent);
+        } else if (actionMode === 'menu') {
+            handleClick(); // Navigate to detail page for menu mode
         } else if (actionMode === 'none') {
             handleClick(); // Navigate to detail page
         }
-        // actionMode === 'menu': Do nothing on card click, only 3-dot menu should work
     };
 
     // Handle share
@@ -188,12 +189,12 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
     if (variant === 'list') {
         return (
             <Card
-                onClick={actionMode === 'menu' ? undefined : handleCardClick}
+                onClick={handleCardClick}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 sx={{
                     width: '100%',
-                    cursor: (actionMode === 'direct' || actionMode === 'none') ? 'pointer' : 'default',
+                    cursor: 'pointer',
                     transition: 'all 0.3s ease',
                     border: '2px solid',
                     borderColor: isSelected
@@ -311,33 +312,6 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                             </Tooltip>
                         )}
 
-                        {actionMode === 'direct' && (
-                            <Tooltip title={isSelected ? "Selected" : "Add to workout"}>
-                                <IconButton
-                                    onClick={handleDirectAdd}
-                                    disabled={isDisabled}
-                                    size="small"
-                                    sx={{
-                                        bgcolor: isSelected
-                                            ? alpha(theme.palette.success.main, 0.9)
-                                            : alpha(theme.palette.primary.main, 0.9),
-                                        color: 'white',
-                                        '&:hover': !isDisabled ? {
-                                            bgcolor: isSelected
-                                                ? theme.palette.success.main
-                                                : theme.palette.primary.main,
-                                            transform: 'scale(1.1)',
-                                        } : {},
-                                        '&:disabled': {
-                                            bgcolor: 'rgba(0,0,0,0.1)',
-                                            color: 'rgba(0,0,0,0.3)'
-                                        }
-                                    }}
-                                >
-                                    {isSelected ? '✓' : <Add />}
-                                </IconButton>
-                            </Tooltip>
-                        )}
 
                         {/* Play Button */}
                         <IconButton
@@ -361,12 +335,12 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
     // Grid View (compact & standard)
     return (
         <Card
-            onClick={actionMode === 'menu' ? undefined : handleCardClick}
+            onClick={handleCardClick}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             sx={{
                 height: '100%',
-                cursor: (actionMode === 'direct' || actionMode === 'none') ? 'pointer' : 'default',
+                cursor: 'pointer',
                 transition: 'all 0.3s ease',
                 borderRadius: 3,
                 border: '2px solid',
@@ -468,7 +442,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                 )}
 
                 {actionMode === 'direct' && (
-                    <Tooltip title={isSelected ? "Selected" : "Add to workout"}>
+                    <Tooltip title={isSelected ? "Remove from workout" : "Add to workout"}>
                         <IconButton
                             onClick={handleDirectAdd}
                             disabled={isDisabled}
@@ -476,9 +450,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                                 position: 'absolute',
                                 top: 8,
                                 left: 8,
-                                bgcolor: isSelected
-                                    ? alpha(theme.palette.success.main, 0.9)
-                                    : 'rgba(25, 118, 210, 0.9)',
+                                bgcolor: 'rgba(25, 118, 210, 0.9)',
                                 color: 'white',
                                 width: 36,
                                 height: 36,
@@ -637,12 +609,14 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                     onClick={(e) => e.stopPropagation()}
                     transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                     anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-                    PaperProps={{
-                        sx: {
-                            mt: 1,
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                            borderRadius: 2,
-                            minWidth: 200
+                    slotProps={{
+                        paper: {
+                            sx: {
+                                mt: 1,
+                                boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                                borderRadius: 2,
+                                minWidth: 200
+                            }
                         }
                     }}
                 >

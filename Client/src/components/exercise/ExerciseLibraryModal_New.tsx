@@ -28,12 +28,11 @@ import {
     Close as CloseIcon,
     Search as SearchIcon,
     Add as AddIcon,
-    Check as CheckIcon,
     FitnessCenter as FitnessCenterIcon,
     Clear as ClearIcon,
 } from '@mui/icons-material';
 import { Exercise, WorkoutExercise } from '../../types';
-import ExerciseCard from '../../pages/exercise/components/ExerciseCard';
+import ExerciseSelectionCard from './ExerciseSelectionCard';
 import { useExercises } from '../../hooks/useExercises';
 import { ExerciseListParams } from '../../services/exerciseService';
 
@@ -314,47 +313,19 @@ const ExerciseLibraryModal: React.FC<ExerciseLibraryModalProps> = ({
                                     key={exercise._id}
                                     sx={{
                                         position: 'relative',
-                                        border: isExerciseSelected(exercise._id) ?
-                                            `2px solid ${theme.palette.primary.main}` :
-                                            '2px solid transparent',
-                                        borderRadius: 3,
-                                        overflow: 'hidden',
-                                        transition: 'all 0.3s ease',
                                         width: '100%'
                                     }}
                                 >
-                                    <ExerciseCard
+                                    <ExerciseSelectionCard
                                         exercise={exercise}
-                                        onClick={() => { }} // Empty since we use onDirectAdd
-                                        onDirectAdd={() => handleExerciseSelect(exercise)}
-                                        actionMode="direct"
-                                        variant="compact"
+                                        onToggleSelect={handleExerciseSelect}
                                         isSelected={isExerciseSelected(exercise._id)}
                                         isDisabled={!isExerciseSelected(exercise._id) && isMaxSelectionReached}
+                                        variant="compact"
+                                        showStats={true}
                                     />
 
-                                    {/* Selection Indicator */}
-                                    {isExerciseSelected(exercise._id) && (
-                                        <Box
-                                            sx={{
-                                                position: 'absolute',
-                                                top: 8,
-                                                right: 8,
-                                                bgcolor: theme.palette.primary.main,
-                                                color: 'white',
-                                                borderRadius: '50%',
-                                                width: 32,
-                                                height: 32,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                                                zIndex: 10
-                                            }}
-                                        >
-                                            <CheckIcon sx={{ fontSize: 20 }} />
-                                        </Box>
-                                    )}
+
                                 </Box>
                             ))}
                         </Box>
