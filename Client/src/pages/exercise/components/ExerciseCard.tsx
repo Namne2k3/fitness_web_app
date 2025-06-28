@@ -45,6 +45,12 @@ interface ExerciseCardProps {
     variant?: 'compact' | 'standard' | 'list';
     showStats?: boolean;
     showVideo?: boolean;
+    // ✅ NEW: Action mode configuration
+    actionMode?: 'menu' | 'direct' | 'none';
+    onDirectAdd?: (exercise: Exercise) => void;
+    onAddToWorkout?: (exercise: Exercise) => void;
+    isSelected?: boolean;
+    isDisabled?: boolean;
 }
 
 /**
@@ -55,7 +61,13 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
     onClick,
     variant = 'compact',
     showStats = true,
-    showVideo = true
+    showVideo = true,
+    // ✅ NEW: Action mode props
+    actionMode = 'menu',
+    onDirectAdd,
+    onAddToWorkout,
+    isSelected = false,
+    isDisabled = false
 }) => {
     const theme = useTheme();
     const [isHovered, setIsHovered] = useState(false);
@@ -101,7 +113,31 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
     const handleAddToWorkout = (event: React.MouseEvent) => {
         event.stopPropagation();
         handleMenuClose();
-        setIsWorkoutModalOpen(true);
+
+        // ✅ NEW: Use onAddToWorkout if provided, otherwise open modal
+        if (onAddToWorkout) {
+            onAddToWorkout(exercise);
+        } else {
+            setIsWorkoutModalOpen(true);
+        }
+    };
+
+    // ✅ NEW: Handle direct add (for ExerciseLibraryModal)
+    const handleDirectAdd = (event: React.MouseEvent) => {
+        event.stopPropagation();
+        if (onDirectAdd && !isDisabled) {
+            onDirectAdd(exercise);
+        }
+    };
+
+    // ✅ NEW: Handle card click based on mode
+    const handleCardClick = () => {
+        if (actionMode === 'direct' && onDirectAdd && !isDisabled) {
+            handleDirectAdd({} as React.MouseEvent);
+        } else if (actionMode === 'none') {
+            handleClick(); // Navigate to detail page
+        }
+        // actionMode === 'menu': Do nothing on card click, only 3-dot menu should work
     };
 
     // Handle share
@@ -152,23 +188,33 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
     if (variant === 'list') {
         return (
             <Card
-                onClick={handleClick}
+                onClick={actionMode === 'menu' ? undefined : handleCardClick}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 sx={{
                     width: '100%',
-                    cursor: 'pointer',
+                    cursor: (actionMode === 'direct' || actionMode === 'none') ? 'pointer' : 'default',
                     transition: 'all 0.3s ease',
-                    border: '1px solid',
-                    borderColor: 'rgba(0,0,0,0.08)',
+                    border: '2px solid',
+                    borderColor: isSelected
+                        ? theme.palette.primary.main
+                        : 'rgba(0,0,0,0.08)',
                     borderRadius: 2,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                    background: 'white',
-                    '&:hover': {
+                    boxShadow: isSelected
+                        ? '0 8px 24px rgba(25, 118, 210, 0.25)'
+                        : '0 2px 8px rgba(0,0,0,0.06)',
+                    background: isSelected
+                        ? alpha(theme.palette.primary.main, 0.05)
+                        : 'white',
+                    opacity: isDisabled ? 0.6 : 1,
+                    pointerEvents: isDisabled ? 'none' : 'auto',
+                    '&:hover': !isDisabled ? {
                         transform: 'translateX(8px)',
-                        boxShadow: '0 8px 24px rgba(25, 118, 210, 0.15)',
+                        boxShadow: isSelected
+                            ? '0 12px 32px rgba(25, 118, 210, 0.3)'
+                            : '0 8px 24px rgba(25, 118, 210, 0.15)',
                         borderColor: theme.palette.primary.main,
-                    }
+                    } : {}
                 }}
             >
                 <Box sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
@@ -246,22 +292,52 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
 
                     {/* Actions */}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {/* More Options Menu */}
-                        <Tooltip title="More options">
-                            <IconButton
-                                onClick={handleMenuOpen}
-                                size="small"
-                                sx={{
-                                    color: 'text.secondary',
-                                    '&:hover': {
-                                        bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                        color: theme.palette.primary.main,
-                                    }
-                                }}
-                            >
-                                <MoreVert />
-                            </IconButton>
-                        </Tooltip>
+                        {/* Conditional Action Button */}
+                        {actionMode === 'menu' && onAddToWorkout && (
+                            <Tooltip title="More options">
+                                <IconButton
+                                    onClick={handleMenuOpen}
+                                    size="small"
+                                    sx={{
+                                        color: 'text.secondary',
+                                        '&:hover': {
+                                            bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                            color: theme.palette.primary.main,
+                                        }
+                                    }}
+                                >
+                                    <MoreVert />
+                                </IconButton>
+                            </Tooltip>
+                        )}
+
+                        {actionMode === 'direct' && (
+                            <Tooltip title={isSelected ? "Selected" : "Add to workout"}>
+                                <IconButton
+                                    onClick={handleDirectAdd}
+                                    disabled={isDisabled}
+                                    size="small"
+                                    sx={{
+                                        bgcolor: isSelected
+                                            ? alpha(theme.palette.success.main, 0.9)
+                                            : alpha(theme.palette.primary.main, 0.9),
+                                        color: 'white',
+                                        '&:hover': !isDisabled ? {
+                                            bgcolor: isSelected
+                                                ? theme.palette.success.main
+                                                : theme.palette.primary.main,
+                                            transform: 'scale(1.1)',
+                                        } : {},
+                                        '&:disabled': {
+                                            bgcolor: 'rgba(0,0,0,0.1)',
+                                            color: 'rgba(0,0,0,0.3)'
+                                        }
+                                    }}
+                                >
+                                    {isSelected ? '✓' : <Add />}
+                                </IconButton>
+                            </Tooltip>
+                        )}
 
                         {/* Play Button */}
                         <IconButton
@@ -285,24 +361,35 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
     // Grid View (compact & standard)
     return (
         <Card
-            onClick={handleClick}
+            onClick={actionMode === 'menu' ? undefined : handleCardClick}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             sx={{
                 height: '100%',
-                cursor: 'pointer',
+                cursor: (actionMode === 'direct' || actionMode === 'none') ? 'pointer' : 'default',
                 transition: 'all 0.3s ease',
                 borderRadius: 3,
-                border: '1px solid',
-                borderColor: 'rgba(0,0,0,0.08)',
+                border: '2px solid',
+                borderColor: isSelected
+                    ? theme.palette.primary.main
+                    : 'rgba(0,0,0,0.08)',
                 overflow: 'hidden',
                 position: 'relative',
-                background: 'white',
-                '&:hover': {
+                background: isSelected
+                    ? alpha(theme.palette.primary.main, 0.05)
+                    : 'white',
+                opacity: isDisabled ? 0.6 : 1,
+                pointerEvents: isDisabled ? 'none' : 'auto',
+                boxShadow: isSelected
+                    ? '0 8px 24px rgba(25, 118, 210, 0.25)'
+                    : '0 2px 8px rgba(0,0,0,0.06)',
+                '&:hover': !isDisabled ? {
                     transform: 'translateY(-8px)',
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                    boxShadow: isSelected
+                        ? '0 24px 48px rgba(25, 118, 210, 0.3)'
+                        : '0 20px 40px rgba(0,0,0,0.15)',
                     borderColor: theme.palette.primary.main,
-                }
+                } : {}
             }}
         >
             {/* Featured Image */}
@@ -356,27 +443,61 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                     </Box>
                 </Fade>
 
-                {/* More Options Button */}
-                <Tooltip title="More options">
-                    <IconButton
-                        onClick={handleMenuOpen}
-                        sx={{
-                            position: 'absolute',
-                            top: 8,
-                            left: 8,
-                            bgcolor: 'rgba(0,0,0,0.6)',
-                            color: 'white',
-                            width: 32,
-                            height: 32,
-                            '&:hover': {
-                                bgcolor: 'rgba(0,0,0,0.8)',
-                                transform: 'scale(1.1)',
-                            }
-                        }}
-                    >
-                        <MoreVert sx={{ fontSize: 18 }} />
-                    </IconButton>
-                </Tooltip>
+                {/* Action Button - Conditional Rendering */}
+                {actionMode === 'menu' && onAddToWorkout && (
+                    <Tooltip title="More options">
+                        <IconButton
+                            onClick={handleMenuOpen}
+                            sx={{
+                                position: 'absolute',
+                                top: 8,
+                                left: 8,
+                                bgcolor: 'rgba(0,0,0,0.6)',
+                                color: 'white',
+                                width: 32,
+                                height: 32,
+                                '&:hover': {
+                                    bgcolor: 'rgba(0,0,0,0.8)',
+                                    transform: 'scale(1.1)',
+                                }
+                            }}
+                        >
+                            <MoreVert sx={{ fontSize: 18 }} />
+                        </IconButton>
+                    </Tooltip>
+                )}
+
+                {actionMode === 'direct' && (
+                    <Tooltip title={isSelected ? "Selected" : "Add to workout"}>
+                        <IconButton
+                            onClick={handleDirectAdd}
+                            disabled={isDisabled}
+                            sx={{
+                                position: 'absolute',
+                                top: 8,
+                                left: 8,
+                                bgcolor: isSelected
+                                    ? alpha(theme.palette.success.main, 0.9)
+                                    : 'rgba(25, 118, 210, 0.9)',
+                                color: 'white',
+                                width: 36,
+                                height: 36,
+                                '&:hover': !isDisabled ? {
+                                    bgcolor: isSelected
+                                        ? theme.palette.success.main
+                                        : theme.palette.primary.main,
+                                    transform: 'scale(1.1)',
+                                } : {},
+                                '&:disabled': {
+                                    bgcolor: 'rgba(0,0,0,0.3)',
+                                    color: 'rgba(255,255,255,0.5)'
+                                }
+                            }}
+                        >
+                            {isSelected ? '✓' : <Add sx={{ fontSize: 20 }} />}
+                        </IconButton>
+                    </Tooltip>
+                )}
 
                 {/* Difficulty Badge */}
                 <Chip
@@ -396,7 +517,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                 />
 
                 {/* Video Indicator */}
-                {showVideo && exercise.videoUrl && (
+                {/* {showVideo && exercise.videoUrl && (
                     <Box sx={{
                         position: 'absolute',
                         top: 12,
@@ -414,7 +535,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                             Video
                         </Typography>
                     </Box>
-                )}
+                )} */}
             </Box>
 
             {/* Content */}
@@ -507,49 +628,53 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                 )}
             </CardContent>
 
-            {/* Options Menu */}
-            <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-                onClick={(e) => e.stopPropagation()}
-                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-                PaperProps={{
-                    sx: {
-                        mt: 1,
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                        borderRadius: 2,
-                        minWidth: 200
-                    }
-                }}
-            >
-                <MenuItem onClick={handleAddToWorkout}>
-                    <ListItemIcon>
-                        <Add sx={{ color: 'primary.main' }} />
-                    </ListItemIcon>
-                    <ListItemText primary="Add to Workout" />
-                </MenuItem>
-                <MenuItem onClick={handleShare}>
-                    <ListItemIcon>
-                        <Share sx={{ color: 'text.secondary' }} />
-                    </ListItemIcon>
-                    <ListItemText primary="Share Exercise" />
-                </MenuItem>
-                <MenuItem onClick={handleViewDetails}>
-                    <ListItemIcon>
-                        <Info sx={{ color: 'text.secondary' }} />
-                    </ListItemIcon>
-                    <ListItemText primary="View Details" />
-                </MenuItem>
-            </Menu>
+            {/* Options Menu - Only for menu mode */}
+            {actionMode === 'menu' && onAddToWorkout && (
+                <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={handleMenuClose}
+                    onClick={(e) => e.stopPropagation()}
+                    transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                    anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                    PaperProps={{
+                        sx: {
+                            mt: 1,
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                            borderRadius: 2,
+                            minWidth: 200
+                        }
+                    }}
+                >
+                    <MenuItem onClick={handleAddToWorkout}>
+                        <ListItemIcon>
+                            <Add sx={{ color: 'primary.main' }} />
+                        </ListItemIcon>
+                        <ListItemText primary="Add to Workout" />
+                    </MenuItem>
+                    <MenuItem onClick={handleShare}>
+                        <ListItemIcon>
+                            <Share sx={{ color: 'text.secondary' }} />
+                        </ListItemIcon>
+                        <ListItemText primary="Share Exercise" />
+                    </MenuItem>
+                    <MenuItem onClick={handleViewDetails}>
+                        <ListItemIcon>
+                            <Info sx={{ color: 'text.secondary' }} />
+                        </ListItemIcon>
+                        <ListItemText primary="View Details" />
+                    </MenuItem>
+                </Menu>
+            )}
 
-            {/* Workout Selection Modal */}
-            <WorkoutSelectionModal
-                isOpen={isWorkoutModalOpen}
-                onClose={() => setIsWorkoutModalOpen(false)}
-                exercise={exercise}
-            />
+            {/* Workout Selection Modal - Only for menu mode */}
+            {actionMode === 'menu' && onAddToWorkout && (
+                <WorkoutSelectionModal
+                    isOpen={isWorkoutModalOpen}
+                    onClose={() => setIsWorkoutModalOpen(false)}
+                    exercise={exercise}
+                />
+            )}
         </Card>
     );
 };

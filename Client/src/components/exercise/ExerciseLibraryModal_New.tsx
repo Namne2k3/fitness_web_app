@@ -310,71 +310,51 @@ const ExerciseLibraryModal: React.FC<ExerciseLibraryModalProps> = ({
                             }}
                         >
                             {exerciseData.data.map((exercise: Exercise) => (
-                                <Box key={exercise._id}>
-                                    <Box
-                                        sx={{
-                                            position: 'relative',
-                                            border: isExerciseSelected(exercise._id) ?
-                                                `2px solid ${theme.palette.primary.main}` :
-                                                '2px solid transparent',
-                                            borderRadius: 3,
-                                            overflow: 'hidden',
-                                            transition: 'all 0.3s ease',
-                                            cursor: 'pointer',
-                                            width: '100%'
-                                        }}
-                                        onClick={() => handleExerciseSelect(exercise)}
-                                    >
-                                        <ExerciseCard
-                                            exercise={exercise}
-                                            onClick={() => { }} // Empty since we handle in parent
-                                            variant="compact"
-                                        />
+                                <Box
+                                    key={exercise._id}
+                                    sx={{
+                                        position: 'relative',
+                                        border: isExerciseSelected(exercise._id) ?
+                                            `2px solid ${theme.palette.primary.main}` :
+                                            '2px solid transparent',
+                                        borderRadius: 3,
+                                        overflow: 'hidden',
+                                        transition: 'all 0.3s ease',
+                                        width: '100%'
+                                    }}
+                                >
+                                    <ExerciseCard
+                                        exercise={exercise}
+                                        onClick={() => { }} // Empty since we use onDirectAdd
+                                        onDirectAdd={() => handleExerciseSelect(exercise)}
+                                        actionMode="direct"
+                                        variant="compact"
+                                        isSelected={isExerciseSelected(exercise._id)}
+                                        isDisabled={!isExerciseSelected(exercise._id) && isMaxSelectionReached}
+                                    />
 
-                                        {/* Selection Indicator */}
-                                        {isExerciseSelected(exercise._id) && (
-                                            <Box
-                                                sx={{
-                                                    position: 'absolute',
-                                                    top: 8,
-                                                    right: 8,
-                                                    bgcolor: theme.palette.primary.main,
-                                                    color: 'white',
-                                                    borderRadius: '50%',
-                                                    width: 32,
-                                                    height: 32,
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-                                                }}
-                                            >
-                                                <CheckIcon sx={{ fontSize: 20 }} />
-                                            </Box>
-                                        )}
-
-                                        {/* Disabled Overlay for Max Selection */}
-                                        {!isExerciseSelected(exercise._id) && isMaxSelectionReached && (
-                                            <Box
-                                                sx={{
-                                                    position: 'absolute',
-                                                    top: 0,
-                                                    left: 0,
-                                                    right: 0,
-                                                    bottom: 0,
-                                                    bgcolor: 'rgba(0,0,0,0.5)',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    borderRadius: 3
-                                                }}
-                                            >
-                                                <Typography variant="body2" color="white" fontWeight="bold">
-                                                    Đã đạt giới hạn
-                                                </Typography>
-                                            </Box>
-                                        )}
-                                    </Box>
+                                    {/* Selection Indicator */}
+                                    {isExerciseSelected(exercise._id) && (
+                                        <Box
+                                            sx={{
+                                                position: 'absolute',
+                                                top: 8,
+                                                right: 8,
+                                                bgcolor: theme.palette.primary.main,
+                                                color: 'white',
+                                                borderRadius: '50%',
+                                                width: 32,
+                                                height: 32,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                                                zIndex: 10
+                                            }}
+                                        >
+                                            <CheckIcon sx={{ fontSize: 20 }} />
+                                        </Box>
+                                    )}
                                 </Box>
                             ))}
                         </Box>
