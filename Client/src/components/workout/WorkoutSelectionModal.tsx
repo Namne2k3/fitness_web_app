@@ -6,28 +6,31 @@
 import React, { useState, useActionState } from 'react';
 import {
     Dialog,
-    DialogTitle,
     DialogContent,
     Box,
     Typography,
     Button,
     Card,
     CardContent,
-    CardActionArea,
-    Divider,
     Alert,
     Chip,
     Stack,
     IconButton,
-    CircularProgress
+    CircularProgress,
+    Avatar,
+    Paper,
+    useTheme,
+    alpha,
+    Checkbox
 } from '@mui/material';
 import {
     Close as CloseIcon,
     Add as AddIcon,
     FitnessCenter as FitnessCenterIcon,
     Timer as TimerIcon,
-    TrendingUp as TrendingIcon,
-    CheckCircle as CheckIcon
+    CheckCircle as CheckIcon,
+    PlayArrow as PlayIcon,
+    LocalFireDepartment as FireIcon
 } from '@mui/icons-material';
 import { Exercise, Workout, DifficultyLevel } from '../../types';
 
@@ -133,7 +136,9 @@ const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({
     onClose,
     onWorkoutSelected
 }) => {
+    const theme = useTheme();
     const [showCreateForm, setShowCreateForm] = useState(false);
+    const [selectedWorkouts, setSelectedWorkouts] = useState<string[]>([]);
 
     // ✅ React 19: Action for adding exercise to existing workout
     const [addToWorkoutState, addToWorkoutAction] = useActionState(
@@ -233,11 +238,30 @@ const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({
         { success: false, error: null, workout: null, isProcessing: false }
     );
 
-    // ✅ Handle workout selection
-    const handleWorkoutSelect = (workoutId: string) => {
-        const formData = new FormData();
-        formData.append('workoutId', workoutId);
-        addToWorkoutAction(formData);
+    // ✅ Handle checkbox toggle for workout selection
+    const handleWorkoutToggle = (workoutId: string) => {
+        setSelectedWorkouts(prev =>
+            prev.includes(workoutId)
+                ? prev.filter(id => id !== workoutId)
+                : [...prev, workoutId]
+        );
+    };
+
+    // ✅ Handle adding exercise to selected workouts
+    const handleAddToSelectedWorkouts = () => {
+        if (selectedWorkouts.length === 0) return;
+
+        // Add to all selected workouts
+        selectedWorkouts.forEach(workoutId => {
+            const formData = new FormData();
+            formData.append('workoutId', workoutId);
+            addToWorkoutAction(formData);
+        });
+
+        // Close modal after adding
+        setTimeout(() => {
+            onClose();
+        }, 1000);
     };
 
     // ✅ Get difficulty color
@@ -258,49 +282,137 @@ const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({
             onClose={onClose}
             maxWidth="md"
             fullWidth
-            PaperProps={{
-                sx: {
-                    borderRadius: 3,
-                    maxHeight: '90vh'
+            slotProps={{
+                paper: {
+                    sx: {
+                        borderRadius: 4,
+                        maxHeight: '90vh',
+                        overflow: 'hidden',
+                        background: '#ffffff',
+                        boxShadow: '0 24px 48px rgba(0,0,0,0.15)',
+                        border: '1px solid rgba(25, 118, 210, 0.08)'
+                    }
                 }
             }}
         >
-            <DialogTitle sx={{ pb: 1 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <Box>
-                        <Typography variant="h5" component="h2" fontWeight="bold" gutterBottom>
-                            Add "{exercise.name}" to Workout
-                        </Typography>
-                        <Stack direction="row" spacing={1} alignItems="center">
+            {/* Modern Gradient Header */}
+            <Box
+                sx={{
+                    background: 'linear-gradient(135deg, #1976d2 0%, #ff9800 100%)',
+                    color: 'white',
+                    p: 3,
+                    position: 'relative',
+                    overflow: 'hidden'
+                }}
+            >
+                {/* Background Pattern */}
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        width: 200,
+                        height: 200,
+                        background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
+                        transform: 'translate(50%, -50%)'
+                    }}
+                />
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative' }}>
+                    <Box sx={{ flex: 1 }}>
+                        {/* Exercise Icon */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                            <Avatar
+                                sx={{
+                                    bgcolor: 'rgba(255,255,255,0.2)',
+                                    width: 56,
+                                    height: 56,
+                                    border: '2px solid rgba(255,255,255,0.3)'
+                                }}
+                            >
+                                <FitnessCenterIcon sx={{ fontSize: 28, color: 'white' }} />
+                            </Avatar>
+                            <Box>
+                                <Typography variant="h4" component="h2" fontWeight="800" sx={{ mb: 0.5 }}>
+                                    Add to Workout
+                                </Typography>
+                                <Typography variant="h6" sx={{ opacity: 0.9, fontWeight: 500 }}>
+                                    "{exercise.name}"
+                                </Typography>
+                            </Box>
+                        </Box>
+
+                        {/* Exercise Tags */}
+                        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" gap={1}>
                             <Chip
                                 label={exercise.category}
-                                size="small"
+                                size="medium"
                                 icon={<FitnessCenterIcon sx={{ fontSize: 16 }} />}
+                                sx={{
+                                    bgcolor: 'rgba(255,255,255,0.2)',
+                                    color: 'white',
+                                    border: '1px solid rgba(255,255,255,0.3)',
+                                    fontWeight: 600,
+                                    '& .MuiChip-icon': { color: 'white' }
+                                }}
                             />
                             <Chip
                                 label={exercise.difficulty}
-                                size="small"
-                                color={getDifficultyColor(exercise.difficulty)}
+                                size="medium"
+                                sx={{
+                                    bgcolor: 'rgba(255,255,255,0.2)',
+                                    color: 'white',
+                                    border: '1px solid rgba(255,255,255,0.3)',
+                                    fontWeight: 600
+                                }}
                             />
                             {exercise.caloriesPerMinute && (
                                 <Chip
                                     label={`${exercise.caloriesPerMinute} cal/min`}
-                                    size="small"
-                                    variant="outlined"
+                                    size="medium"
+                                    icon={<FireIcon sx={{ fontSize: 16 }} />}
+                                    sx={{
+                                        bgcolor: 'rgba(255,255,255,0.2)',
+                                        color: 'white',
+                                        border: '1px solid rgba(255,255,255,0.3)',
+                                        fontWeight: 600,
+                                        '& .MuiChip-icon': { color: 'white' }
+                                    }}
                                 />
                             )}
                         </Stack>
                     </Box>
-                    <IconButton onClick={onClose} sx={{ mt: -1, mr: -1 }}>
+
+                    {/* Close Button */}
+                    <IconButton
+                        onClick={onClose}
+                        sx={{
+                            bgcolor: 'rgba(255,255,255,0.1)',
+                            color: 'white',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            '&:hover': {
+                                bgcolor: 'rgba(255,255,255,0.2)',
+                                transform: 'scale(1.05)'
+                            }
+                        }}
+                    >
                         <CloseIcon />
                     </IconButton>
                 </Box>
-            </DialogTitle>
+            </Box>
 
-            <DialogContent sx={{ px: 3, pb: 3 }}>
+            <DialogContent sx={{ p: 4 }}>
                 {/* Error Display */}
                 {(addToWorkoutState.error || quickWorkoutState.error) && (
-                    <Alert severity="error" sx={{ mb: 3 }}>
+                    <Alert
+                        severity="error"
+                        sx={{
+                            mb: 3,
+                            borderRadius: 2,
+                            border: '1px solid rgba(244, 67, 54, 0.2)',
+                            background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.05) 0%, rgba(244, 67, 54, 0.02) 100%)'
+                        }}
+                    >
                         {addToWorkoutState.error || quickWorkoutState.error}
                     </Alert>
                 )}
@@ -308,157 +420,504 @@ const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({
                 {!showCreateForm ? (
                     // Show existing workouts
                     <Box>
-                        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <FitnessCenterIcon />
-                            Choose existing workout:
-                        </Typography>
+                        {/* Section Header */}
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                p: 3,
+                                mb: 3,
+                                background: 'linear-gradient(135deg, #e3f2fd 0%, #fff3e0 100%)',
+                                borderRadius: 3,
+                                border: '1px solid rgba(25, 118, 210, 0.1)'
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Avatar
+                                    sx={{
+                                        bgcolor: theme.palette.primary.main,
+                                        width: 48,
+                                        height: 48
+                                    }}
+                                >
+                                    <FitnessCenterIcon sx={{ fontSize: 24 }} />
+                                </Avatar>
+                                <Box>
+                                    <Typography variant="h5" fontWeight="700" color="primary.main" gutterBottom>
+                                        Choose Existing Workout
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Select a workout to add "{exercise.name}" to your routine
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        </Paper>
 
+                        {/* Workout Cards Grid */}
                         <Box sx={{
                             display: 'grid',
                             gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
-                            gap: 2,
-                            mb: 3
+                            gap: 3,
+                            mb: 4
                         }}>
-                            {mockUserWorkouts.map(workout => (
-                                <Box key={workout._id}>
+                            {mockUserWorkouts.map((workout, index) => {
+                                const isProcessing = addToWorkoutState.isProcessing && addToWorkoutState.workoutId === workout._id;
+
+                                // Color themes for different workout types
+                                const getWorkoutTheme = (index: number) => {
+                                    const themes = [
+                                        {
+                                            background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+                                            border: '1px solid rgba(76, 175, 80, 0.2)',
+                                            iconColor: '#4caf50',
+                                            textColor: '#388e3c'
+                                        },
+                                        {
+                                            background: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)',
+                                            border: '1px solid rgba(255, 152, 0, 0.2)',
+                                            iconColor: '#ff9800',
+                                            textColor: '#f57c00'
+                                        },
+                                        {
+                                            background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
+                                            border: '1px solid rgba(156, 39, 176, 0.2)',
+                                            iconColor: '#9c27b0',
+                                            textColor: '#7b1fa2'
+                                        }
+                                    ];
+                                    return themes[index % themes.length];
+                                };
+
+                                const workoutTheme = getWorkoutTheme(index);
+
+                                return (
                                     <Card
+                                        key={workout._id}
                                         sx={{
                                             height: '100%',
-                                            cursor: 'pointer',
+                                            cursor: isProcessing ? 'not-allowed' : 'pointer',
                                             transition: 'all 0.3s ease',
-                                            border: '1px solid',
-                                            borderColor: 'divider',
-                                            '&:hover': {
-                                                boxShadow: 3,
-                                                borderColor: 'primary.main',
-                                                transform: 'translateY(-2px)'
+                                            borderRadius: 3,
+                                            background: workoutTheme.background,
+                                            border: workoutTheme.border,
+                                            position: 'relative',
+                                            overflow: 'hidden',
+                                            opacity: isProcessing ? 0.7 : 1,
+                                            '&:hover': !isProcessing ? {
+                                                transform: 'translateY(-8px)',
+                                                boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                                                '& .workout-icon': {
+                                                    transform: 'scale(1.1) rotate(5deg)'
+                                                }
+                                            } : {},
+                                            '&::before': {
+                                                content: '""',
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                right: 0,
+                                                height: 4,
+                                                background: `linear-gradient(90deg, ${workoutTheme.iconColor} 0%, ${alpha(workoutTheme.iconColor, 0.6)} 100%)`
                                             }
                                         }}
                                     >
-                                        <CardActionArea
-                                            onClick={() => handleWorkoutSelect(workout._id)}
-                                            disabled={addToWorkoutState.isProcessing}
-                                            sx={{ height: '100%', p: 2 }}
-                                        >
-                                            <CardContent sx={{ p: 0 }}>
-                                                <Typography variant="h6" fontWeight="600" gutterBottom>
-                                                    {workout.name}
-                                                </Typography>
-                                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                                    {workout.description}
-                                                </Typography>
+                                        <Box sx={{ p: 3, height: '100%' }}>
+                                            <CardContent sx={{ p: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                                {/* Header with Icon and Checkbox */}
+                                                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
+                                                    <Checkbox
+                                                        checked={selectedWorkouts.includes(workout._id)}
+                                                        onChange={() => handleWorkoutToggle(workout._id)}
+                                                        disabled={isProcessing}
+                                                        sx={{
+                                                            color: workoutTheme.iconColor,
+                                                            '&.Mui-checked': {
+                                                                color: workoutTheme.iconColor,
+                                                            },
+                                                            '& .MuiSvgIcon-root': {
+                                                                fontSize: 28,
+                                                            }
+                                                        }}
+                                                    />
+                                                    <Avatar
+                                                        className="workout-icon"
+                                                        sx={{
+                                                            bgcolor: workoutTheme.iconColor,
+                                                            width: 48,
+                                                            height: 48,
+                                                            transition: 'all 0.3s ease'
+                                                        }}
+                                                    >
+                                                        <FitnessCenterIcon sx={{ fontSize: 24, color: 'white' }} />
+                                                    </Avatar>
+                                                    <Box sx={{ flex: 1 }}>
+                                                        <Typography
+                                                            variant="h6"
+                                                            fontWeight="700"
+                                                            color={workoutTheme.textColor}
+                                                            gutterBottom
+                                                            sx={{ lineHeight: 1.2 }}
+                                                        >
+                                                            {workout.name}
+                                                        </Typography>
+                                                        <Typography
+                                                            variant="body2"
+                                                            color="text.secondary"
+                                                            sx={{
+                                                                display: '-webkit-box',
+                                                                WebkitBoxOrient: 'vertical',
+                                                                WebkitLineClamp: 2,
+                                                                overflow: 'hidden'
+                                                            }}
+                                                        >
+                                                            {workout.description}
+                                                        </Typography>
+                                                    </Box>
+                                                </Box>
 
-                                                <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+                                                {/* Stats */}
+                                                <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
                                                     <Chip
                                                         icon={<FitnessCenterIcon sx={{ fontSize: 14 }} />}
                                                         label={`${workout.exercises?.length || 0} exercises`}
                                                         size="small"
-                                                        variant="outlined"
+                                                        sx={{
+                                                            bgcolor: alpha(workoutTheme.iconColor, 0.1),
+                                                            color: workoutTheme.textColor,
+                                                            border: `1px solid ${alpha(workoutTheme.iconColor, 0.2)}`,
+                                                            fontWeight: 600,
+                                                            '& .MuiChip-icon': { color: workoutTheme.iconColor }
+                                                        }}
                                                     />
                                                     <Chip
                                                         icon={<TimerIcon sx={{ fontSize: 14 }} />}
                                                         label={`${workout.estimatedDuration || 0} min`}
                                                         size="small"
-                                                        variant="outlined"
+                                                        sx={{
+                                                            bgcolor: alpha(workoutTheme.iconColor, 0.1),
+                                                            color: workoutTheme.textColor,
+                                                            border: `1px solid ${alpha(workoutTheme.iconColor, 0.2)}`,
+                                                            fontWeight: 600,
+                                                            '& .MuiChip-icon': { color: workoutTheme.iconColor }
+                                                        }}
                                                     />
                                                 </Stack>
 
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                {/* Footer */}
+                                                <Box sx={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    mt: 'auto',
+                                                    pt: 2,
+                                                    borderTop: `1px solid ${alpha(workoutTheme.iconColor, 0.1)}`
+                                                }}>
                                                     <Chip
                                                         label={workout.difficulty}
                                                         size="small"
                                                         color={getDifficultyColor(workout.difficulty)}
+                                                        sx={{ fontWeight: 600 }}
                                                     />
 
-                                                    {addToWorkoutState.isProcessing && addToWorkoutState.workoutId === workout._id ? (
-                                                        <CircularProgress size={20} />
-                                                    ) : (
-                                                        <TrendingIcon color="action" />
-                                                    )}
+                                                    <Box sx={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        color: selectedWorkouts.includes(workout._id) ? workoutTheme.iconColor : 'text.secondary',
+                                                        fontWeight: 600,
+                                                        fontSize: '0.875rem'
+                                                    }}>
+                                                        {selectedWorkouts.includes(workout._id) ? (
+                                                            <>
+                                                                <CheckIcon sx={{ fontSize: 16, mr: 0.5 }} />
+                                                                Selected
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <PlayIcon sx={{ fontSize: 16, mr: 0.5 }} />
+                                                                Available
+                                                            </>
+                                                        )}
+                                                    </Box>
                                                 </Box>
                                             </CardContent>
-                                        </CardActionArea>
+                                        </Box>
                                     </Card>
-                                </Box>
-                            ))}
+                                );
+                            })}
                         </Box>
 
-                        <Divider sx={{ my: 3 }} />
+                        {/* Add to Selected Workouts Button */}
+                        {selectedWorkouts.length > 0 && (
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    p: 3,
+                                    mb: 3,
+                                    background: 'linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%)',
+                                    borderRadius: 3,
+                                    border: '1px solid rgba(25, 118, 210, 0.2)',
+                                    textAlign: 'center'
+                                }}
+                            >
+                                <Typography variant="h6" fontWeight="700" color="primary.main" gutterBottom>
+                                    {selectedWorkouts.length} workout{selectedWorkouts.length > 1 ? 's' : ''} selected
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                    Add "{exercise.name}" to all selected workouts
+                                </Typography>
 
-                        <Button
-                            variant="outlined"
-                            startIcon={<AddIcon />}
-                            onClick={() => setShowCreateForm(true)}
-                            fullWidth
-                            size="large"
+                                <Button
+                                    variant="contained"
+                                    onClick={handleAddToSelectedWorkouts}
+                                    disabled={addToWorkoutState.isProcessing}
+                                    startIcon={addToWorkoutState.isProcessing ? <CircularProgress size={20} /> : <CheckIcon />}
+                                    sx={{
+                                        px: 4,
+                                        py: 1.5,
+                                        borderRadius: 2,
+                                        textTransform: 'none',
+                                        fontSize: '1rem',
+                                        fontWeight: 700,
+                                        background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+                                        boxShadow: '0 8px 24px rgba(25, 118, 210, 0.3)',
+                                        '&:hover': {
+                                            background: 'linear-gradient(135deg, #1565c0 0%, #1976d2 100%)',
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: '0 12px 32px rgba(25, 118, 210, 0.4)'
+                                        }
+                                    }}
+                                >
+                                    {addToWorkoutState.isProcessing ? 'Adding...' : `Add to ${selectedWorkouts.length} Workout${selectedWorkouts.length > 1 ? 's' : ''}`}
+                                </Button>
+                            </Paper>
+                        )}
+
+                        {/* Create New Workout Section */}
+                        <Paper
+                            elevation={0}
                             sx={{
-                                borderRadius: 2,
-                                py: 1.5,
-                                textTransform: 'none',
-                                fontWeight: 600
+                                p: 3,
+                                background: 'linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%)',
+                                borderRadius: 3,
+                                border: '1px solid rgba(76, 175, 80, 0.2)',
+                                textAlign: 'center'
                             }}
                         >
-                            Create New Workout with this Exercise
-                        </Button>
+                            <Avatar
+                                sx={{
+                                    bgcolor: '#4caf50',
+                                    width: 56,
+                                    height: 56,
+                                    mx: 'auto',
+                                    mb: 2
+                                }}
+                            >
+                                <AddIcon sx={{ fontSize: 28 }} />
+                            </Avatar>
+
+                            <Typography variant="h6" fontWeight="700" color="#388e3c" gutterBottom>
+                                Create New Workout
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                Start fresh with "{exercise.name}" as your first exercise
+                            </Typography>
+
+                            <Button
+                                variant="contained"
+                                fullWidth
+                                startIcon={<AddIcon />}
+                                onClick={() => setShowCreateForm(true)}
+                                sx={{
+                                    py: 1.5,
+                                    borderRadius: 2,
+                                    textTransform: 'none',
+                                    fontSize: '1rem',
+                                    fontWeight: 700,
+                                    background: 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)',
+                                    boxShadow: '0 8px 24px rgba(76, 175, 80, 0.3)',
+                                    '&:hover': {
+                                        background: 'linear-gradient(135deg, #388e3c 0%, #4caf50 100%)',
+                                        transform: 'translateY(-2px)',
+                                        boxShadow: '0 12px 32px rgba(76, 175, 80, 0.4)'
+                                    }
+                                }}
+                            >
+                                Create New Workout
+                            </Button>
+                        </Paper>
                     </Box>
                 ) : (
-                    // Quick workout creation form
+                    // Modern workout creation form
                     <Box>
-                        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <AddIcon />
-                            Create New Workout
-                        </Typography>
+                        {/* Form Header */}
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                p: 3,
+                                mb: 4,
+                                background: 'linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%)',
+                                borderRadius: 3,
+                                border: '1px solid rgba(76, 175, 80, 0.2)'
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                                <Avatar
+                                    sx={{
+                                        bgcolor: '#4caf50',
+                                        width: 48,
+                                        height: 48
+                                    }}
+                                >
+                                    <AddIcon sx={{ fontSize: 24 }} />
+                                </Avatar>
+                                <Box>
+                                    <Typography variant="h5" fontWeight="700" color="#388e3c" gutterBottom>
+                                        Create New Workout
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Build a custom workout starting with "{exercise.name}"
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        </Paper>
 
                         <Box component="form" action={createQuickWorkoutAction}>
-                            <Alert severity="info" sx={{ mb: 3 }}>
-                                This will create a new workout with "{exercise.name}" as the first exercise.
-                                You can add more exercises and customize it later.
+                            {/* Info Alert */}
+                            <Alert
+                                severity="info"
+                                sx={{
+                                    mb: 4,
+                                    borderRadius: 2,
+                                    border: '1px solid rgba(33, 150, 243, 0.2)',
+                                    background: 'linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%)'
+                                }}
+                            >
+                                <Typography variant="body2" fontWeight="600">
+                                    Quick Setup
+                                </Typography>
+                                <Typography variant="body2">
+                                    This will create a new workout with "{exercise.name}" as the first exercise.
+                                    You can add more exercises and customize it later.
+                                </Typography>
                             </Alert>
 
-                            <Stack spacing={3}>
+                            <Stack spacing={4}>
                                 <input
                                     name="workoutName"
                                     type="hidden"
                                     value={`Workout with ${exercise.name}`}
                                 />
 
-                                {/* Workout Preview */}
-                                <Card variant="outlined" sx={{ p: 2, bgcolor: 'background.default' }}>
-                                    <Typography variant="subtitle1" fontWeight="600" gutterBottom>
-                                        Workout Preview:
-                                    </Typography>
-                                    <Typography variant="h6" gutterBottom>
-                                        Workout with {exercise.name}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                                        Workout featuring {exercise.name}
-                                    </Typography>
+                                {/* Enhanced Workout Preview */}
+                                <Paper
+                                    elevation={0}
+                                    sx={{
+                                        p: 4,
+                                        background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+                                        borderRadius: 3,
+                                        border: '1px solid rgba(0, 0, 0, 0.08)',
+                                        position: 'relative',
+                                        overflow: 'hidden'
+                                    }}
+                                >
+                                    {/* Background decoration */}
+                                    <Box
+                                        sx={{
+                                            position: 'absolute',
+                                            top: -50,
+                                            right: -50,
+                                            width: 150,
+                                            height: 150,
+                                            background: 'radial-gradient(circle, rgba(76, 175, 80, 0.15) 0%, rgba(76, 175, 80, 0.05) 70%)',
+                                            borderRadius: '50%'
+                                        }}
+                                    />
 
-                                    <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-                                        <Chip
-                                            label={exercise.difficulty}
-                                            size="small"
-                                            color={getDifficultyColor(exercise.difficulty)}
-                                        />
-                                        <Chip
-                                            label={exercise.category}
-                                            size="small"
-                                            variant="outlined"
-                                        />
-                                        <Chip
-                                            label="30 min"
-                                            size="small"
-                                            variant="outlined"
-                                        />
-                                    </Stack>
-                                </Card>
+                                    <Box sx={{ position: 'relative' }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                                            <Avatar
+                                                sx={{
+                                                    bgcolor: theme.palette.primary.main,
+                                                    width: 40,
+                                                    height: 40
+                                                }}
+                                            >
+                                                <FitnessCenterIcon sx={{ fontSize: 20 }} />
+                                            </Avatar>
+                                            <Typography variant="subtitle1" fontWeight="700" color="primary.main">
+                                                Workout Preview
+                                            </Typography>
+                                        </Box>
 
+                                        <Typography variant="h5" fontWeight="700" gutterBottom color="text.primary">
+                                            Workout with {exercise.name}
+                                        </Typography>
+                                        <Typography variant="body1" color="text.secondary" gutterBottom sx={{ mb: 3 }}>
+                                            A personalized workout featuring {exercise.name} and tailored to your fitness goals
+                                        </Typography>
+
+                                        {/* Enhanced Tags */}
+                                        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+                                            <Chip
+                                                label={exercise.difficulty}
+                                                size="medium"
+                                                color={getDifficultyColor(exercise.difficulty)}
+                                                sx={{ fontWeight: 600 }}
+                                            />
+                                            <Chip
+                                                label={exercise.category}
+                                                size="medium"
+                                                icon={<FitnessCenterIcon sx={{ fontSize: 16 }} />}
+                                                sx={{
+                                                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                                    color: theme.palette.primary.main,
+                                                    border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                                                    fontWeight: 600,
+                                                    '& .MuiChip-icon': { color: theme.palette.primary.main }
+                                                }}
+                                            />
+                                            <Chip
+                                                label="~30 min"
+                                                size="medium"
+                                                icon={<TimerIcon sx={{ fontSize: 16 }} />}
+                                                sx={{
+                                                    bgcolor: alpha('#ff9800', 0.1),
+                                                    color: '#f57c00',
+                                                    border: '1px solid rgba(255, 152, 0, 0.2)',
+                                                    fontWeight: 600,
+                                                    '& .MuiChip-icon': { color: '#ff9800' }
+                                                }}
+                                            />
+                                            {exercise.caloriesPerMinute && (
+                                                <Chip
+                                                    label={`~${exercise.caloriesPerMinute * 30} calories`}
+                                                    size="medium"
+                                                    icon={<FireIcon sx={{ fontSize: 16 }} />}
+                                                    sx={{
+                                                        bgcolor: alpha('#f44336', 0.1),
+                                                        color: '#d32f2f',
+                                                        border: '1px solid rgba(244, 67, 54, 0.2)',
+                                                        fontWeight: 600,
+                                                        '& .MuiChip-icon': { color: '#f44336' }
+                                                    }}
+                                                />
+                                            )}
+                                        </Stack>
+                                    </Box>
+                                </Paper>
+
+                                {/* Action Buttons */}
                                 <Stack direction="row" spacing={2}>
                                     <Button
                                         variant="outlined"
                                         onClick={() => setShowCreateForm(false)}
                                         disabled={quickWorkoutState.isProcessing}
-                                        sx={{ flex: 1 }}
+                                        sx={{
+                                            flex: 1,
+                                            borderRadius: 2,
+                                            py: 1.5,
+                                            textTransform: 'none',
+                                            fontWeight: 600
+                                        }}
                                     >
                                         Back
                                     </Button>
@@ -467,7 +926,20 @@ const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({
                                         variant="contained"
                                         disabled={quickWorkoutState.isProcessing}
                                         startIcon={quickWorkoutState.isProcessing ? <CircularProgress size={20} /> : <CheckIcon />}
-                                        sx={{ flex: 2 }}
+                                        sx={{
+                                            flex: 2,
+                                            borderRadius: 2,
+                                            py: 1.5,
+                                            textTransform: 'none',
+                                            fontWeight: 700,
+                                            background: 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)',
+                                            boxShadow: '0 8px 24px rgba(76, 175, 80, 0.3)',
+                                            '&:hover': {
+                                                background: 'linear-gradient(135deg, #388e3c 0%, #4caf50 100%)',
+                                                transform: 'translateY(-2px)',
+                                                boxShadow: '0 12px 32px rgba(76, 175, 80, 0.4)'
+                                            }
+                                        }}
                                     >
                                         {quickWorkoutState.isProcessing ? 'Creating...' : 'Create Workout'}
                                     </Button>
