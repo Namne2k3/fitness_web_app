@@ -9,6 +9,7 @@ import systemRoutes from './system';
 import accountRoutes from './account';
 import workoutRoutes from './workout';
 import exerciseRoutes from './exercise';
+import uploadRoutes from './upload';
 import { ResponseHelper } from '../utils/responseHelper';
 
 const router = Router();
@@ -35,6 +36,7 @@ router.use('/system', systemRoutes);
 router.use('/account', accountRoutes);
 router.use('/workouts', workoutRoutes);
 router.use('/exercises', exerciseRoutes);
+router.use('/upload', uploadRoutes);
 
 /**
  * 404 Handler cho undefined routes

@@ -38,6 +38,7 @@ import ExercisePicker from '../../../components/exercise/ExercisePicker';
 import ExerciseLibraryModal from '../../../components/exercise/ExerciseLibraryModal';
 import WorkoutExerciseCard from './components/WorkoutExerciseCard';
 import './CreateWorkoutPage.css';
+import DropZoneComponent from '../../../components/dropzone/DropZone';
 
 // ================================
 // 🎯 Type Definitions
@@ -494,6 +495,15 @@ const CreateWorkoutPage: React.FC = () => {
                             onQuickAdd={handleQuickAddExercise}
                             onOpenLibrary={() => setShowExerciseLibrary(true)}
                         />
+
+                        <Box sx={{ mt: 3 }}>
+                            <DropZoneComponent
+                                onDrop={(acceptedFiles, event) => {
+                                    console.log(acceptedFiles);
+                                    console.log(event);
+                                }}
+                            />
+                        </Box>
 
                         {/* Selected Exercises */}
                         {selectedExercises.length > 0 && (
