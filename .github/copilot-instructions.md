@@ -14,7 +14,6 @@
 > 📖 **Documentation**: [React 19 Features Guide](./instructions/react-19-features.md) | [Migration Guide](./instructions/react-19-migration.md)
 
 > **📖 IMPORTANT**: Khi code, luôn tham khảo:
-> - [Prompt Guide](./instructions/prompt.md)
 > - [React 19 Features](./instructions/react-19-features.md) 
 > - [Design UI](./instructions/design-instructions.md)
 > - [Plan](./instructions/plan.instructions.md) 
