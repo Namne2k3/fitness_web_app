@@ -28,6 +28,7 @@ import {
     Tooltip
 } from '@mui/material';
 import React, { useState, useTransition } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Workout } from '../../../types/workout.interface';
 
 // ================================
@@ -84,9 +85,11 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
         });
     };
 
+    const navigate = useNavigate();
     const handleView = () => {
         startTransition(() => {
             onView(workout._id);
+            navigate(`/workouts/${workout._id}`);
         });
     };
 
