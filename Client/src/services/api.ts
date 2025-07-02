@@ -180,11 +180,11 @@ export const uploadFile = async (
     url: string,
     file: File,
     onProgress?: (progress: number) => void
-): Promise<ApiResponse<{ url: string }>> => {
+): Promise<ApiResponse<{ filePath: string }>> => {
     const formData = new FormData();
     formData.append('file', file);
 
-    return apiRequest<{ url: string }>({
+    return apiRequest<{ filePath: string }>({
         method: 'POST',
         url,
         data: formData,

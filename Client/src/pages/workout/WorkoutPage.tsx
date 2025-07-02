@@ -322,7 +322,7 @@ const WorkoutPage: React.FC = () => {
             marginTop: { xs: '6rem' },
             background: 'linear-gradient(to bottom, rgba(102, 126, 234, 0.02) 0%, transparent 100%)',
         }}>
-            <Container maxWidth="lg">
+            <Container maxWidth="xl">
                 {/* Error Alert */}
                 {error && (
                     <Alert

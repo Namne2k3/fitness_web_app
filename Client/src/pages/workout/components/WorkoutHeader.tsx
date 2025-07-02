@@ -248,7 +248,7 @@ const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
                             )}
 
                             {/* Create Workout Button */}
-                            {onCreateWorkout && (
+                            {/* {onCreateWorkout && (
                                 <Button
                                     variant="contained"
                                     startIcon={<Add sx={{ fontSize: 18 }} />}
@@ -267,7 +267,7 @@ const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
                                 >
                                     {isMobile ? 'Mới' : 'Tạo bài tập'}
                                 </Button>
-                            )}
+                            )} */}
                         </Box>
                     </Box>
                 </Box>

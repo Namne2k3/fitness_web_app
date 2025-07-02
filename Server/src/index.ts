@@ -111,7 +111,15 @@ const createApp = (): Application => {
     // ================================
 
     // Setup Swagger API documentation
-    setupSwagger(app);    // ================================
+    setupSwagger(app);
+
+    // ================================
+    // 📁 Static File Serving for Uploads
+    // ================================
+    const path = require('path');
+    app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+    // ================================
     // 📡 API Routes
     // ================================
 

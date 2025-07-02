@@ -18,10 +18,11 @@ export class UploadController {
             if (!req.file) {
                 return ResponseHelper.badRequest(res, 'No file uploaded');
             }
-            const folder = req.body.folder || 'uploads/local';
-            const savedPath = await UploadService.saveFileToLocal(req.file, folder);
+            const folder = req.body.folder || 'uploads';
+            // Pass req to service for correct URL
+            const { filePath } = await UploadService.saveFileToLocal(req.file, folder, req);
             ResponseHelper.success(res, {
-                filePath: savedPath
+                filePath
             }, 'File uploaded to local storage');
         } catch (error) {
             next(error);
@@ -40,7 +41,7 @@ export class UploadController {
             if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
                 return ResponseHelper.badRequest(res, 'No files uploaded');
             }
-            const folder = req.body.folder || 'uploads/local';
+            const folder = req.body.folder || 'uploads';
             const savedPaths = await UploadService.saveMultipleFilesToLocal(req.files as Express.Multer.File[], folder);
             ResponseHelper.success(res, {
                 filePaths: savedPaths,

@@ -39,6 +39,7 @@ import ExerciseLibraryModal from '../../../components/exercise/ExerciseLibraryMo
 import WorkoutExerciseCard from './components/WorkoutExerciseCard';
 import './CreateWorkoutPage.css';
 import DropZoneComponent from '../../../components/dropzone/DropZone';
+import { uploadFile } from '../../../services/api';
 
 // ================================
 // 🎯 Type Definitions
@@ -84,11 +85,27 @@ const CreateWorkoutPage: React.FC = () => {
     const [selectedExercises, setSelectedExercises] = useState<WorkoutExerciseWithName[]>([]);
     const [showExerciseLibrary, setShowExerciseLibrary] = useState(false);
     const [thumbnailUrl, setThumbnailUrl] = useState<string>('');
+    const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
 
     // ✅ React 19: Actions for form submission
     const [state, submitAction, isPending] = useActionState(
         async (_: WorkoutFormState, formData: FormData): Promise<WorkoutFormState> => {
             try {
+
+                let thumbnailpath: string | undefined = "";
+                if (thumbnailFile) {
+                    // Upload file lên local trước và nhận được filePath
+                    // Sau đó binding filePath vào bên trong thumbnail data trong workoutDataa
+                    const file = await uploadFile('/upload/local', thumbnailFile);
+                    thumbnailpath = file.data?.filePath;
+
+                }
+
+                if (thumbnailpath) {
+                    console.log("Check thumbnail path:", thumbnailpath);
+                }
+
+
                 const duration = Number(formData.get('duration'));
                 const difficulty = formData.get('difficulty') as DifficultyLevel;
 
@@ -97,7 +114,7 @@ const CreateWorkoutPage: React.FC = () => {
                     status: 'published',
                     name: formData.get('name') as string,
                     description: formData.get('description') as string,
-                    thumbnail: thumbnailUrl || undefined, // Add thumbnail from state
+                    thumbnail: thumbnailpath || undefined, // Add thumbnail from state
                     category: (formData.get('category') as string || 'strength') as WorkoutCategory,
                     difficulty: difficulty,
                     estimatedDuration: duration,
@@ -200,6 +217,16 @@ const CreateWorkoutPage: React.FC = () => {
         };
 
         setSelectedExercises(prev => [...prev, newWorkoutExercise]);
+    };
+
+    /**
+     * Handle thumbnail upload
+     */
+    const handleDrop = (acceptedFiles: File[]) => {
+        if (acceptedFiles && acceptedFiles.length > 0) {
+            setThumbnailFile(acceptedFiles[0]);
+            setThumbnailUrl(URL.createObjectURL(acceptedFiles[0]));
+        }
     };
 
     /**
@@ -384,14 +411,7 @@ const CreateWorkoutPage: React.FC = () => {
                                     Add an image to represent your workout (optional)
                                 </Typography>
                                 <DropZoneComponent
-                                    onDrop={(files) => {
-                                        if (files.length > 0) {
-                                            // For demo purposes, use a placeholder URL
-                                            // In real app, this should upload to Cloudinary
-                                            const file = files[0];
-                                            setThumbnailUrl(`https://via.placeholder.com/400x300?text=${encodeURIComponent(file.name)}`);
-                                        }
-                                    }}
+                                    onDrop={handleDrop}
                                     accept={{ 'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'] }}
                                     multiple={false}
                                     maxFiles={1}
