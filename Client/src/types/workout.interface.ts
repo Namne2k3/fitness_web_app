@@ -42,6 +42,16 @@ export interface Workout {
 
     createdAt: Date;
     updatedAt: Date;
+
+    // Author information (populated from userId)
+    authorInfo?: {
+        _id: string;
+        username: string;
+        fullName?: string;
+        avatar?: string;
+        experienceLevel?: string;
+        isEmailVerified?: boolean;
+    };
 }
 
 export interface WorkoutFormData {
@@ -139,6 +149,7 @@ export interface ExerciseFull {
     createdBy?: string;
     createdAt?: Date;
     updatedAt?: Date;
+    slug: string;
     // Có thể bổ sung thêm các trường khác nếu backend trả về
 }
 

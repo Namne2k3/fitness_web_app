@@ -212,7 +212,8 @@ export class WorkoutService {    /**
                 equipment: serverData.equipment || [],
                 caloriesBurned: serverData.caloriesBurned || 0,
                 createdAt: new Date(serverData.createdAt),
-                updatedAt: new Date(serverData.updatedAt)
+                updatedAt: new Date(serverData.updatedAt),
+                authorInfo: serverData.authorInfo
             };
 
             return workout;
