@@ -281,6 +281,9 @@ const UserSchema = new Schema<IUser>({
  * Calculate BMI from height and weight
  */
 UserSchema.virtual('profile.bmi').get(function (this: IUser) {
+    if (!this.profile || !this.profile.height || !this.profile.weight) {
+        return null;
+    }
     const heightInMeters = this.profile.height / 100;
     return Math.round((this.profile.weight / (heightInMeters * heightInMeters)) * 10) / 10;
 });
@@ -289,6 +292,9 @@ UserSchema.virtual('profile.bmi').get(function (this: IUser) {
  * Get full name
  */
 UserSchema.virtual('profile.fullName').get(function (this: IUser) {
+    if (!this.profile || !this.profile.firstName || !this.profile.lastName) {
+        return '';
+    }
     return `${this.profile.firstName} ${this.profile.lastName}`;
 });
 
@@ -296,6 +302,9 @@ UserSchema.virtual('profile.fullName').get(function (this: IUser) {
  * Check if subscription is active
  */
 UserSchema.virtual('subscription.isActive').get(function (this: IUser) {
+    if (!this.subscription || !this.subscription.status) {
+        return false;
+    }
     return this.subscription.status === SubscriptionStatus.ACTIVE &&
         (!this.subscription.endDate || this.subscription.endDate > new Date());
 });

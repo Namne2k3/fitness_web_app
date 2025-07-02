@@ -178,11 +178,44 @@ export class WorkoutService {    /**
         try {
             const response = await api.get<Workout>(`/workouts/${workoutId}`);
 
-            if (!response.success) {
+            if (!response.success || !response.data) {
                 throw new Error(response.error || 'Failed to fetch workout');
             }
 
-            return response.data as Workout;
+            // Transform server data to client format if needed
+            const serverData = response.data;
+
+            const workout: Workout = {
+                _id: serverData._id,
+                userId: serverData.userId,
+                name: serverData.name,
+                description: serverData.description || '',
+                thumbnail: serverData.thumbnail || '',
+                category: serverData.category || '',
+                difficulty: serverData.difficulty,
+                estimatedDuration: serverData.estimatedDuration || 0,
+                tags: serverData.tags || [],
+                isPublic: serverData.isPublic || false,
+                exercises: serverData.exercises || [],
+                isSponsored: serverData.isSponsored || false,
+                sponsorData: serverData.sponsorData,
+                likes: serverData.likes || [],
+                likeCount: serverData.likeCount || 0,
+                saves: serverData.saves || [],
+                saveCount: serverData.saveCount || 0,
+                shares: serverData.shares || 0,
+                views: serverData.views || 0,
+                completions: serverData.completions || 0,
+                averageRating: serverData.averageRating || 0,
+                totalRatings: serverData.totalRatings || 0,
+                muscleGroups: serverData.muscleGroups || [],
+                equipment: serverData.equipment || [],
+                caloriesBurned: serverData.caloriesBurned || 0,
+                createdAt: new Date(serverData.createdAt),
+                updatedAt: new Date(serverData.updatedAt)
+            };
+
+            return workout;
         } catch (error) {
             console.error('❌ WorkoutService.getWorkoutById failed:', error);
             throw new Error(
@@ -421,6 +454,42 @@ export class WorkoutService {    /**
     //             hasPrevPage: page > 1
     //         }
     //     };
+    // }
+
+    /**
+     * Toggle like for workout - Mock implementation for now
+     * TODO: Replace with actual API call when backend is ready
+     */
+    // static async toggleLike(workoutId: string): Promise<void> {
+    //     try {
+    //         // TODO: Implement actual API call
+    //         // await api.post(`/workouts/${workoutId}/like`);
+
+    //         // Mock implementation
+    //         await new Promise(resolve => setTimeout(resolve, 200));
+    //         console.log(`Toggled like for workout: ${workoutId}`);
+    //     } catch (error) {
+    //         console.error('❌ WorkoutService.toggleLike failed:', error);
+    //         throw new Error('Failed to toggle like');
+    //     }
+    // }
+
+    /**
+     * Toggle save for workout - Mock implementation for now
+     * TODO: Replace with actual API call when backend is ready
+     */
+    // static async toggleSave(workoutId: string): Promise<void> {
+    //     try {
+    //         // TODO: Implement actual API call
+    //         // await api.post(`/workouts/${workoutId}/save`);
+
+    //         // Mock implementation
+    //         await new Promise(resolve => setTimeout(resolve, 200));
+    //         console.log(`Toggled save for workout: ${workoutId}`);
+    //     } catch (error) {
+    //         console.error('❌ WorkoutService.toggleSave failed:', error);
+    //         throw new Error('Failed to toggle save');
+    //     }
     // }
 }
 

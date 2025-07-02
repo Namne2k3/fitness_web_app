@@ -457,6 +457,60 @@ router.post('/list', WorkoutController.getWorkouts);
 
 /**
  * @swagger
+ * /workouts/{id}:
+ *   get:
+ *     summary: Get workout by ID
+ *     description: |
+ *       Fetch a single workout by its ID with optional populated data.
+ *       Returns comprehensive workout information including exercises and metadata.
+ *       Automatically increments view count for analytics.
+ *     tags: [Workouts]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workout ID (MongoDB ObjectId)
+ *     responses:
+ *       200:
+ *         description: Workout retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Workout'
+ *                 message:
+ *                   type: string
+ *                   example: "Workout retrieved successfully"
+ *       400:
+ *         description: Invalid workout ID format
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Workout not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.get('/:id', WorkoutController.getWorkoutById);
+
+/**
+ * @swagger
  * /workouts:
  *   post:
  *     summary: Create a new workout

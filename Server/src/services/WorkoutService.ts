@@ -323,4 +323,99 @@ export class WorkoutService {
             throw new Error(`Failed to create workout: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
+
+    /**
+     * Get workout by ID với enhanced data options
+     * @param workoutId - ID của workout cần lấy
+     * @param options - Options để include thêm data
+     * @returns Single workout với populated data
+     */
+    static async getWorkoutById(
+        workoutId: string,
+        options: {
+            includeUserData?: boolean;
+            includeExerciseData?: boolean;
+            includeAnalytics?: boolean;
+        } = {}
+    ): Promise<Workout | null> {
+        try {
+            const {
+                includeUserData = false,
+                includeExerciseData = false,
+                includeAnalytics = false
+            } = options;
+
+            // Build query with populate
+            const populateFields: any[] = [];
+
+            if (includeUserData) {
+                populateFields.push({
+                    path: 'userId',
+                    select: 'username profile.firstName profile.lastName profile.avatar profile.experienceLevel isEmailVerified'
+                });
+            }
+
+            if (includeExerciseData) {
+                populateFields.push({
+                    path: 'exercises.exerciseId',
+                    select: 'name description instructions category primaryMuscleGroups equipment images'
+                });
+            }
+
+            // Execute query
+            const workout = await WorkoutModel.findById(workoutId).populate(populateFields).exec();
+
+            if (!workout) {
+                return null;
+            }
+
+            // Convert to plain object và ensure type compatibility
+
+            // Transform data to match client interface
+            const result = {
+                _id: workout._id.toString(),
+                userId: workout.userId,
+                name: workout.name,
+                description: workout.description,
+                thumbnail: workout.thumbnail,
+                category: workout.category,
+                difficulty: workout.difficulty,
+                estimatedDuration: workout.estimatedDuration,
+                tags: workout.tags || [],
+                isPublic: workout.isPublic,
+                exercises: workout.exercises || [],
+                isSponsored: workout.isSponsored,
+                sponsorData: workout.sponsorData,
+                likes: workout.likes || [],
+                likeCount: workout.likeCount || 0,
+                saves: workout.saves || [],
+                saveCount: workout.saveCount || 0,
+                shares: workout.shares || 0,
+                views: workout.views || 0,
+                completions: workout.completions || 0,
+                averageRating: workout.averageRating || 0,
+                totalRatings: workout.totalRatings || 0,
+                muscleGroups: workout.muscleGroups || [],
+                equipment: workout.equipment || [],
+                caloriesBurned: workout.caloriesBurned || 0,
+                createdAt: workout.createdAt,
+                updatedAt: workout.updatedAt
+            };
+
+            // Increment view count if analytics enabled
+            if (includeAnalytics) {
+                await WorkoutModel.findByIdAndUpdate(
+                    workoutId,
+                    { $inc: { views: 1 } },
+                    { new: false } // Don't return updated document to avoid affecting result
+                );
+            }
+
+            return result as Workout;
+
+        } catch (error) {
+            console.error('Error fetching workout by ID:', error);
+            throw new Error(`Failed to fetch workout: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
 }

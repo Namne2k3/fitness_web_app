@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
 
 import { RequestWithUser, ApiResponse } from '../types';
 import { ResponseHelper, requireAuth } from '../utils/responseHelper';
@@ -108,6 +109,41 @@ export class WorkoutController {
                 data: result,
                 message: 'Workout created successfully'
             });
+
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * Get workout by ID with enhanced data
+     * @route GET /api/v1/workouts/:id
+     */
+    static async getWorkoutById(
+        req: Request<{ id: string }>,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { id } = req.params;
+
+            // Validate ObjectId format
+            if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+                return ResponseHelper.badRequest(res, 'Invalid workout ID format');
+            }
+
+            // Get workout with enhanced data
+            const workout = await WorkoutService.getWorkoutById(id, {
+                includeUserData: true,
+                includeExerciseData: true,
+                includeAnalytics: true
+            });
+
+            if (!workout) {
+                return ResponseHelper.notFound(res, 'Workout not found');
+            }
+
+            ResponseHelper.success(res, workout, 'Workout retrieved successfully');
 
         } catch (error) {
             next(error);
