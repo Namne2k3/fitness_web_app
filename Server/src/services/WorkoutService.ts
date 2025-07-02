@@ -351,7 +351,7 @@ export class WorkoutService {
             if (includeUserData) {
                 populateFields.push({
                     path: 'userId',
-                    select: 'username profile.firstName profile.lastName profile.avatar profile.experienceLevel isEmailVerified'
+                    select: '-password'
                 });
             }
 
