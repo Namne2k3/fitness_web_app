@@ -59,6 +59,15 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
     const [isSaved, setIsSaved] = useState(false);
     const [isPending, startTransition] = useTransition();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [imageError, setImageError] = useState(false);
+
+    // Debug thumbnail URL
+    React.useEffect(() => {
+        if (workout.thumbnail) {
+            console.log('🖼️ Workout thumbnail URL:', workout.thumbnail);
+            console.log('🖼️ Full workout data:', workout);
+        }
+    }, [workout]);
 
     // Event handlers
     const handleLike = () => {
@@ -190,7 +199,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
             <Box
                 sx={{
                     width: compact ? 80 : '100%',
-                    height: compact ? 80 : 120,
+                    height: compact ? 80 : 200,
                     background: workout.thumbnail
                         ? 'none'
                         : `linear-gradient(135deg, 
@@ -208,42 +217,26 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
             >
                 {workout.thumbnail ? (
                     <img
+                        crossOrigin='anonymous'
                         src={workout.thumbnail}
                         alt={workout.name}
+                        loading='lazy'
                         style={{
                             width: '100%',
                             height: '100%',
                             objectFit: 'cover',
                             objectPosition: 'center',
                         }}
-                        onError={(e) => {
-                            // Fallback to category icon if image fails to load
-                            e.currentTarget.style.display = 'none';
+                        onError={() => {
+                            console.log('❌ Image failed to load:', workout.thumbnail);
+                            setImageError(true);
+                        }}
+                        onLoad={() => {
+                            console.log('✅ Image loaded successfully:', workout.thumbnail);
                         }}
                     />
                 ) : (
                     getCategoryIcon(workout.category || 'strength')
-                )}
-
-                {/* Category badge overlay for thumbnails */}
-                {workout.thumbnail && (
-                    <Chip
-                        label={getCategoryIcon(workout.category || 'strength')}
-                        size="small"
-                        sx={{
-                            position: 'absolute',
-                            bottom: 4,
-                            left: 4,
-                            background: 'rgba(0,0,0,0.7)',
-                            color: 'white',
-                            fontSize: '0.75rem',
-                            height: 24,
-                            minWidth: 24,
-                            '& .MuiChip-label': {
-                                padding: '0 4px',
-                            }
-                        }}
-                    />
                 )}
 
                 {/* Quick Stats for compact mode */}
@@ -498,9 +491,9 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
                                     <FavoriteBorder fontSize="small" />
                                 }
                             </IconButton>
-                            {workout.likeCount > 0 && (
+                            {(workout.likeCount || 0) > 0 && (
                                 <Typography variant="caption" color="text.secondary" fontWeight={500}>
-                                    {formatNumber(workout.likeCount)}
+                                    {formatNumber(workout.likeCount || 0)}
                                 </Typography>
                             )}
                         </Box>

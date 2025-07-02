@@ -1,7 +1,7 @@
+import { CheckCircle, CloudUpload, Delete, Error } from '@mui/icons-material';
+import { Box, Chip, IconButton, Typography } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
-import { useDropzone, FileRejection, DropEvent, Accept } from 'react-dropzone';
-import { Box, Typography, IconButton, Chip } from '@mui/material';
-import { CloudUpload, Delete, Image as ImageIcon, CheckCircle, Error } from '@mui/icons-material';
+import { Accept, DropEvent, FileRejection, useDropzone } from 'react-dropzone';
 
 export interface DropZoneProps {
     onDrop: (acceptedFiles: File[], event: DropEvent) => void;
@@ -31,7 +31,6 @@ const DropZoneComponent: React.FC<DropZoneProps> = ({
     className = '',
     style = {},
     showPreview = true,
-    label = 'Upload Thumbnail',
     helperText,
 }) => {
     const [previews, setPreviews] = useState<Array<{ url: string; file: File }>>([]);
@@ -114,13 +113,6 @@ const DropZoneComponent: React.FC<DropZoneProps> = ({
 
     return (
         <Box className={className} sx={{ width: '100%', ...style }}>
-            {/* Label */}
-            {label && (
-                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'text.primary' }}>
-                    {label}
-                </Typography>
-            )}
-
             {/* Drop Zone hoặc Preview - thay thế lẫn nhau */}
             <Box
                 {...getRootProps()}
