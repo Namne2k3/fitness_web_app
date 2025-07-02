@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDropzone, FileRejection, DropEvent, Accept } from 'react-dropzone';
+import { Box, Typography, IconButton, Chip } from '@mui/material';
+import { CloudUpload, Delete, Image as ImageIcon, CheckCircle, Error } from '@mui/icons-material';
 
 export interface DropZoneProps {
     onDrop: (acceptedFiles: File[], event: DropEvent) => void;
@@ -10,38 +12,62 @@ export interface DropZoneProps {
     disabled?: boolean;
     className?: string;
     style?: React.CSSProperties;
+    showPreview?: boolean;
+    label?: string;
+    helperText?: string;
 }
 
 /**
- * Simple reusable DropZone component using react-dropzone
- * Supports image preview, flexible accept prop, and basic config
+ * Modern DropZone component với Material UI styling
+ * Supports image preview, flexible accept prop, and beautiful UI
  */
 const DropZoneComponent: React.FC<DropZoneProps> = ({
     onDrop,
     accept = { 'image/*': [] },
-    multiple = true,
-    maxFiles = 5,
+    multiple = false,
+    maxFiles = 1,
     maxSize = 5 * 1024 * 1024, // 5MB
     disabled = false,
     className = '',
     style = {},
+    showPreview = true,
+    label = 'Upload Thumbnail',
+    helperText,
 }) => {
-    const [previews, setPreviews] = useState<string[]>([]);
+    const [previews, setPreviews] = useState<Array<{ url: string; file: File }>>([]);
+    const [rejectedFiles, setRejectedFiles] = useState<FileRejection[]>([]);
 
     const handleDrop = useCallback((acceptedFiles: File[], fileRejections: FileRejection[], event: DropEvent) => {
-        setPreviews(
-            acceptedFiles
-                .filter(file => file.type.startsWith('image/'))
-                .map(file => URL.createObjectURL(file))
-        );
-        onDrop(acceptedFiles, event);
-    }, [onDrop]);
+        // Clear previous rejections
+        setRejectedFiles(fileRejections);
 
-    // Clean up previews on unmount
+        // Create previews for accepted files
+        if (showPreview && acceptedFiles.length > 0) {
+            const newPreviews = acceptedFiles
+                .filter(file => file.type.startsWith('image/'))
+                .map(file => ({
+                    url: URL.createObjectURL(file),
+                    file
+                }));
+
+            setPreviews(multiple ? [...previews, ...newPreviews] : newPreviews);
+        }
+
+        onDrop(acceptedFiles, event);
+    }, [onDrop, showPreview, multiple, previews]);
+
+    // Clean up preview URLs on unmount or when previews change
     useEffect(() => {
         return () => {
-            previews.forEach(url => URL.revokeObjectURL(url));
+            previews.forEach(preview => URL.revokeObjectURL(preview.url));
         };
+    }, [previews]);
+
+    const removePreview = useCallback((index: number) => {
+        const newPreviews = [...previews];
+        URL.revokeObjectURL(newPreviews[index].url);
+        newPreviews.splice(index, 1);
+        setPreviews(newPreviews);
     }, [previews]);
 
     const {
@@ -59,100 +85,270 @@ const DropZoneComponent: React.FC<DropZoneProps> = ({
         disabled,
     });
 
+    const getBorderColor = () => {
+        if (isDragReject) return '#f44336';
+        if (isDragAccept) return '#4caf50';
+        if (isDragActive) return '#1976d2';
+        return '#e0e0e0';
+    };
+
+    const getBackgroundColor = () => {
+        if (isDragReject) return 'rgba(244, 67, 54, 0.04)';
+        if (isDragAccept) return 'rgba(76, 175, 80, 0.04)';
+        if (isDragActive) return 'rgba(25, 118, 210, 0.04)';
+        return 'rgba(0, 0, 0, 0.02)';
+    };
+
+    const getIcon = () => {
+        if (isDragReject) return <Error sx={{ fontSize: 48, color: '#f44336' }} />;
+        if (isDragAccept) return <CheckCircle sx={{ fontSize: 48, color: '#4caf50' }} />;
+        return <CloudUpload sx={{ fontSize: 48, color: '#1976d2' }} />;
+    };
+
+    const getMessage = () => {
+        if (isDragReject) return 'File không hợp lệ!';
+        if (isDragAccept) return 'Thả file vào đây...';
+        if (isDragActive) return 'Thả file vào đây...';
+        return 'Kéo & thả file vào đây hoặc click để chọn';
+    };
+
     return (
-        <div
-            {...getRootProps({
-                className: `dropzone ${className} ${isDragActive ? 'active' : ''} ${isDragReject ? 'reject' : ''} ${isDragAccept ? 'accept' : ''}`,
-                style: {
-                    border: isDragReject
-                        ? '2.5px solid #f44336'
-                        : isDragAccept
-                            ? '2.5px solid #4caf50'
-                            : '2.5px dashed #1976d2',
-                    borderRadius: 16,
-                    padding: 32,
-                    minHeight: 180,
-                    background: isDragActive
-                        ? 'linear-gradient(135deg, #e3f2fd 0%, #fffde7 100%)'
-                        : 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)',
-                    boxShadow: isDragActive
-                        ? '0 8px 32px rgba(25, 118, 210, 0.10)'
-                        : '0 2px 12px rgba(0,0,0,0.04)',
+        <Box className={className} sx={{ width: '100%', ...style }}>
+            {/* Label */}
+            {label && (
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'text.primary' }}>
+                    {label}
+                </Typography>
+            )}
+
+            {/* Drop Zone hoặc Preview - thay thế lẫn nhau */}
+            <Box
+                {...getRootProps()}
+                sx={{
+                    border: `2px ${previews.length > 0 ? 'solid' : 'dashed'} ${getBorderColor()}`,
+                    borderRadius: 3,
+                    p: previews.length > 0 ? 1.5 : 3,
+                    textAlign: 'center',
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    background: previews.length > 0
+                        ? 'linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%)'
+                        : getBackgroundColor(),
+                    transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+                    minHeight: 160,
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 16,
-                    cursor: disabled ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
-                    ...style,
-                },
-            })}
-        >
-            <input {...getInputProps()} />
-            <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 8,
-                marginBottom: previews.length ? 16 : 0,
-            }}>
-                <svg width="48" height="48" fill="none" viewBox="0 0 48 48" style={{ opacity: 0.7 }}>
-                    <rect width="48" height="48" rx="12" fill="#e3f2fd" />
-                    <path d="M24 34V14M24 14l-7 7m7-7l7 7" stroke="#1976d2" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span style={{
-                    fontSize: 18,
-                    fontWeight: 600,
-                    color: isDragReject ? '#f44336' : isDragAccept ? '#4caf50' : '#1976d2',
-                    letterSpacing: 0.2,
-                }}>
-                    {isDragActive
-                        ? isDragReject
-                            ? 'File không hợp lệ!'
-                            : 'Thả file vào đây...'
-                        : 'Kéo & thả file vào đây hoặc click để chọn file'}
-                </span>
-                <span style={{ fontSize: 13, color: '#888', marginTop: 2 }}>
-                    (Chỉ chấp nhận: {accept && typeof accept === 'object' ? Object.keys(accept).join(', ') : 'image/*'})
-                </span>
-                <span style={{ fontSize: 12, color: '#bdbdbd', marginTop: 2 }}>
-                    {multiple ? `Tối đa ${maxFiles} file, mỗi file ≤ ${(maxSize / 1024 / 1024).toFixed(1)}MB` : `Chỉ 1 file, ≤ ${(maxSize / 1024 / 1024).toFixed(1)}MB`}
-                </span>
-            </div>
-            {previews.length > 0 && (
-                <div style={{
-                    display: 'flex',
-                    gap: 16,
-                    flexWrap: 'wrap',
-                    justifyContent: 'center',
-                    marginTop: 8,
-                }}>
-                    {previews.map((url, idx) => (
-                        <div key={url} style={{
-                            background: 'linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%)',
-                            border: '1.5px solid #e3f2fd',
-                            borderRadius: 10,
-                            boxShadow: '0 2px 8px rgba(25,118,210,0.07)',
-                            padding: 6,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            width: 90,
-                        }}>
-                            <img
-                                src={url}
-                                alt={`preview-${idx}`}
-                                style={{ width: 70, height: 70, objectFit: 'cover', borderRadius: 6, border: '1px solid #eee', marginBottom: 4 }}
+                    gap: 1.5,
+                    opacity: disabled ? 0.6 : 1,
+                    position: 'relative',
+                    '&:hover': {
+                        backgroundColor: disabled ? undefined : previews.length > 0
+                            ? 'rgba(25, 118, 210, 0.05)'
+                            : 'rgba(25, 118, 210, 0.02)',
+                        borderColor: disabled ? undefined : '#1976d2',
+                    },
+                }}
+            >
+                <input {...getInputProps()} />
+
+                {/* Hiển thị Preview thay vì Drop Zone khi có file */}
+                {showPreview && previews.length > 0 ? (
+                    <>
+                        {/* Single Preview cho mode không multiple */}
+                        {!multiple && previews.length === 1 && (
+                            <Box
+                                sx={{
+                                    position: 'relative',
+                                    width: '100%',
+                                    maxWidth: 200,
+                                    borderRadius: 2,
+                                    overflow: 'hidden',
+                                }}
+                            >
+                                {/* Main Preview Image */}
+                                <Box
+                                    component="img"
+                                    src={previews[0].url}
+                                    alt="Preview"
+                                    sx={{
+                                        width: '100%',
+                                        height: 140,
+                                        objectFit: 'cover',
+                                        borderRadius: 2,
+                                        border: '1px solid rgba(0,0,0,0.1)',
+                                    }}
+                                />
+
+                                {/* Overlay với file info */}
+                                <Box
+                                    sx={{
+                                        position: 'absolute',
+                                        bottom: 0,
+                                        left: 0,
+                                        right: 0,
+                                        background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
+                                        color: 'white',
+                                        p: 1,
+                                    }}
+                                >
+                                    <Typography variant="caption" sx={{ display: 'block', fontWeight: 500 }}>
+                                        {previews[0].file.name}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                                        {(previews[0].file.size / 1024).toFixed(1)} KB
+                                    </Typography>
+                                </Box>
+
+                                {/* Delete Button */}
+                                <IconButton
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        removePreview(0);
+                                    }}
+                                    sx={{
+                                        position: 'absolute',
+                                        top: 8,
+                                        right: 8,
+                                        backgroundColor: 'rgba(244, 67, 54, 0.9)',
+                                        color: 'white',
+                                        '&:hover': {
+                                            backgroundColor: 'rgba(244, 67, 54, 1)',
+                                        },
+                                    }}
+                                    size="small"
+                                >
+                                    <Delete fontSize="small" />
+                                </IconButton>
+                            </Box>
+                        )}
+
+                        {/* Multiple Preview Grid */}
+                        {multiple && (
+                            <Box
+                                sx={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
+                                    gap: 1,
+                                    width: '100%',
+                                    maxHeight: 120,
+                                    overflowY: 'auto',
+                                }}
+                            >
+                                {previews.map((preview, index) => (
+                                    <Box
+                                        key={preview.url}
+                                        sx={{
+                                            position: 'relative',
+                                            borderRadius: 1,
+                                            overflow: 'hidden',
+                                        }}
+                                    >
+                                        <Box
+                                            component="img"
+                                            src={preview.url}
+                                            alt={`Preview ${index + 1}`}
+                                            sx={{
+                                                width: '100%',
+                                                height: 80,
+                                                objectFit: 'cover',
+                                                border: '1px solid rgba(0,0,0,0.1)',
+                                            }}
+                                        />
+                                        <IconButton
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                removePreview(index);
+                                            }}
+                                            sx={{
+                                                position: 'absolute',
+                                                top: 2,
+                                                right: 2,
+                                                backgroundColor: 'rgba(244, 67, 54, 0.9)',
+                                                color: 'white',
+                                                width: 20,
+                                                height: 20,
+                                                '&:hover': {
+                                                    backgroundColor: 'rgba(244, 67, 54, 1)',
+                                                },
+                                            }}
+                                        >
+                                            <Delete sx={{ fontSize: 12 }} />
+                                        </IconButton>
+                                    </Box>
+                                ))}
+                            </Box>
+                        )}
+
+                        {/* Instruction overlay khi hover */}
+                        <Typography
+                            variant="caption"
+                            sx={{
+                                color: 'primary.main',
+                                fontWeight: 500,
+                                mt: 1,
+                                opacity: 0.8,
+                            }}
+                        >
+                            Click để thay đổi hoặc kéo file mới vào đây
+                        </Typography>
+                    </>
+                ) : (
+                    <>
+                        {/* Original Drop Zone UI khi chưa có file */}
+                        {getIcon()}
+
+                        <Typography
+                            variant="body1"
+                            sx={{
+                                fontWeight: 500,
+                                color: isDragReject ? '#f44336' : isDragAccept ? '#4caf50' : 'text.primary'
+                            }}
+                        >
+                            {getMessage()}
+                        </Typography>
+
+                        <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                            {helperText || `${multiple ? `Tối đa ${maxFiles} file` : 'Chỉ 1 file'}, mỗi file ≤ ${(maxSize / 1024 / 1024).toFixed(1)}MB`}
+                        </Typography>
+
+                        {accept && (
+                            <Chip
+                                label={`Chấp nhận: ${Object.keys(accept).join(', ')}`}
+                                size="small"
+                                variant="outlined"
+                                sx={{ mt: 0.5, fontSize: '0.75rem' }}
                             />
-                            <span style={{ fontSize: 11, color: '#1976d2', wordBreak: 'break-all', textAlign: 'center' }}>
-                                Ảnh {idx + 1}
-                            </span>
-                        </div>
+                        )}
+                    </>
+                )}
+            </Box>
+
+            {/* Error Messages */}
+            {rejectedFiles.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                    {rejectedFiles.map((rejection, index) => (
+                        <Typography
+                            key={index}
+                            variant="caption"
+                            sx={{
+                                display: 'block',
+                                color: 'error.main',
+                                backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                                p: 1,
+                                borderRadius: 1,
+                                mb: 1
+                            }}
+                        >
+                            <strong>{rejection.file.name}:</strong> {rejection.errors.map(e => e.message).join(', ')}
+                        </Typography>
                     ))}
-                </div>
+                </Box>
             )}
-        </div>
+
+            {/* Preview Images */}
+
+        </Box>
     );
 };
 

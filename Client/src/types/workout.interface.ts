@@ -5,6 +5,7 @@ export interface Workout {
     userId: string;
     name: string;
     description?: string;
+    thumbnail?: string; // optional image URL for workout thumbnail
     category?: string; // ['strength', 'cardio', 'flexibility', etc.]
     difficulty: DifficultyLevel;
     estimatedDuration?: number; // minutes
@@ -45,6 +46,7 @@ export interface Workout {
 export interface WorkoutFormData {
     name: string;
     description?: string;
+    thumbnail?: string;
     exercises: WorkoutExercise[]; // Changed from Omit<Exercise, 'id'>[]
     duration: number;
     difficulty: DifficultyLevel;

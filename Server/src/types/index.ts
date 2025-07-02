@@ -81,6 +81,7 @@ export interface Workout {
     userId: ObjectId; // ref: 'User', indexed
     name: string; // required, max 100
     description?: string; // max 500
+    thumbnail?: string; // optional image URL for workout thumbnail
     category?: string; // ['strength', 'cardio', 'flexibility', etc.]
     difficulty: 'beginner' | 'intermediate' | 'advanced';
     estimatedDuration?: number; // minutes
@@ -582,6 +583,7 @@ export interface CloudinaryConfig {
 export interface WorkoutFormData {
     name: string;
     description?: string;
+    thumbnail?: string;
     category?: string;
     difficulty: 'beginner' | 'intermediate' | 'advanced';
     estimatedDuration?: number;

@@ -1,14 +1,75 @@
-/**
- * 📸 Upload Controller
- * Handle file uploads using CloudinaryService
- */
 
 import { Request, Response, NextFunction } from 'express';
-import { CloudinaryService } from '../services/CloudinaryService';
-import { ResponseHelper } from '../utils/responseHelper';
 import { ApiResponse } from '../types';
+import { ResponseHelper } from '../utils/responseHelper';
+import { UploadService } from '../services/UploadService';
+import { CloudinaryService } from '../services/CloudinaryService';
 
 export class UploadController {
+    /**
+     * Upload single file to local storage
+     */
+    static async uploadFileToLocal(
+        req: Request,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.file) {
+                return ResponseHelper.badRequest(res, 'No file uploaded');
+            }
+            const folder = req.body.folder || 'uploads/local';
+            const savedPath = await UploadService.saveFileToLocal(req.file, folder);
+            ResponseHelper.success(res, {
+                filePath: savedPath
+            }, 'File uploaded to local storage');
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * Upload multiple files to local storage
+     */
+    static async uploadMultipleFilesToLocal(
+        req: Request,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+                return ResponseHelper.badRequest(res, 'No files uploaded');
+            }
+            const folder = req.body.folder || 'uploads/local';
+            const savedPaths = await UploadService.saveMultipleFilesToLocal(req.files as Express.Multer.File[], folder);
+            ResponseHelper.success(res, {
+                filePaths: savedPaths,
+                count: savedPaths.length
+            }, 'Files uploaded to local storage');
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * Delete a file from local storage
+     */
+    static async deleteLocalFile(
+        req: Request,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { filePath } = req.body;
+            if (!filePath) {
+                return ResponseHelper.badRequest(res, 'No filePath provided');
+            }
+            await UploadService.deleteLocalFile(filePath);
+            ResponseHelper.success(res, null, 'File deleted from local storage');
+        } catch (error) {
+            next(error);
+        }
+    }
     /**
      * Upload single image
      */

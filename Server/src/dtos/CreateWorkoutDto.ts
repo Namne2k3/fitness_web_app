@@ -8,6 +8,7 @@ import { ObjectId } from 'mongoose';
 export interface CreateWorkoutDtoInput {
     name: string;
     description?: string | undefined;
+    thumbnail?: string;
     category?: string;
     difficulty: 'beginner' | 'intermediate' | 'advanced';
     estimatedDuration?: number;
@@ -55,6 +56,7 @@ export class CreateWorkoutDto {
         this.validateRequired();
         this.validateName();
         this.validateDescription();
+        this.validateThumbnail();
         this.validateCategory();
         this.validateDifficulty();
         this.validateDuration();
@@ -122,6 +124,39 @@ export class CreateWorkoutDto {
         } else {
             this.data.description = trimmedDescription;
         }
+    }
+
+    /**
+     * Validate thumbnail
+     */
+    private validateThumbnail(): void {
+        if (!this.data.thumbnail) return;
+
+        if (typeof this.data.thumbnail !== 'string') {
+            this.errors.push('thumbnail must be a string');
+            return;
+        }
+
+        const trimmedThumbnail = this.data.thumbnail.trim();
+
+        if (trimmedThumbnail.length === 0) {
+            delete this.data.thumbnail;
+            return;
+        }
+
+        if (trimmedThumbnail.length > 500) {
+            this.errors.push('thumbnail URL cannot exceed 500 characters');
+            return;
+        }
+
+        // Basic URL validation for image URLs
+        const imageUrlPattern = /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?.*)?$/i;
+        if (!imageUrlPattern.test(trimmedThumbnail)) {
+            this.errors.push('thumbnail must be a valid image URL');
+            return;
+        }
+
+        this.data.thumbnail = trimmedThumbnail;
     }
 
     /**

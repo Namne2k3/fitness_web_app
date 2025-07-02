@@ -128,6 +128,19 @@ const WorkoutSchema = new Schema<IWorkout>({
         trim: true,
         maxlength: [500, 'Description cannot exceed 500 characters']
     },
+    thumbnail: {
+        type: String,
+        validate: {
+            validator: function (value: string) {
+                if (!value) return true; // thumbnail is optional
+                // Basic URL validation for image URLs
+                const imageUrlPattern = /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?.*)?$/i;
+                return imageUrlPattern.test(value);
+            },
+            message: 'Thumbnail must be a valid image URL'
+        },
+        maxlength: [500, 'Thumbnail URL cannot exceed 500 characters']
+    },
     category: {
         type: String,
         enum: ['strength', 'cardio', 'flexibility', 'hiit', 'crosstraining', 'sports', 'recovery'],

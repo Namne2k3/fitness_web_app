@@ -83,6 +83,7 @@ const CreateWorkoutPage: React.FC = () => {
     // ================================
     const [selectedExercises, setSelectedExercises] = useState<WorkoutExerciseWithName[]>([]);
     const [showExerciseLibrary, setShowExerciseLibrary] = useState(false);
+    const [thumbnailUrl, setThumbnailUrl] = useState<string>('');
 
     // ✅ React 19: Actions for form submission
     const [state, submitAction, isPending] = useActionState(
@@ -96,6 +97,7 @@ const CreateWorkoutPage: React.FC = () => {
                     status: 'published',
                     name: formData.get('name') as string,
                     description: formData.get('description') as string,
+                    thumbnail: thumbnailUrl || undefined, // Add thumbnail from state
                     category: (formData.get('category') as string || 'strength') as WorkoutCategory,
                     difficulty: difficulty,
                     estimatedDuration: duration,
@@ -120,8 +122,6 @@ const CreateWorkoutPage: React.FC = () => {
                         completed: false
                     })),
                 };
-
-                console.log('Submitting workout data:', workoutData);
 
                 // Validation
                 if (!workoutData.name || workoutData.name.length < 3) {
@@ -375,6 +375,30 @@ const CreateWorkoutPage: React.FC = () => {
                                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                             />
 
+                            {/* Thumbnail Upload */}
+                            <Box sx={{ mt: 2, mb: 2 }}>
+                                <Typography variant="h6" component="h3" fontWeight="600" sx={{ mb: 1 }}>
+                                    Workout Thumbnail
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                    Add an image to represent your workout (optional)
+                                </Typography>
+                                <DropZoneComponent
+                                    onDrop={(files) => {
+                                        if (files.length > 0) {
+                                            // For demo purposes, use a placeholder URL
+                                            // In real app, this should upload to Cloudinary
+                                            const file = files[0];
+                                            setThumbnailUrl(`https://via.placeholder.com/400x300?text=${encodeURIComponent(file.name)}`);
+                                        }
+                                    }}
+                                    accept={{ 'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'] }}
+                                    multiple={false}
+                                    maxFiles={1}
+                                    maxSize={5 * 1024 * 1024} // 5MB
+                                />
+                            </Box>
+
                             {/* Category & Difficulty Row */}
                             <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
                                 <FormControl fullWidth margin="normal">
@@ -495,15 +519,6 @@ const CreateWorkoutPage: React.FC = () => {
                             onQuickAdd={handleQuickAddExercise}
                             onOpenLibrary={() => setShowExerciseLibrary(true)}
                         />
-
-                        <Box sx={{ mt: 3 }}>
-                            <DropZoneComponent
-                                onDrop={(acceptedFiles, event) => {
-                                    console.log(acceptedFiles);
-                                    console.log(event);
-                                }}
-                            />
-                        </Box>
 
                         {/* Selected Exercises */}
                         {selectedExercises.length > 0 && (
