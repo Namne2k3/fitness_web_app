@@ -42,7 +42,7 @@ const createApp = (): Application => {
                 defaultSrc: ["'self'"],
                 styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
                 fontSrc: ["'self'", "https://fonts.gstatic.com"],
-                imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+                imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "http://localhost:3000", "http://localhost:5173"],
                 scriptSrc: ["'self'"],
                 connectSrc: ["'self'", "https://api.cloudinary.com"]
             }
@@ -51,7 +51,7 @@ const createApp = (): Application => {
 
     // CORS configuration
     app.use(cors({
-        origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+        origin: ['http://localhost:5173', 'http://localhost:5174'],
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization']
@@ -117,7 +117,10 @@ const createApp = (): Application => {
     // 📁 Static File Serving for Uploads
     // ================================
     const path = require('path');
-    app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+    app.use('/uploads', cors({
+        origin: ['http://localhost:5173', 'http://localhost:5174'],
+        credentials: false
+    }), express.static(path.join(__dirname, '../uploads')));
 
     // ================================
     // 📡 API Routes

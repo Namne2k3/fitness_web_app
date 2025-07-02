@@ -101,11 +101,6 @@ const CreateWorkoutPage: React.FC = () => {
 
                 }
 
-                if (thumbnailpath) {
-                    console.log("Check thumbnail path:", thumbnailpath);
-                }
-
-
                 const duration = Number(formData.get('duration'));
                 const difficulty = formData.get('difficulty') as DifficultyLevel;
 
