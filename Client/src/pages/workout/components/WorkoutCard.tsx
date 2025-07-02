@@ -527,11 +527,11 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
                                     <BookmarkBorder fontSize="small" />
                                 }
                             </IconButton>
-                            {workout.saveCount > 0 && (
+                            {/* {workout.saveCount > 0 && (
                                 <Typography variant="caption" color="text.secondary" fontWeight={500}>
                                     {formatNumber(workout.saveCount)}
                                 </Typography>
-                            )}
+                            )} */}
                         </Box>
                     </Box>
                 </Box>
