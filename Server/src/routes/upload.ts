@@ -93,4 +93,36 @@ router.get('/exists/:publicId',
     UploadController.checkFileExists
 );
 
+/**
+ * @route POST /api/v1/upload/local
+ * @desc Upload single file to local storage
+ * @access Private
+ */
+router.post('/local',
+    authenticate,
+    uploadMiddleware.single('file'),
+    UploadController.uploadFileToLocal
+);
+
+/**
+ * @route POST /api/v1/upload/locals
+ * @desc Upload multiple files to local storage
+ * @access Private
+ */
+router.post('/locals',
+    authenticate,
+    uploadMiddleware.array('files', 10),
+    UploadController.uploadMultipleFilesToLocal
+);
+
+/**
+ * @route DELETE /api/v1/upload/local
+ * @desc Delete a file from local storage
+ * @access Private
+ */
+router.delete('/local',
+    authenticate,
+    UploadController.deleteLocalFile
+);
+
 export default router;

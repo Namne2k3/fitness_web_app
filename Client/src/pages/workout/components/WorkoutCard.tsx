@@ -186,24 +186,65 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
                 />
             )}
 
-            {/* Category Icon Section */}
+            {/* Thumbnail or Category Icon Section */}
             <Box
                 sx={{
                     width: compact ? 80 : '100%',
                     height: compact ? 80 : 120,
-                    background: `linear-gradient(135deg, 
-                        rgba(102, 126, 234, 0.1) 0%, 
-                        rgba(118, 75, 162, 0.1) 100%
-                    )`,
+                    background: workout.thumbnail
+                        ? 'none'
+                        : `linear-gradient(135deg, 
+                            rgba(102, 126, 234, 0.1) 0%, 
+                            rgba(118, 75, 162, 0.1) 100%
+                        )`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: compact ? '1.5rem' : '2rem',
                     position: 'relative',
                     borderRight: compact ? '1px solid rgba(0,0,0,0.06)' : 'none',
+                    overflow: 'hidden',
                 }}
             >
-                {getCategoryIcon(workout.category || 'strength')}
+                {workout.thumbnail ? (
+                    <img
+                        src={workout.thumbnail}
+                        alt={workout.name}
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            objectPosition: 'center',
+                        }}
+                        onError={(e) => {
+                            // Fallback to category icon if image fails to load
+                            e.currentTarget.style.display = 'none';
+                        }}
+                    />
+                ) : (
+                    getCategoryIcon(workout.category || 'strength')
+                )}
+
+                {/* Category badge overlay for thumbnails */}
+                {workout.thumbnail && (
+                    <Chip
+                        label={getCategoryIcon(workout.category || 'strength')}
+                        size="small"
+                        sx={{
+                            position: 'absolute',
+                            bottom: 4,
+                            left: 4,
+                            background: 'rgba(0,0,0,0.7)',
+                            color: 'white',
+                            fontSize: '0.75rem',
+                            height: 24,
+                            minWidth: 24,
+                            '& .MuiChip-label': {
+                                padding: '0 4px',
+                            }
+                        }}
+                    />
+                )}
 
                 {/* Quick Stats for compact mode */}
                 {compact && (

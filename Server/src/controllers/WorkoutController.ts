@@ -67,7 +67,7 @@ export class WorkoutController {
         req: RequestWithUser,
         res: Response<ApiResponse>,
         next: NextFunction
-    ): Promise<void> {
+    ): Promise<any> {
         try {
             // Check authentication
             if (!requireAuth(res, req.user)) {
@@ -78,6 +78,7 @@ export class WorkoutController {
 
             // Validate request body using DTO
             const workoutDto = new CreateWorkoutDto(req.body);
+
             const validation = workoutDto.getValidationResult();
 
             if (!validation.isValid) {

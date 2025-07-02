@@ -56,6 +56,7 @@ export class WorkoutService {    /**
         status: string;
         name: string;
         description: string;
+        thumbnail?: string;
         category: WorkoutCategory;
         difficulty: DifficultyLevel;
         estimatedDuration: number;
@@ -104,7 +105,7 @@ export class WorkoutService {    /**
 
             console.log("🔗 WorkoutService.createWorkout (API Call):", workoutData);
             const response = await api.post<Workout>('/workouts', workoutData);
-
+            // const response = { success: false, data: null, error: 'mock' };
             if (!response.success || !response.data) {
                 throw new Error(response.error || 'Failed to create workout');
             }
