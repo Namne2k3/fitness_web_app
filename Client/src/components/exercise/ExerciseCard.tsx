@@ -101,11 +101,11 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                     sx={{
                         position: 'relative',
                         width: '100%',
-                        height: variant === 'compact' ? 120 : 180,
-                        borderRadius: 2,
-                        overflow: 'hidden',
-                        mb: 2,
-                        background: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)'
+                        height: variant === 'compact' ? 120 : 'auto',
+                        // borderRadius: 2,
+                        // overflow: 'hidden',
+                        // mb: 2,
+                        // background: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)'
                     }}
                 >
                     <img
@@ -114,8 +114,8 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                         style={{
                             width: '100%',
                             height: '100%',
-                            objectFit: 'cover',
-                            borderRadius: 8
+                            objectFit: 'contain',
+                            // borderRadius: 8
                         }}
                         loading="lazy"
                     />

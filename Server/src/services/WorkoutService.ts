@@ -357,24 +357,74 @@ export class WorkoutService {
 
             if (includeExerciseData) {
                 populateFields.push({
-                    path: 'exercises.exerciseId',
-                    select: 'name description instructions category primaryMuscleGroups equipment images'
+                    path: 'exercises.exerciseId'
+                    // Không dùng select để lấy toàn bộ dữ liệu exercise
                 });
             }
 
-            // Execute query
-            const workout = await WorkoutModel.findById(workoutId).populate(populateFields).exec();
 
-            if (!workout) {
+            // Execute query
+            const workoutDoc = await WorkoutModel.findById(workoutId).populate(populateFields).exec();
+            if (!workoutDoc) {
                 return null;
             }
 
-            // Convert to plain object và ensure type compatibility
+            // Convert to plain JS object
+            const workout = workoutDoc.toObject();
 
-            // Transform data to match client interface
+            // --- Populate exerciseInfo for each exercise if includeExerciseData ---
+            let exercises = Array.isArray(workout.exercises) ? workout.exercises.map((ex: any) => ({ ...ex })) : [];
+            if (includeExerciseData && Array.isArray(exercises)) {
+                exercises = exercises.map((ex: any) => {
+                    // Nếu đã populate, exerciseId là object, trả về toàn bộ object (loại bỏ __v nếu muốn)
+                    let exerciseInfo = null;
+                    if (ex.exerciseId && typeof ex.exerciseId === 'object' && ex.exerciseId._id) {
+                        // Convert to plain object nếu là Mongoose Document
+                        let e = ex.exerciseId.toObject ? ex.exerciseId.toObject() : ex.exerciseId;
+                        // Optionally loại bỏ các trường không cần thiết
+                        if ('__v' in e) delete e.__v;
+                        exerciseInfo = {
+                            ...e,
+                            _id: e._id?.toString?.() || e._id
+                        };
+                    }
+                    return {
+                        ...ex,
+                        exerciseId: typeof ex.exerciseId === 'object' && ex.exerciseId._id ? ex.exerciseId._id.toString() : ex.exerciseId,
+                        exerciseInfo
+                    };
+                });
+            }
+
+            // --- Populate authorInfo if includeUserData ---
+
+            let authorInfo = undefined;
+            if (
+                includeUserData &&
+                workout.userId &&
+                typeof workout.userId === 'object' &&
+                // Check if userId is a populated user object (not just ObjectId)
+                ('username' in workout.userId || 'profile' in workout.userId)
+            ) {
+                const u: any = workout.userId;
+                authorInfo = {
+                    _id: u._id?.toString?.() || u._id,
+                    username: u.username || '',
+                    fullName: `${u.profile?.firstName || ''} ${u.profile?.lastName || ''}`.trim(),
+                    avatar: u.profile?.avatar || '',
+                    experienceLevel: u.profile?.experienceLevel || '',
+                    isEmailVerified: u.isEmailVerified ?? false
+                };
+            }
+
+            // Build result object for client
+
             const result = {
-                _id: workout._id.toString(),
-                userId: workout.userId,
+                _id: workout._id?.toString?.() || workout._id,
+                userId:
+                    typeof workout.userId === 'object' && '_id' in workout.userId
+                        ? (workout.userId._id?.toString?.() || workout.userId._id)
+                        : workout.userId,
                 name: workout.name,
                 description: workout.description,
                 thumbnail: workout.thumbnail,
@@ -383,7 +433,7 @@ export class WorkoutService {
                 estimatedDuration: workout.estimatedDuration,
                 tags: workout.tags || [],
                 isPublic: workout.isPublic,
-                exercises: workout.exercises || [],
+                exercises,
                 isSponsored: workout.isSponsored,
                 sponsorData: workout.sponsorData,
                 likes: workout.likes || [],
@@ -399,7 +449,8 @@ export class WorkoutService {
                 equipment: workout.equipment || [],
                 caloriesBurned: workout.caloriesBurned || 0,
                 createdAt: workout.createdAt,
-                updatedAt: workout.updatedAt
+                updatedAt: workout.updatedAt,
+                ...(authorInfo ? { authorInfo } : {})
             };
 
             // Increment view count if analytics enabled
@@ -407,7 +458,7 @@ export class WorkoutService {
                 await WorkoutModel.findByIdAndUpdate(
                     workoutId,
                     { $inc: { views: 1 } },
-                    { new: false } // Don't return updated document to avoid affecting result
+                    { new: false }
                 );
             }
 

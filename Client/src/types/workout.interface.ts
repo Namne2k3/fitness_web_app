@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ExerciseCategory, ExerciseVariation } from "./exercise.interface";
 
 export interface Workout {
@@ -92,8 +93,12 @@ export interface WorkoutExerciseTemplate {
 }
 
 // WorkoutExercise - instance của exercise trong workout
+/**
+ * WorkoutExercise - instance của exercise trong workout
+ * Nếu backend trả về includeExerciseData, sẽ có trường exerciseInfo chứa toàn bộ object Exercise đã populate
+ */
 export interface WorkoutExercise {
-    exerciseId: string; // ref to Exercise
+    exerciseId: string; // ref to Exercise (always string)
     order: number; // sequence in workout
     sets: number; // required
     reps?: number;
@@ -102,6 +107,39 @@ export interface WorkoutExercise {
     restTime?: number; // seconds between sets
     notes?: string;
     completed?: boolean; // for workout tracking
+    /**
+     * Nếu gọi API với includeExerciseData, backend sẽ trả về exerciseInfo chứa toàn bộ dữ liệu của exercise
+     */
+    exerciseInfo?: ExerciseFull | null;
+}
+
+/**
+ * Định nghĩa đầy đủ cho dữ liệu Exercise trả về từ backend (dùng cho exerciseInfo)
+ * Có thể mở rộng nếu backend trả về thêm trường
+ */
+export interface ExerciseFull {
+    _id: string;
+    name: string;
+    description?: string;
+    instructions?: string[];
+    category?: string;
+    primaryMuscleGroups?: string[];
+    secondaryMuscleGroups?: string[];
+    equipment?: string[];
+    difficulty?: string;
+    images?: string[];
+    videoUrl?: string;
+    gifUrl?: string;
+    caloriesPerMinute?: number;
+    averageIntensity?: number;
+    variations?: any[];
+    precautions?: string[];
+    contraindications?: string[];
+    isApproved?: boolean;
+    createdBy?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+    // Có thể bổ sung thêm các trường khác nếu backend trả về
 }
 
 export enum DifficultyLevel {

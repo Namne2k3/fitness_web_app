@@ -14,17 +14,18 @@ import {
     IconButton,
     Chip,
     Avatar,
-    Grid,
-    Card,
-    CardContent,
-    CardMedia,
-    Skeleton,
-    Alert,
     Stack,
     Rating,
     Divider,
     Tooltip,
-    CircularProgress
+    CircularProgress,
+    Skeleton,
+    Card,
+    CardMedia,
+    CardContent,
+    Alert,
+    useTheme,
+    useMediaQuery
 } from '@mui/material';
 import {
     ArrowBack,
@@ -46,6 +47,10 @@ import {
 // Hooks
 import { useWorkout } from '../../hooks/useWorkoutData';
 
+// Components
+import ExerciseCard from '../../components/exercise/ExerciseCard';
+import { ExerciseCategory } from '../../types/exercise.interface';
+
 // Types
 import { Workout, WorkoutExercise } from '../../types/workout.interface';
 
@@ -55,6 +60,8 @@ import { Workout, WorkoutExercise } from '../../types/workout.interface';
 const WorkoutDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
     // ✅ React Query hook để fetch workout data
     const {
@@ -89,15 +96,22 @@ const WorkoutDetailPage: React.FC = () => {
     }
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
+        <Box sx={{
+            minHeight: '100vh',
+            bgcolor: 'grey.50',
+            pb: 4
+        }}>
             {/* Header Section */}
             <WorkoutHeader workout={workout} onBack={() => navigate(-1)} />
 
-            <Container maxWidth="lg" sx={{ py: 4 }}>
-                <Grid container spacing={4}>
+            <Container maxWidth="xl" sx={{ py: 4 }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 4 }}>
                     {/* Main Content */}
-                    <Grid item xs={12} lg={8}>
+                    <Box sx={{ flex: { xs: '1', lg: '2' } }}>
                         <Stack spacing={4}>
+                            {/* Quick Stats Cards - Mobile First */}
+                            {isMobile && <QuickStatsCard workout={workout} />}
+
                             {/* Workout Info Card */}
                             <WorkoutInfoCard workout={workout} />
 
@@ -107,22 +121,19 @@ const WorkoutDetailPage: React.FC = () => {
                             {/* Reviews Section */}
                             <ReviewsSection workoutId={workout._id} />
                         </Stack>
-                    </Grid>
+                    </Box>
 
                     {/* Sidebar */}
-                    <Grid item xs={12} lg={4}>
+                    <Box sx={{ flex: { xs: '1', lg: '1' }, minWidth: { lg: '300px' } }}>
                         <Stack spacing={3}>
-                            {/* Quick Stats */}
-                            <QuickStatsCard workout={workout} />
-
-                            {/* Author Info */}
-                            <AuthorInfoCard workout={workout} />
+                            {/* Quick Stats - Desktop */}
+                            {!isMobile && <QuickStatsCard workout={workout} />}
 
                             {/* Related Workouts */}
                             <RelatedWorkoutsCard />
                         </Stack>
-                    </Grid>
-                </Grid>
+                    </Box>
+                </Box>
             </Container>
         </Box>
     );
@@ -135,20 +146,20 @@ const WorkoutDetailSkeleton: React.FC = () => (
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
         <Container maxWidth="lg" sx={{ py: 4 }}>
             <Skeleton variant="rectangular" height={300} sx={{ mb: 4, borderRadius: 2 }} />
-            <Grid container spacing={4}>
-                <Grid item xs={12} lg={8}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 4 }}>
+                <Box sx={{ flex: { xs: '1', lg: '2' } }}>
                     <Stack spacing={4}>
                         <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 2 }} />
                         <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 2 }} />
                     </Stack>
-                </Grid>
-                <Grid item xs={12} lg={4}>
+                </Box>
+                <Box sx={{ flex: { xs: '1', lg: '1' }, minWidth: { lg: '300px' } }}>
                     <Stack spacing={3}>
                         <Skeleton variant="rectangular" height={150} sx={{ borderRadius: 2 }} />
                         <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 2 }} />
                     </Stack>
-                </Grid>
-            </Grid>
+                </Box>
+            </Box>
         </Container>
     </Box>
 );
@@ -305,9 +316,14 @@ const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({ workout, onBack }) => {
                     </Stack>
                 </Box>
 
-                <Grid container spacing={4} alignItems="center">
+                <Box sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', md: 'row' },
+                    alignItems: 'center',
+                    gap: 4
+                }}>
                     {/* Workout Image */}
-                    <Grid item xs={12} md={4}>
+                    <Box sx={{ flex: { xs: '1', md: '0 0 300px' } }}>
                         <Box
                             component="img"
                             crossOrigin='anonymous'
@@ -321,10 +337,10 @@ const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({ workout, onBack }) => {
                                 boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
                             }}
                         />
-                    </Grid>
+                    </Box>
 
                     {/* Workout Info */}
-                    <Grid item xs={12} md={8}>
+                    <Box sx={{ flex: 1 }}>
                         <Stack spacing={3}>
                             {/* Tags */}
                             <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -419,8 +435,8 @@ const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({ workout, onBack }) => {
                                 </Button>
                             </Box>
                         </Stack>
-                    </Grid>
-                </Grid>
+                    </Box>
+                </Box>
             </Container>
         </Box>
     );
@@ -434,53 +450,72 @@ interface WorkoutInfoCardProps {
 }
 
 const WorkoutInfoCard: React.FC<WorkoutInfoCardProps> = ({ workout }) => (
-    <Paper elevation={2} sx={{ p: 4, borderRadius: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
-            Workout Details
-        </Typography>
+    <Paper
+        elevation={2}
+        sx={{
+            p: 4,
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+        }}
+    >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+            <Groups sx={{ color: 'primary.main', fontSize: 28 }} />
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                Workout Details
+            </Typography>
+        </Box>
 
-        <Grid container spacing={3}>
-            {/* Muscle Groups */}
-            <Grid item xs={12} md={6}>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
-                    <Groups sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Target Muscles
-                </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap">
-                    {workout.muscleGroups?.map((muscle, index) => (
-                        <Chip
-                            key={index}
-                            label={muscle}
-                            variant="outlined"
-                            size="small"
-                            sx={{ fontWeight: 500 }}
-                        />
-                    ))}
-                </Stack>
-            </Grid>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Muscle Groups & Equipment */}
+            <Box sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', md: 'row' },
+                gap: 3
+            }}>
+                {/* Muscle Groups */}
+                <Box sx={{ flex: 1 }}>
+                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
+                        <Groups sx={{ mr: 1, verticalAlign: 'middle' }} />
+                        Target Muscles
+                    </Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                        {workout.muscleGroups?.map((muscle, index) => (
+                            <Chip
+                                key={index}
+                                label={muscle}
+                                variant="outlined"
+                                size="small"
+                                sx={{ fontWeight: 500 }}
+                            />
+                        ))}
+                    </Stack>
+                </Box>
 
-            {/* Equipment */}
-            <Grid item xs={12} md={6}>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
-                    <FitnessCenter sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Equipment Needed
-                </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap">
-                    {workout.equipment?.map((item, index) => (
-                        <Chip
-                            key={index}
-                            label={item}
-                            variant="outlined"
-                            size="small"
-                            sx={{ fontWeight: 500 }}
-                        />
-                    ))}
-                </Stack>
-            </Grid>
+                {/* Equipment */}
+                <Box sx={{ flex: 1 }}>
+                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
+                        <FitnessCenter sx={{ mr: 1, verticalAlign: 'middle' }} />
+                        Equipment Needed
+                    </Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                        {workout.equipment?.map((item, index) => (
+                            <Chip
+                                key={index}
+                                label={item}
+                                variant="outlined"
+                                size="small"
+                                sx={{ fontWeight: 500 }}
+                            />
+                        ))}
+                    </Stack>
+                </Box>
+            </Box>
 
             {/* Tags */}
             {workout.tags.length > 0 && (
-                <Grid item xs={12}>
+                <Box>
                     <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
                         Tags
                     </Typography>
@@ -494,9 +529,9 @@ const WorkoutInfoCard: React.FC<WorkoutInfoCardProps> = ({ workout }) => (
                             />
                         ))}
                     </Stack>
-                </Grid>
+                </Box>
             )}
-        </Grid>
+        </Box>
     </Paper>
 );
 
@@ -508,80 +543,121 @@ interface ExercisesListProps {
 }
 
 const ExercisesList: React.FC<ExercisesListProps> = ({ exercises }) => (
-    <Paper elevation={2} sx={{ p: 4, borderRadius: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
-            Exercises ({exercises.length})
-        </Typography>
-
-        <Stack spacing={2}>
-            {exercises.map((exercise, index) => (
-                <Card key={index} variant="outlined" sx={{ transition: 'all 0.2s' }}>
-                    <CardContent sx={{ p: 3 }}>
-                        <Grid container spacing={3} alignItems="center">
-                            {/* Exercise Number */}
-                            <Grid item>
-                                <Avatar
-                                    sx={{
-                                        bgcolor: 'primary.main',
-                                        width: 40,
-                                        height: 40,
-                                        fontWeight: 700
-                                    }}
-                                >
-                                    {exercise.order || index + 1}
-                                </Avatar>
-                            </Grid>
-
-                            {/* Exercise Info */}
-                            <Grid item xs>
-                                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                                    {exercise.exerciseId?.name || `Exercise ${index + 1}`}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                    {exercise.exerciseId?.description || 'No description available'}
-                                </Typography>
-
-                                {/* Exercise Stats */}
-                                <Stack direction="row" spacing={3} flexWrap="wrap">
-                                    {exercise.sets && (
-                                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                            <strong>Sets:</strong> {exercise.sets}
-                                        </Typography>
-                                    )}
-                                    {exercise.reps && (
-                                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                            <strong>Reps:</strong> {exercise.reps}
-                                        </Typography>
-                                    )}
-                                    {exercise.duration && (
-                                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                            <strong>Duration:</strong> {exercise.duration}s
-                                        </Typography>
-                                    )}
-                                    {exercise.weight && (
-                                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                            <strong>Weight:</strong> {exercise.weight}kg
-                                        </Typography>
-                                    )}
-                                    {exercise.restTime && (
-                                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                            <strong>Rest:</strong> {exercise.restTime}s
-                                        </Typography>
-                                    )}
-                                </Stack>
-
-                                {/* Notes */}
-                                {exercise.notes && (
-                                    <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic', color: 'text.secondary' }}>
-                                        Note: {exercise.notes}
-                                    </Typography>
-                                )}
-                            </Grid>
-                        </Grid>
-                    </CardContent>
-                </Card>
-            ))}
-        </Stack>
+    <Paper
+        elevation={2}
+        sx={{
+            p: 4,
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.02) 0%, rgba(255, 152, 0, 0.02) 100%)',
+            border: '1px solid rgba(25, 118, 210, 0.1)'
+        }}
+    >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+            <FitnessCenter sx={{ color: 'primary.main', fontSize: 28 }} />
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                Exercises ({exercises.length})
+            </Typography>
+        </Box>
+        <Box
+            sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                    xs: '1fr',
+                    sm: 'repeat(2, 1fr)',
+                    lg: 'repeat(3, 1fr)'
+                },
+                gap: 3,
+                mt: 2,
+                // Ensure all grid items have equal height
+                gridAutoRows: '1fr', // This makes all rows the same height
+                '& > *': {
+                    display: 'flex',
+                    flexDirection: 'column',
+                    minHeight: '450px', // Set consistent minimum height
+                }
+            }}
+        >
+            {exercises.map((exercise, idx) => {
+                const info = exercise.exerciseInfo;
+                if (!info) {
+                    // If no exerciseInfo, skip rendering or show a fallback
+                    return null;
+                }
+                // Only use info (ExerciseFull) for ExerciseCard
+                const cardExercise = {
+                    _id: info._id || exercise.exerciseId || String(idx),
+                    name: info.name || 'Exercise',
+                    description: info.description || '',
+                    instructions: info.instructions || [],
+                    // Convert category to ExerciseCategory enum if possible, fallback to 'strength'
+                    category: Object.values(ExerciseCategory).includes(info.category as ExerciseCategory)
+                        ? (info.category as ExerciseCategory)
+                        : ExerciseCategory.STRENGTH,
+                    primaryMuscleGroups: info.primaryMuscleGroups || [],
+                    secondaryMuscleGroups: info.secondaryMuscleGroups || [],
+                    equipment: info.equipment || [],
+                    difficulty: ['beginner', 'intermediate', 'advanced'].includes(String(info.difficulty))
+                        ? (info.difficulty as 'beginner' | 'intermediate' | 'advanced')
+                        : 'beginner',
+                    images: info.images || [],
+                    videoUrl: info.videoUrl || '',
+                    gifUrl: info.gifUrl || '',
+                    caloriesPerMinute: info.caloriesPerMinute,
+                    averageIntensity: info.averageIntensity,
+                    variations: info.variations || [],
+                    precautions: info.precautions || [],
+                    contraindications: info.contraindications || [],
+                    isApproved: info.isApproved ?? true,
+                    createdBy: info.createdBy || '',
+                    createdAt: info.createdAt || new Date(),
+                    updatedAt: info.updatedAt || new Date(),
+                };
+                return (
+                    <Box
+                        key={exercise.exerciseId || idx}
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            height: '100%',
+                            transition: 'transform 0.2s ease-in-out',
+                            '&:hover': {
+                                transform: 'translateY(-4px)'
+                            },
+                            // Force consistent card structure
+                            '& .MuiCard-root': {
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between'
+                            },
+                            '& .MuiCardContent-root': {
+                                flex: 1,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between',
+                                padding: '16px !important'
+                            },
+                            '& .MuiCardActions-root': {
+                                marginTop: 'auto',
+                                padding: '8px 16px 16px 16px'
+                            },
+                            // Ensure image containers have consistent height
+                            '& img': {
+                                height: '180px',
+                                objectFit: 'contain',
+                                width: '100%'
+                            }
+                        }}
+                    >
+                        <ExerciseCard
+                            exercise={cardExercise}
+                            variant="detail"
+                            showActions={false}
+                        />
+                    </Box>
+                );
+            })}
+        </Box>
     </Paper>
 );
 
@@ -593,10 +669,21 @@ interface QuickStatsCardProps {
 }
 
 const QuickStatsCard: React.FC<QuickStatsCardProps> = ({ workout }) => (
-    <Paper elevation={2} sx={{ p: 3, borderRadius: 3 }}>
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
-            Quick Stats
-        </Typography>
+    <Paper
+        elevation={2}
+        sx={{
+            p: 3,
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.05) 0%, rgba(255, 152, 0, 0.05) 100%)',
+            border: '1px solid rgba(25, 118, 210, 0.1)'
+        }}
+    >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+            <Visibility sx={{ color: 'primary.main', fontSize: 24 }} />
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                Quick Stats
+            </Typography>
+        </Box>
 
         <Stack spacing={3}>
             {/* Rating */}
@@ -605,9 +692,9 @@ const QuickStatsCard: React.FC<QuickStatsCardProps> = ({ workout }) => (
                     Average Rating
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Rating value={workout.averageRating} readOnly precision={0.1} />
+                    <Rating value={workout.averageRating || 0} readOnly precision={0.1} />
                     <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                        {workout.averageRating.toFixed(1)} ({workout.totalRatings})
+                        {(workout.averageRating || 0).toFixed(1)} ({workout.totalRatings || 0})
                     </Typography>
                 </Box>
             </Box>
@@ -615,48 +702,44 @@ const QuickStatsCard: React.FC<QuickStatsCardProps> = ({ workout }) => (
             <Divider />
 
             {/* Stats Grid */}
-            <Grid container spacing={2}>
-                <Grid item xs={6}>
-                    <Box sx={{ textAlign: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                            {workout.views}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Views
-                        </Typography>
-                    </Box>
-                </Grid>
-                <Grid item xs={6}>
-                    <Box sx={{ textAlign: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 700, color: 'secondary.main' }}>
-                            {workout.completions}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Completions
-                        </Typography>
-                    </Box>
-                </Grid>
-                <Grid item xs={6}>
-                    <Box sx={{ textAlign: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 700, color: 'success.main' }}>
-                            {workout.likeCount}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Likes
-                        </Typography>
-                    </Box>
-                </Grid>
-                <Grid item xs={6}>
-                    <Box sx={{ textAlign: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 700, color: 'info.main' }}>
-                            {workout.saveCount}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Saves
-                        </Typography>
-                    </Box>
-                </Grid>
-            </Grid>
+            <Box sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: 2
+            }}>
+                <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                        {workout.views || 0}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Views
+                    </Typography>
+                </Box>
+                <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: 'secondary.main' }}>
+                        {workout.completions || 0}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Completions
+                    </Typography>
+                </Box>
+                <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: 'success.main' }}>
+                        {workout.likeCount || 0}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Likes
+                    </Typography>
+                </Box>
+                <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: 'info.main' }}>
+                        {workout.saveCount || 0}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Saves
+                    </Typography>
+                </Box>
+            </Box>
         </Stack>
     </Paper>
 );
@@ -664,56 +747,56 @@ const QuickStatsCard: React.FC<QuickStatsCardProps> = ({ workout }) => (
 /**
  * 🎯 Author Info Card Component
  */
-interface AuthorInfoCardProps {
-    workout: Workout;
-}
+// interface AuthorInfoCardProps {
+//     workout: Workout;
+// }
 
-const AuthorInfoCard: React.FC<AuthorInfoCardProps> = ({ workout }) => {
-    const author = workout.userId;
+// const AuthorInfoCard: React.FC<AuthorInfoCardProps> = ({ workout }) => {
+//     const author = workout.userId;
 
-    return (
-        <Paper elevation={2} sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
-                Created by
-            </Typography>
+//     return (
+//         <Paper elevation={2} sx={{ p: 3, borderRadius: 3 }}>
+//             <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
+//                 Created by
+//             </Typography>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Avatar
-                    src={author?.profile?.avatar}
-                    sx={{ width: 56, height: 56 }}
-                >
-                    {author?.profile?.firstName?.[0] || author?.username?.[0] || 'U'}
-                </Avatar>
-                <Box sx={{ flex: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        {author?.profile?.firstName && author?.profile?.lastName
-                            ? `${author.profile.firstName} ${author.profile.lastName}`
-                            : author?.username || 'Unknown User'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        {author?.profile?.experienceLevel || 'Fitness Enthusiast'}
-                    </Typography>
-                    {author?.isEmailVerified && (
-                        <Chip
-                            label="Verified"
-                            size="small"
-                            icon={<VerifiedUser sx={{ fontSize: 16 }} />}
-                            sx={{ mt: 1, height: 20 }}
-                        />
-                    )}
-                </Box>
-            </Box>
+//             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+//                 <Avatar
+//                     src={author?.profile?.avatar}
+//                     sx={{ width: 56, height: 56 }}
+//                 >
+//                     {author?.profile?.firstName?.[0] || author?.username?.[0] || 'U'}
+//                 </Avatar>
+//                 <Box sx={{ flex: 1 }}>
+//                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
+//                         {author?.profile?.firstName && author?.profile?.lastName
+//                             ? `${author.profile.firstName} ${author.profile.lastName}`
+//                             : author?.username || 'Unknown User'}
+//                     </Typography>
+//                     <Typography variant="body2" color="text.secondary">
+//                         {author?.profile?.experienceLevel || 'Fitness Enthusiast'}
+//                     </Typography>
+//                     {author?.isEmailVerified && (
+//                         <Chip
+//                             label="Verified"
+//                             size="small"
+//                             icon={<VerifiedUser sx={{ fontSize: 16 }} />}
+//                             sx={{ mt: 1, height: 20 }}
+//                         />
+//                     )}
+//                 </Box>
+//             </Box>
 
-            <Button
-                variant="outlined"
-                fullWidth
-                sx={{ borderRadius: 2 }}
-            >
-                View Profile
-            </Button>
-        </Paper>
-    );
-};
+//             <Button
+//                 variant="outlined"
+//                 fullWidth
+//                 sx={{ borderRadius: 2 }}
+//             >
+//                 View Profile
+//             </Button>
+//         </Paper>
+//     );
+// };
 
 /**
  * 🎯 Reviews Section Component
@@ -722,7 +805,7 @@ interface ReviewsSectionProps {
     workoutId: string;
 }
 
-const ReviewsSection: React.FC<ReviewsSectionProps> = ({ workoutId }) => {
+const ReviewsSection: React.FC<ReviewsSectionProps> = () => {
     // Mock reviews data - replace with actual API call
     const mockReviews = [
         {
@@ -746,10 +829,21 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ workoutId }) => {
     ];
 
     return (
-        <Paper elevation={2} sx={{ p: 4, borderRadius: 3 }}>
-            <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
-                Reviews ({mockReviews.length})
-            </Typography>
+        <Paper
+            elevation={2}
+            sx={{
+                p: 4,
+                borderRadius: 3,
+                background: 'linear-gradient(135deg, rgba(255, 193, 7, 0.02) 0%, rgba(255, 87, 34, 0.02) 100%)',
+                border: '1px solid rgba(255, 193, 7, 0.1)'
+            }}
+        >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                <Rating value={5} readOnly size="small" sx={{ color: 'warning.main' }} />
+                <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                    Reviews ({mockReviews.length})
+                </Typography>
+            </Box>
 
             <Stack spacing={3}>
                 {mockReviews.map((review) => (
@@ -817,10 +911,21 @@ const RelatedWorkoutsCard: React.FC = () => {
     ];
 
     return (
-        <Paper elevation={2} sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
-                Related Workouts
-            </Typography>
+        <Paper
+            elevation={2}
+            sx={{
+                p: 3,
+                borderRadius: 3,
+                background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.02) 0%, rgba(33, 150, 243, 0.02) 100%)',
+                border: '1px solid rgba(76, 175, 80, 0.1)'
+            }}
+        >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                <FitnessCenter sx={{ color: 'success.main', fontSize: 24 }} />
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                    Related Workouts
+                </Typography>
+            </Box>
 
             <Stack spacing={2}>
                 {mockRelatedWorkouts.map((workout) => (
