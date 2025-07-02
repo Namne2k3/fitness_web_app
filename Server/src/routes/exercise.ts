@@ -6,6 +6,7 @@
 import { Router } from 'express';
 import { ExerciseController } from '../controllers/ExerciseController';
 import { rateLimit } from 'express-rate-limit';
+import { cacheMiddleware } from '../middleware/cache';
 
 const router = Router();
 
@@ -163,7 +164,15 @@ router.use(exerciseRateLimit);
  *       500:
  *         description: Internal server error
  */
-router.post('/list', ExerciseController.getExercises);
+router.post(
+    '/list',
+    // cacheMiddleware({
+    //     ttl: 900,
+    //     keyGenerator: (req) => `exercises:list:${JSON.stringify(req.body)}`,
+    //     // condition: (req) => req.body.filters?.isApproved
+    // }),
+    ExerciseController.getExercises
+);
 
 /**
  * @swagger

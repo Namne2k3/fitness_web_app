@@ -17,8 +17,8 @@
 > - [Migration Guide](./instructions/react-19-migration.md)
 > - [Coding Standards](./instructions/coding-standards.md)
 > - [Schema Complete](../Client/docs/DATABASE_SCHEMA_COMPLETE.md)
-> - [Design List Item]('./instructions/STYLING_AND_RESPONSIVE_GUIDELINES.md')
-> 
+> - [Redis Integration Guide](./instructions/redis-integration.md)
+> - [Prompt Guide](./instructions/prompt.md)
 > Use `#react-19-features` hoặc `#coding-standards` để reference trong prompts.
 
 ---

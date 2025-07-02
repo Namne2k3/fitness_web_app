@@ -35,8 +35,8 @@ import { Exercise, WorkoutExercise } from '../../../types';
 import { WorkoutCategory, DifficultyLevel } from '../../../types/workout.interface';
 import { WorkoutService } from '../../../services/workoutService';
 import ExercisePicker from '../../../components/exercise/ExercisePicker';
-import ExerciseLibraryModal from '../../../components/exercise/ExerciseLibraryModal_New';
-import WorkoutExerciseCard from './components/WorkoutExerciseCard_Real';
+import ExerciseLibraryModal from '../../../components/exercise/ExerciseLibraryModal';
+import WorkoutExerciseCard from './components/WorkoutExerciseCard';
 import './CreateWorkoutPage.css';
 
 // ================================
@@ -568,7 +568,7 @@ const CreateWorkoutPage: React.FC = () => {
                                                                 <WorkoutExerciseCard
                                                                     exercise={exercise}
                                                                     index={index}
-                                                                    dragHandleProps={provided.dragHandleProps as Record<string, unknown> || undefined}
+                                                                    dragHandleProps={provided.dragHandleProps as unknown as Record<string, unknown> || undefined}
                                                                     onUpdate={(updates: Partial<WorkoutExercise>) =>
                                                                         handleUpdateExercise(exercise.exerciseId, updates)
                                                                     }

@@ -1,425 +1,236 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
- * 💪 ExerciseCard - Modern Fitness-Focused Design
- * React 19 implementation với Material UI design system
+ * 💪 WorkoutExerciseCard - Card for Workout Creation
+ * React 19 implementation with drag & drop support
  */
 
-import React, { useState, useTransition } from 'react';
+import React from 'react';
 import {
     Card,
     CardContent,
-    CardMedia,
     Typography,
-    Chip,
     Box,
-    Avatar,
     IconButton,
-    Fade,
-    LinearProgress,
+    TextField,
+    Chip,
+    Stack,
+    Divider,
     useTheme,
     alpha
 } from '@mui/material';
 import {
+    DragIndicator,
+    Delete,
     FitnessCenter,
-    PlayArrow,
-    LocalFireDepartment,
-    Favorite,
-    FavoriteBorder,
-    BookmarkBorder,
-    Bookmark
+    Timer,
+    Scale,
+    Repeat
 } from '@mui/icons-material';
-import { Exercise } from '../../../../types';
+import { WorkoutExercise } from '../../../../types';
+import { DraggableProvidedDragHandleProps } from 'react-beautiful-dnd';
 
-interface ExerciseCardProps {
-    exercise: Exercise;
-    onClick: () => void;
-    variant?: 'compact' | 'standard' | 'list';
-    showStats?: boolean;
-    showVideo?: boolean;
+interface WorkoutExerciseCardProps {
+    exercise: WorkoutExercise & { name?: string };
+    index: number;
+    dragHandleProps?: Record<string, unknown>;
+    onUpdate: (updates: Partial<WorkoutExercise>) => void;
+    onRemove: () => void;
 }
 
-/**
- * ✅ React 19: Modern Exercise Card Component
- */
-const ExerciseCard: React.FC<ExerciseCardProps> = ({
+const WorkoutExerciseCard: React.FC<WorkoutExerciseCardProps> = ({
     exercise,
-    onClick,
-    variant = 'compact',
-    showStats = true,
-    showVideo = true
+    index,
+    dragHandleProps,
+    onUpdate,
+    onRemove
 }) => {
     const theme = useTheme();
-    const [isHovered, setIsHovered] = useState(false);
-    const [isPending, startTransition] = useTransition();
-    const [isLiked, setIsLiked] = useState(false);
-    const [isBookmarked, setIsBookmarked] = useState(false);
 
-    // Handle click with transition
-    const handleClick = () => {
-        startTransition(() => {
-            onClick();
-        });
+    const handleFieldUpdate = (field: keyof WorkoutExercise, value: number | string) => {
+        onUpdate({ [field]: value });
     };
 
-    // Handle like action
-    const handleLike = (event: React.MouseEvent) => {
-        event.stopPropagation();
-        setIsLiked(!isLiked);
-    };
-
-    // Handle bookmark action
-    const handleBookmark = (event: React.MouseEvent) => {
-        event.stopPropagation();
-        setIsBookmarked(!isBookmarked);
-    };
-
-    // Get difficulty color
-    const getDifficultyColor = (difficulty: string) => {
-        switch (difficulty) {
-            case 'beginner': return theme.palette.success.main;
-            case 'intermediate': return theme.palette.warning.main;
-            case 'advanced': return theme.palette.error.main;
-            default: return theme.palette.primary.main;
-        }
-    };
-
-    // Get difficulty chip color
-    const getDifficultyChipColor = (difficulty: string): 'success' | 'warning' | 'error' | 'primary' => {
-        switch (difficulty) {
-            case 'beginner': return 'success';
-            case 'intermediate': return 'warning';
-            case 'advanced': return 'error';
-            default: return 'primary';
-        }
-    };
-
-    // Get category icon
-    const getCategoryIcon = (category: string) => {
-        switch (category) {
-            case 'strength': return '💪';
-            case 'cardio': return '❤️';
-            case 'flexibility': return '🧘';
-            default: return '🏋️';
-        }
-    };
-
-    if (variant === 'list') {
-        return (
-            <Card
-                onClick={handleClick}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                sx={{
-                    width: '100%',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    border: '1px solid',
-                    borderColor: 'rgba(0,0,0,0.08)',
-                    borderRadius: 2,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                    background: 'white',
-                    '&:hover': {
-                        transform: 'translateX(8px)',
-                        boxShadow: '0 8px 24px rgba(25, 118, 210, 0.15)',
-                        borderColor: theme.palette.primary.main,
-                    }
-                }}
-            >
-                <Box sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
-                    {/* Exercise Image/Avatar */}
-                    <Avatar
-                        src={exercise.images?.[0]}
-                        sx={{
-                            width: 64,
-                            height: 64,
-                            bgcolor: alpha(getDifficultyColor(exercise.difficulty), 0.2),
-                            border: `2px solid ${getDifficultyColor(exercise.difficulty)}`,
-                            mr: 2,
-                            fontSize: '2rem'
-                        }}
-                    >
-                        {getCategoryIcon(exercise.category)}
-                    </Avatar>
-
-                    {/* Content */}
-                    <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                            <Typography variant="h6" sx={{
-                                fontWeight: 700,
-                                color: theme.palette.text.primary,
-                                fontSize: '1.1rem'
-                            }}>
-                                {exercise.name}
-                            </Typography>
-                            <Chip
-                                label={exercise.difficulty}
-                                size="small"
-                                color={getDifficultyChipColor(exercise.difficulty)}
-                                sx={{
-                                    fontWeight: 600,
-                                    fontSize: '0.75rem'
-                                }}
-                            />
-                        </Box>
-
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{
-                                mb: 1,
-                                display: '-webkit-box',
-                                WebkitBoxOrient: 'vertical',
-                                WebkitLineClamp: 2,
-                                overflow: 'hidden'
-                            }}
-                        >
-                            {exercise.description}
-                        </Typography>
-
-                        {/* Stats */}
-                        {showStats && (
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                {exercise.primaryMuscleGroups && (
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                        <Typography variant="caption" color="text.secondary">
-                                            🎯 {exercise.primaryMuscleGroups.slice(0, 2).join(', ')}
-                                        </Typography>
-                                    </Box>
-                                )}
-                                {exercise.averageIntensity && (
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                        <LocalFireDepartment sx={{ fontSize: 14, color: 'orange' }} />
-                                        <Typography variant="caption" color="text.secondary">
-                                            {exercise.averageIntensity}/10
-                                        </Typography>
-                                    </Box>
-                                )}
-                            </Box>
-                        )}
-                    </Box>
-
-                    {/* Action Button */}
-                    <IconButton
-                        sx={{
-                            bgcolor: theme.palette.primary.main,
-                            color: 'white',
-                            '&:hover': {
-                                bgcolor: theme.palette.primary.dark,
-                                transform: 'scale(1.1)',
-                            }
-                        }}
-                    >
-                        <PlayArrow />
-                    </IconButton>
-                </Box>
-            </Card>
-        );
-    }
-
-    // Grid View (compact & standard)
     return (
         <Card
-            onClick={handleClick}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
             sx={{
-                height: '100%',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                borderRadius: 3,
+                mb: 2,
+                borderRadius: 4,
                 border: '1px solid',
-                borderColor: 'rgba(0,0,0,0.08)',
-                overflow: 'hidden',
-                position: 'relative',
-                background: 'white',
+                borderColor: 'rgba(25,118,210,0.10)',
+                background: `linear-gradient(135deg, ${theme.palette.primary.light}10 0%, ${theme.palette.secondary.light}10 100%)`,
+                boxShadow: '0 2px 12px rgba(25,118,210,0.06)',
+                transition: 'all 0.3s cubic-bezier(.4,1.3,.6,1)',
                 '&:hover': {
-                    transform: 'translateY(-8px)',
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
-                    borderColor: theme.palette.primary.main,
+                    boxShadow: '0 8px 32px rgba(25,118,210,0.13)',
+                    borderColor: 'primary.main',
+                    transform: 'translateY(-2px) scale(1.01)'
                 }
             }}
         >
-            {/* Featured Image */}
-            <Box sx={{ position: 'relative', overflow: 'hidden' }}>
-                <CardMedia
-                    component="img"
-                    height={variant === 'standard' ? 200 : 160}
-                    image={exercise.images?.[0] || '/placeholder-exercise.jpg'}
-                    alt={exercise.name}
-                    sx={{
-                        transition: 'transform 0.3s ease',
-                        transform: isHovered ? 'scale(1.1)' : 'scale(1)',
-                    }}
-                />
+            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                {/* Header */}
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Box
+                        {...dragHandleProps}
+                        sx={{
+                            cursor: 'grab',
+                            color: 'primary.main',
+                            mr: 2,
+                            fontSize: 28,
+                            opacity: 0.7,
+                            '&:active': { cursor: 'grabbing', opacity: 1 }
+                        }}
+                        aria-label="Drag to reorder"
+                    >
+                        <DragIndicator fontSize="inherit" />
+                    </Box>
 
-                {/* Overlay with quick actions */}
-                <Fade in={isHovered}>
-                    <Box sx={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'linear-gradient(45deg, rgba(25, 118, 210, 0.8) 0%, rgba(255, 152, 0, 0.8) 100%)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 1
-                    }}>
-                        <IconButton
-                            onClick={handleLike}
-                            sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
-                        >
-                            {isLiked ? <Favorite /> : <FavoriteBorder />}
-                        </IconButton>
-                        <IconButton
+                    <Chip
+                        label={`#${index + 1}`}
+                        size="small"
+                        sx={{
+                            bgcolor: 'secondary.main',
+                            color: 'white',
+                            fontWeight: 700,
+                            fontSize: 16,
+                            px: 1.5,
+                            mr: 2,
+                            boxShadow: '0 2px 8px rgba(255,152,0,0.10)'
+                        }}
+                    />
+
+                    <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                        <Typography
+                            variant="h6"
+                            fontWeight="bold"
                             sx={{
-                                bgcolor: 'rgba(255,255,255,0.9)',
-                                color: theme.palette.primary.main,
-                                '&:hover': { bgcolor: 'white' }
+                                color: 'primary.dark',
+                                textOverflow: 'ellipsis',
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap',
+                                letterSpacing: 0.2
                             }}
                         >
-                            <PlayArrow />
-                        </IconButton>
-                        <IconButton
-                            onClick={handleBookmark}
-                            sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
-                        >
-                            {isBookmarked ? <Bookmark /> : <BookmarkBorder />}
-                        </IconButton>
-                    </Box>
-                </Fade>
-
-                {/* Difficulty Badge */}
-                <Chip
-                    label={exercise.difficulty}
-                    size="small"
-                    sx={{
-                        position: 'absolute',
-                        top: 12,
-                        right: 12,
-                        bgcolor: alpha(getDifficultyColor(exercise.difficulty), 0.9),
-                        color: 'white',
-                        fontWeight: 700,
-                        fontSize: '0.75rem',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255,255,255,0.2)'
-                    }}
-                />
-
-                {/* Video Indicator */}
-                {showVideo && exercise.videoUrl && (
-                    <Box sx={{
-                        position: 'absolute',
-                        top: 12,
-                        left: 12,
-                        bgcolor: 'rgba(0,0,0,0.7)',
-                        borderRadius: 1,
-                        px: 1,
-                        py: 0.5,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.5
-                    }}>
-                        <PlayArrow sx={{ fontSize: 14, color: 'white' }} />
-                        <Typography variant="caption" sx={{ color: 'white', fontWeight: 600 }}>
-                            Video
+                            {exercise.name || 'Unknown Exercise'}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13 }}>
+                            Exercise {index + 1}
                         </Typography>
                     </Box>
-                )}
-            </Box>
 
-            {/* Content */}
-            <CardContent sx={{ p: 2.5, pb: '16px !important' }}>
-                <Typography
-                    variant="h6"
-                    sx={{
-                        fontWeight: 700,
-                        mb: 1,
-                        fontSize: '1.1rem',
-                        lineHeight: 1.2,
-                        display: '-webkit-box',
-                        WebkitBoxOrient: 'vertical',
-                        WebkitLineClamp: 2,
-                        overflow: 'hidden'
-                    }}
-                >
-                    {exercise.name}
-                </Typography>
-
-                <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{
-                        mb: 2,
-                        lineHeight: 1.4,
-                        display: '-webkit-box',
-                        WebkitBoxOrient: 'vertical',
-                        WebkitLineClamp: 2,
-                        overflow: 'hidden'
-                    }}
-                >
-                    {exercise.description}
-                </Typography>
-
-                {/* Category & Muscle Groups */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                    <Typography variant="caption" sx={{
-                        bgcolor: alpha(theme.palette.primary.main, 0.1),
-                        color: theme.palette.primary.main,
-                        px: 1,
-                        py: 0.5,
-                        borderRadius: 1,
-                        fontWeight: 600
-                    }}>
-                        {getCategoryIcon(exercise.category)} {exercise.category}
-                    </Typography>
+                    <IconButton
+                        onClick={onRemove}
+                        size="medium"
+                        aria-label="Remove exercise"
+                        sx={{
+                            color: 'error.main',
+                            ml: 1,
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                                bgcolor: alpha(theme.palette.error.main, 0.10),
+                                transform: 'scale(1.08)'
+                            }
+                        }}
+                    >
+                        <Delete />
+                    </IconButton>
                 </Box>
 
-                {/* Stats */}
-                {showStats && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        {/* Intensity */}
-                        {exercise.averageIntensity && (
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <LocalFireDepartment sx={{ fontSize: 16, color: 'orange' }} />
-                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                                    {exercise.averageIntensity}/10
-                                </Typography>
-                            </Box>
-                        )}
+                <Divider sx={{ mb: 2, borderColor: 'rgba(25,118,210,0.10)' }} />
 
-                        {/* Muscle Groups */}
-                        {exercise.primaryMuscleGroups && exercise.primaryMuscleGroups.length > 0 && (
-                            <Typography variant="caption" color="text.secondary">
-                                🎯 {exercise.primaryMuscleGroups[0]}
-                                {exercise.primaryMuscleGroups.length > 1 && ` +${exercise.primaryMuscleGroups.length - 1}`}
-                            </Typography>
-                        )}
-                    </Box>
-                )}
-
-                {/* Intensity Progress Bar */}
-                {exercise.averageIntensity && (
-                    <Box sx={{ mt: 1.5 }}>
-                        <LinearProgress
-                            variant="determinate"
-                            value={(exercise.averageIntensity / 10) * 100}
-                            sx={{
-                                height: 6,
-                                borderRadius: 3,
-                                bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                '& .MuiLinearProgress-bar': {
-                                    borderRadius: 3,
-                                    background: `linear-gradient(90deg, ${getDifficultyColor(exercise.difficulty)} 0%, ${alpha(getDifficultyColor(exercise.difficulty), 0.7)} 100%)`
-                                }
-                            }}
+                {/* Exercise Parameters */}
+                <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={2}
+                    flexWrap="wrap"
+                    useFlexGap
+                    sx={{ mb: 1 }}
+                >
+                    {/* Sets */}
+                    <Box sx={{ minWidth: 120, flex: 1 }}>
+                        <Typography variant="body2" color="text.secondary" gutterBottom fontWeight={600}>
+                            <FitnessCenter sx={{ fontSize: 18, mr: 0.5, color: 'primary.main' }} /> Sets
+                        </Typography>
+                        <TextField
+                            type="number"
+                            value={exercise.sets || 3}
+                            onChange={(e) => handleFieldUpdate('sets', parseInt(e.target.value) || 0)}
+                            size="small"
+                            inputProps={{ min: 1, max: 20, style: { textAlign: 'center', fontWeight: 600 } }}
+                            sx={{ width: '100%', bgcolor: 'white', borderRadius: 2 }}
                         />
                     </Box>
-                )}
+
+                    {/* Reps */}
+                    <Box sx={{ minWidth: 120, flex: 1 }}>
+                        <Typography variant="body2" color="text.secondary" gutterBottom fontWeight={600}>
+                            <Repeat sx={{ fontSize: 18, mr: 0.5, color: 'secondary.main' }} /> Reps
+                        </Typography>
+                        <TextField
+                            type="number"
+                            value={exercise.reps || 12}
+                            onChange={(e) => handleFieldUpdate('reps', parseInt(e.target.value) || 0)}
+                            size="small"
+                            inputProps={{ min: 1, max: 100, style: { textAlign: 'center', fontWeight: 600 } }}
+                            sx={{ width: '100%', bgcolor: 'white', borderRadius: 2 }}
+                        />
+                    </Box>
+
+                    {/* Weight */}
+                    <Box sx={{ minWidth: 120, flex: 1 }}>
+                        <Typography variant="body2" color="text.secondary" gutterBottom fontWeight={600}>
+                            <Scale sx={{ fontSize: 18, mr: 0.5, color: 'success.main' }} /> Weight (kg)
+                        </Typography>
+                        <TextField
+                            type="number"
+                            value={exercise.weight || 0}
+                            onChange={(e) => handleFieldUpdate('weight', parseFloat(e.target.value) || 0)}
+                            size="small"
+                            inputProps={{ min: 0, max: 500, style: { textAlign: 'center', fontWeight: 600 } }}
+                            sx={{ width: '100%', bgcolor: 'white', borderRadius: 2 }}
+                        />
+                    </Box>
+
+                    {/* Rest Time */}
+                    <Box sx={{ minWidth: 120, flex: 1 }}>
+                        <Typography variant="body2" color="text.secondary" gutterBottom fontWeight={600}>
+                            <Timer sx={{ fontSize: 18, mr: 0.5, color: 'info.main' }} /> Rest (sec)
+                        </Typography>
+                        <TextField
+                            type="number"
+                            value={exercise.restTime || 60}
+                            onChange={(e) => handleFieldUpdate('restTime', parseInt(e.target.value) || 0)}
+                            size="small"
+                            inputProps={{ min: 0, max: 600, style: { textAlign: 'center', fontWeight: 600 } }}
+                            sx={{ width: '100%', bgcolor: 'white', borderRadius: 2 }}
+                        />
+                    </Box>
+                </Stack>
+
+                {/* Notes */}
+                <Box sx={{ mt: 2 }}>
+                    <Typography variant="body2" color="text.secondary" gutterBottom fontWeight={600}>
+                        Notes (optional)
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        multiline
+                        rows={2}
+                        placeholder="Add any notes for this exercise..."
+                        value={exercise.notes || ''}
+                        onChange={(e) => handleFieldUpdate('notes', e.target.value)}
+                        size="small"
+                        sx={{
+                            bgcolor: 'white',
+                            borderRadius: 2,
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 2
+                            }
+                        }}
+                    />
+                </Box>
             </CardContent>
         </Card>
     );
 };
 
-export default ExerciseCard;
+export default WorkoutExerciseCard;

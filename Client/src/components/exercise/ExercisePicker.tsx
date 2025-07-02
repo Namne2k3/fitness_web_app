@@ -1,26 +1,24 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * 🏋️ ExercisePicker - Simplified React 19 Component
  * Simple exercise picker cho workout creation workflow
  */
 
-import React from 'react';
 import {
+    FitnessCenter as FitnessCenterIcon,
+    Search as SearchIcon
+} from '@mui/icons-material';
+import {
+    Alert,
+    Avatar,
     Box,
-    Card,
-    CardContent,
-    Typography,
     Button,
+    Card,
     Divider,
     Paper,
-    Avatar,
-    Alert
+    Typography
 } from '@mui/material';
-import {
-    Add as AddIcon,
-    Search as SearchIcon,
-    FitnessCenter as FitnessCenterIcon,
-    Whatshot as CaloriesIcon
-} from '@mui/icons-material';
+import React from 'react';
 import { Exercise, ExerciseCategory } from '../../types';
 
 // ================================
@@ -201,7 +199,7 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
             </Box>
 
             {/* Quick Actions Section */}
-            <Box sx={{ mb: 3 }}>
+            {/* <Box sx={{ mb: 3 }}>
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#1976d2' }}>
                     🚀 Quick Add
                 </Typography>
@@ -229,7 +227,6 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
                             }}
                         >
                             <CardContent sx={{ p: 2 }}>
-                                {/* Exercise Header */}
                                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                                     <Typography variant="h6" sx={{
                                         fontWeight: 600,
@@ -250,12 +247,10 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
                                     />
                                 </Box>
 
-                                {/* Exercise Details */}
                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: '0.85rem' }}>
                                     {exercise.description}
                                 </Typography>
 
-                                {/* Metrics */}
                                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1.5 }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                         <CaloriesIcon sx={{ fontSize: 16, color: '#ff5722' }} />
@@ -271,7 +266,6 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
                                     </Box>
                                 </Box>
 
-                                {/* Add Button */}
                                 <Button
                                     fullWidth
                                     variant="contained"
@@ -290,7 +284,7 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
                         </Card>
                     ))}
                 </Box>
-            </Box>
+            </Box> */}
 
             <Divider sx={{ my: 3 }} />
 
