@@ -109,7 +109,7 @@ const WorkoutDetailPage: React.FC = () => {
             {/* Header Section */}
             <WorkoutHeader workout={workout} onBack={() => navigate(-1)} />
 
-            <Container maxWidth="xl" sx={{ py: { xs: 3, sm: 4 } }}>
+            <Container maxWidth="lg" sx={{ py: { xs: 3, sm: 4 } }}>
                 <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 4 }}>
                     {/* Main Content */}
                     <Box sx={{ flex: { xs: '1', lg: '2' } }}>
