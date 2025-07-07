@@ -2,6 +2,7 @@ import {
     Alert,
     Box,
     Button,
+    Chip,
     Container,
     Stack
 } from '@mui/material';
@@ -14,17 +15,15 @@ import { useWorkout } from '../../hooks/useWorkoutData';
 // Components
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import ShareIcon from '@mui/icons-material/Share';
 import StarIcon from '@mui/icons-material/Star';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import { Avatar, Badge, IconButton, Tooltip, Paper, Typography } from '@mui/material';
-import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+import { Avatar, Badge, IconButton, Paper, Tooltip, Typography } from '@mui/material';
 
 import {
-    AuthorInfoCard,
     WorkoutDetailSkeleton
 } from '../../components/workout/detail';
-import WorkoutDescriptionCard from '../../components/workout/detail/WorkoutDescriptionCard';
 import { WorkoutExercise } from '../../types';
 
 /**
@@ -225,79 +224,177 @@ const WorkoutDetailPage: React.FC = () => {
 
                         {/* Workout Info */}
                         <Box>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                                <Box>
-                                    <Box component="h1" sx={{ fontSize: '2.2rem', fontWeight: 800, color: '#222', mb: 1 }}>{workout.name}</Box>
-                                    <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-                                        {/* Difficulty badge */}
-                                        <Box component="span" sx={{
-                                            px: 1.5, py: 0.5, borderRadius: 2, fontWeight: 600,
-                                            fontSize: '0.95rem',
-                                            bgcolor:
-                                                workout.difficulty === 'beginner' ? '#e8f5e8'
-                                                    : workout.difficulty === 'intermediate' ? '#e3f2fd'
-                                                        : '#ffebee',
-                                            color:
-                                                workout.difficulty === 'beginner' ? '#388e3c'
-                                                    : workout.difficulty === 'intermediate' ? '#1976d2'
-                                                        : '#d32f2f',
-                                            border: '1px solid #e0e0e0',
-                                            textTransform: 'capitalize'
-                                        }}>{workout.difficulty}</Box>
-                                        {/* Category badge */}
-                                        <Box component="span" sx={{ px: 1.5, py: 0.5, borderRadius: 2, fontWeight: 600, fontSize: '0.95rem', bgcolor: '#fff3e0', color: '#f57c00', border: '1px solid #ffe0b2', textTransform: 'capitalize' }}>{workout.category}</Box>
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    flexDirection: { xs: 'column', md: 'row' },
+                                    alignItems: { md: 'center' },
+                                    justifyContent: { xs: 'flex-start', md: 'space-between' },
+                                    border: '1px solid #e0e0e0',
+                                    borderRadius: 3,
+                                    p: 3,
+                                    mb: 3,
+                                    backgroundColor: '#fff',
+                                    gap: 2,
+                                }}
+                            >
+                                {/* Left: Avatar + Author Info */}
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                                    <Avatar
+                                        src={workout.authorInfo?.avatar || ''}
+                                        alt={workout.authorInfo?.fullName || workout.authorInfo?.username}
+                                        sx={{ width: 56, height: 56, border: '2px solid #e3f2fd' }}
+                                    >
+                                        {(workout.authorInfo?.fullName || workout.authorInfo?.username)?.[0]?.toUpperCase()}
+                                    </Avatar>
+                                    <Box>
+                                        <Typography fontWeight={700} fontSize="1.1rem" color="#1976d2">
+                                            {workout.authorInfo?.fullName || workout.authorInfo?.username}
+                                        </Typography>
+                                        <Typography fontSize="0.95rem" color="text.secondary">
+                                            @{workout.authorInfo?.username}
+                                        </Typography>
+                                        <Stack direction="row" spacing={1} mt={0.5}>
+                                            {workout.authorInfo?.experienceLevel && (
+                                                <Chip
+                                                    label={workout.authorInfo.experienceLevel}
+                                                    size="small"
+                                                    sx={{
+                                                        bgcolor: '#e8f5e8',
+                                                        color: '#388e3c',
+                                                        fontWeight: 600,
+                                                        border: '1px solid #c8e6c9',
+                                                        textTransform: 'capitalize',
+                                                    }}
+                                                />
+                                            )}
+                                            {workout.authorInfo?.isEmailVerified && (
+                                                <Chip
+                                                    label="Verified"
+                                                    size="small"
+                                                    sx={{
+                                                        bgcolor: '#e3f2fd',
+                                                        color: '#1976d2',
+                                                        fontWeight: 600,
+                                                        border: '1px solid #bbdefb',
+                                                    }}
+                                                />
+                                            )}
+                                        </Stack>
+                                    </Box>
+                                </Box>
+
+                                {/* Right: Workout Info + Social Actions (right-aligned) */}
+                                <Box
+                                    sx={{
+                                        flex: 2,
+                                        mt: { xs: 2, md: 0 },
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: { xs: 'flex-start', md: 'flex-end' },
+                                        textAlign: { xs: 'left', md: 'right' },
+                                    }}
+                                >
+                                    <Typography
+                                        variant="h1"
+                                        sx={{ fontSize: '1.8rem', fontWeight: 800, color: '#222', mb: 1 }}
+                                    >
+                                        {workout.name}
+                                    </Typography>
+
+                                    <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 1, justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+                                        {/* Difficulty */}
+                                        <Chip
+                                            label={workout.difficulty}
+                                            size="small"
+                                            sx={{
+                                                bgcolor:
+                                                    workout.difficulty === 'beginner'
+                                                        ? '#e8f5e8'
+                                                        : workout.difficulty === 'intermediate'
+                                                            ? '#e3f2fd'
+                                                            : '#ffebee',
+                                                color:
+                                                    workout.difficulty === 'beginner'
+                                                        ? '#388e3c'
+                                                        : workout.difficulty === 'intermediate'
+                                                            ? '#1976d2'
+                                                            : '#d32f2f',
+                                                fontWeight: 600,
+                                                border: '1px solid #e0e0e0',
+                                                textTransform: 'capitalize',
+                                            }}
+                                        />
+
+                                        {/* Category */}
+                                        <Chip
+                                            label={workout.category}
+                                            size="small"
+                                            sx={{
+                                                bgcolor: '#fff3e0',
+                                                color: '#f57c00',
+                                                fontWeight: 600,
+                                                border: '1px solid #ffe0b2',
+                                                textTransform: 'capitalize',
+                                            }}
+                                        />
+
                                         {/* Tags */}
-                                        {workout.tags?.slice(0, 2).map((tag: string) => (
-                                            <Box key={tag} component="span" sx={{ px: 1.5, py: 0.5, borderRadius: 2, fontWeight: 500, fontSize: '0.95rem', bgcolor: '#f3e5f5', color: '#7b1fa2', border: '1px solid #e1bee7', textTransform: 'capitalize' }}>{tag}</Box>
+                                        {workout.tags?.slice(0, 2).map((tag) => (
+                                            <Chip
+                                                key={tag}
+                                                label={tag}
+                                                size="small"
+                                                sx={{
+                                                    bgcolor: '#f3e5f5',
+                                                    color: '#7b1fa2',
+                                                    fontWeight: 500,
+                                                    border: '1px solid #e1bee7',
+                                                    textTransform: 'capitalize',
+                                                }}
+                                            />
                                         ))}
                                     </Stack>
-                                </Box>
-                                {/* Social actions - beautiful icon buttons */}
-                                <Stack direction="row" spacing={1}>
-                                    <Tooltip title="Like">
-                                        <span>
+
+                                    {/* Social Actions */}
+                                    <Stack direction="row" spacing={1} sx={{ justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+                                        <Tooltip title="Like">
                                             <IconButton
-                                                color={'default'}
                                                 sx={{
                                                     transition: 'all 0.2s',
-                                                    bgcolor: undefined,
                                                     '&:hover': { bgcolor: 'rgba(244,67,54,0.12)' },
                                                     border: '1.5px solid',
                                                     borderColor: 'grey.200',
                                                     borderRadius: 2,
                                                     minWidth: 44,
-                                                    minHeight: 44
+                                                    minHeight: 44,
                                                 }}
                                             >
                                                 <Badge badgeContent={workout.likeCount} color="error" max={999}>
                                                     <FavoriteIcon fontSize="medium" />
                                                 </Badge>
                                             </IconButton>
-                                        </span>
-                                    </Tooltip>
-                                    <Tooltip title="Bookmark">
-                                        <span>
+                                        </Tooltip>
+
+                                        <Tooltip title="Bookmark">
                                             <IconButton
-                                                color={'default'}
                                                 sx={{
                                                     transition: 'all 0.2s',
-                                                    bgcolor: undefined,
                                                     '&:hover': { bgcolor: 'rgba(25,118,210,0.12)' },
                                                     border: '1.5px solid',
                                                     borderColor: 'grey.200',
                                                     borderRadius: 2,
                                                     minWidth: 44,
-                                                    minHeight: 44
+                                                    minHeight: 44,
                                                 }}
                                             >
                                                 <Badge badgeContent={workout.saveCount} color="primary" max={999}>
                                                     <BookmarkIcon fontSize="medium" />
                                                 </Badge>
                                             </IconButton>
-                                        </span>
-                                    </Tooltip>
-                                    <Tooltip title="Share">
-                                        <span>
+                                        </Tooltip>
+
+                                        <Tooltip title="Share">
                                             <IconButton
                                                 sx={{
                                                     transition: 'all 0.2s',
@@ -306,21 +403,22 @@ const WorkoutDetailPage: React.FC = () => {
                                                     borderColor: 'warning.main',
                                                     borderRadius: 2,
                                                     minWidth: 44,
-                                                    minHeight: 44
+                                                    minHeight: 44,
                                                 }}
                                             >
                                                 <ShareIcon fontSize="medium" color="warning" />
                                             </IconButton>
-                                        </span>
-                                    </Tooltip>
-                                </Stack>
+                                        </Tooltip>
+                                    </Stack>
+                                </Box>
                             </Box>
 
+
                             {/* Creator Info */}
-                            <AuthorInfoCard workout={workout} />
+                            {/* <AuthorInfoCard workout={workout} /> */}
 
                             {/* Workout Description - TrackMe UI with modern hover/focus effect */}
-                            <Box
+                            {/* <Box
                                 sx={{
                                     mt: 3,
                                     borderRadius: 3,
@@ -345,9 +443,9 @@ const WorkoutDetailPage: React.FC = () => {
                                     caloriesBurned={workout.caloriesBurned}
                                     estimatedDuration={workout.estimatedDuration}
                                 />
-                            </Box>
+                            </Box> */}
 
-                            <Box sx={{ borderBottom: '1px solid #eee', my: 3 }} />
+                            <Box sx={{ my: 3 }} />
 
                             {/* Exercises List - All inside one Paper */}
                             <Paper
@@ -368,7 +466,8 @@ const WorkoutDetailPage: React.FC = () => {
                                     {(workout.exercises as Array<WorkoutExercise>)?.map((exercise) => {
                                         const info = exercise.exerciseInfo as import('../../types/workout.interface').ExerciseFull | undefined;
                                         const gifUrl = info?.gifUrl || info?.images?.[0] || '/placeholder.svg';
-                                        return (
+                                        // Tooltip wraps the whole item if note exists, otherwise no tooltip
+                                        const ExerciseItem = (
                                             <Box
                                                 key={exercise.exerciseId}
                                                 role="button"
@@ -400,6 +499,35 @@ const WorkoutDetailPage: React.FC = () => {
                                                     },
                                                 }}
                                             >
+                                                {/* Note icon at top-right if note exists */}
+                                                {exercise.notes && (
+                                                    <Box
+                                                        sx={{
+                                                            position: 'absolute',
+                                                            top: 10,
+                                                            right: 10,
+                                                            zIndex: 3,
+                                                            pointerEvents: 'none',
+                                                        }}
+                                                    >
+                                                        <Box sx={{
+                                                            bgcolor: '#fffde7',
+                                                            border: '1.5px solid #ffe082',
+                                                            borderRadius: '50%',
+                                                            width: 28,
+                                                            height: 28,
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            color: '#fbc02d',
+                                                            fontWeight: 900,
+                                                            fontSize: 20,
+                                                            boxShadow: '0 2px 8px rgba(255,193,7,0.10)',
+                                                        }}>
+                                                            !
+                                                        </Box>
+                                                    </Box>
+                                                )}
                                                 {/* Large GIF image */}
                                                 <Box sx={{
                                                     width: { xs: '100%', sm: 220 },
@@ -516,25 +644,35 @@ const WorkoutDetailPage: React.FC = () => {
                                                         </Box>
                                                     )}
                                                     {/* --- END Muscle Groups & Equipment badges row --- */}
-                                                    {exercise.notes && (
-                                                        <Box
-                                                            sx={{
-                                                                mt: 1,
-                                                                p: 1,
-                                                                bgcolor: '#fffde7',
-                                                                border: '1px solid #ffe082',
-                                                                borderRadius: 1,
-                                                                fontSize: '0.97rem',
-                                                                fontStyle: 'italic',
-                                                                color: '#a1887f'
-                                                            }}
-                                                        >
-                                                            <b>Note:</b> {exercise.notes}
-                                                        </Box>
-                                                    )}
                                                 </Box>
                                             </Box>
                                         );
+                                        return exercise.notes ? (
+                                            <Tooltip
+                                                key={exercise.exerciseId}
+                                                disableInteractive={false}
+                                                title={
+                                                    <Box sx={{
+                                                        p: 1.2,
+                                                        bgcolor: '#fffde7',
+                                                        border: '1px solid #ffe082',
+                                                        borderRadius: 1,
+                                                        fontSize: '0.97rem',
+                                                        fontStyle: 'italic',
+                                                        color: '#a1887f',
+                                                        maxWidth: 320,
+                                                        whiteSpace: 'pre-line',
+                                                    }}>
+                                                        <b>Note:</b> {exercise.notes}
+                                                    </Box>
+                                                }
+                                                arrow
+                                                placement="top"
+                                                enterDelay={200}
+                                            >
+                                                {ExerciseItem}
+                                            </Tooltip>
+                                        ) : ExerciseItem;
                                     })}
                                 </Stack>
                             </Paper>
