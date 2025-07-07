@@ -1,25 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CssBaseline } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import ProfilePage from './pages/account/ProfilePage';
-import LoginPage from './pages/auth/LoginPage';
-import RegisterPage from './pages/auth/RegisterPage';
+import FontDemo from './components/common/FontDemo';
 import Layout from './components/Layout';
 import { AuthProvider } from './context/AuthContext';
+import ProfilePage from './pages/account/ProfilePage';
 import NotFoundPage from './pages/app/NotFoundPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import LoginPage from './pages/auth/LoginPage';
 import LogoutPage from './pages/auth/LogoutPage';
-import HomePage from './pages/home/HomePage';
-import fitnessTheme from './styles/theme';
+import RegisterPage from './pages/auth/RegisterPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
-import WorkoutPage from './pages/workout/WorkoutPage';
+import ExerciseDetailPage from './pages/exercise/ExerciseDetailPage';
+import ExercisePage from './pages/exercise/ExercisePage';
+import HomePage from './pages/home/HomePage';
+import MyWorkoutPage from './pages/my-workout/MyWorkout';
 import CreateWorkoutPage from './pages/workout/create/CreateWorkoutPage';
 import WorkoutDetailPage from './pages/workout/WorkoutDetailPage';
-import ExercisePage from './pages/exercise/ExercisePage';
-import ExerciseDetailPage from './pages/exercise/ExerciseDetailPage';
-import FontDemo from './components/common/FontDemo';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import WorkoutPage from './pages/workout/WorkoutPage';
+import fitnessTheme from './styles/theme';
 
 // ✅ React Query Client Configuration
 const queryClient = new QueryClient({
@@ -67,9 +68,11 @@ export default function AppRouter() {
                                 <Route path="/register" element={<RegisterPage />} />
                                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                                 <Route path="/reset-password" element={<ResetPasswordPage />} />
-                                <Route path="/profile" element={<ProfilePage />} />                                <Route path="/logout" element={<LogoutPage />} />
-                                <Route path="/workouts/browse" element={<WorkoutPage />} />
+                                <Route path="/profile" element={<ProfilePage />} />
+                                <Route path="/logout" element={<LogoutPage />} />
+                                <Route path="/workouts" element={<WorkoutPage />} />
                                 <Route path="/workouts/create" element={<CreateWorkoutPage />} />
+                                <Route path="/my-workouts" element={<MyWorkoutPage />} />
                                 {/* Workout Detail Route */}
                                 <Route path="/workouts/:id" element={<WorkoutDetailPage />} />
                                 <Route path="/library/exercises" element={<ExercisePage />} />

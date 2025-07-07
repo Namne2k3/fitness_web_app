@@ -469,4 +469,33 @@ export class WorkoutService {
             throw new Error(`Failed to fetch workout: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
+
+    // static async getMyWorkouts(userId: string): Promise<Workout[]> {
+    //     try {
+    //         // Validate userId
+    //         if (!userId) {
+    //             throw new Error('User ID is required to fetch workouts');
+    //         }
+
+    //         // Fetch workouts created by the user
+    //         const workouts = await WorkoutModel.find({ userId })
+    //             .populate('exercises.exerciseId')
+    //             .populate('userId', '-password') // Exclude password from user data
+    //             .exec();
+
+    //         // Convert to plain objects and format exercises
+    //         return workouts.map((workout) => {
+    //             const plainWorkout = workout.toObject();
+    //             plainWorkout.exercises = plainWorkout.exercises.map((ex: any) => ({
+    //                 ...ex,
+    //                 exerciseId: ex.exerciseId._id.toString(),
+    //                 exerciseInfo: ex.exerciseId // Include full exercise object
+    //             }));
+    //             return plainWorkout;
+    //         });
+    //     } catch (error) {
+    //         console.error('Error fetching my workouts:', error);
+    //         throw new Error(`Failed to fetch my workouts: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    //     }
+    // }
 }
