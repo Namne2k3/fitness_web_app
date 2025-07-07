@@ -14,7 +14,6 @@ import {
     alpha
 } from '@mui/material';
 import {
-    Person,
     PersonAdd
 } from '@mui/icons-material';
 
@@ -52,18 +51,9 @@ const AuthorInfoCard: React.FC<AuthorInfoCardProps> = ({ workout }) => {
                     boxShadow: `0 12px 32px ${alpha(theme.palette.success.main, 0.15)}`,
                     borderColor: alpha(theme.palette.success.main, 0.3),
                 },
-                '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '4px',
-                    background: `linear-gradient(90deg, ${theme.palette.success.main} 0%, ${theme.palette.info.main} 100%)`,
-                }
             }}
         >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+            {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                 <Person sx={{ color: 'success.main', fontSize: 28 }} />
                 <Typography
                     variant="h5"
@@ -74,7 +64,7 @@ const AuthorInfoCard: React.FC<AuthorInfoCardProps> = ({ workout }) => {
                 >
                     Created by
                 </Typography>
-            </Box>
+            </Box> */}
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                 <Avatar

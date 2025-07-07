@@ -36,6 +36,8 @@
     "react-router-dom": "^7.6.2",
     "recharts": "^2.15.3",
     "tailwind-merge": "^3.3.0",
+    "three": "^0.178.0",
+    "three-stdlib": "^2.36.0",
     "yup": "^1.6.1",
     "zustand": "^5.0.5"
   },
@@ -45,6 +47,7 @@
     "@tailwindcss/typography": "^0.5.16",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
+    "@types/three": "^0.178.0",
     "@vitejs/plugin-react": "^4.4.1",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.25.0",
