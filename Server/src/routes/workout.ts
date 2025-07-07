@@ -509,6 +509,8 @@ router.post('/list', WorkoutController.getWorkouts);
  */
 router.get('/:id', WorkoutController.getWorkoutById);
 
+router.get('/my-workouts', authenticate, WorkoutController.getMyWorkout);
+
 /**
  * @swagger
  * /workouts:

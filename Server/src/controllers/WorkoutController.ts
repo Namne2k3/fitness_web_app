@@ -149,4 +149,8 @@ export class WorkoutController {
             next(error);
         }
     }
+
+    static async getMyWorkout() {
+
+    }
 }

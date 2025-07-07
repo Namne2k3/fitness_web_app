@@ -70,7 +70,7 @@ const NAV_MENUS: NavMenu[] = [
         path: '/workouts/browse',
         subItems: [
             { icon: <MenuBook fontSize="small" />, label: 'Khám phá bài tập', path: '/workouts/browse' },
-            { icon: <DirectionsRun fontSize="small" />, label: 'Bài tập của tôi', path: '/workouts/my-workouts' },
+            { icon: <DirectionsRun fontSize="small" />, label: 'Bài tập của tôi', path: '/my-workouts' },
             { icon: <AddCircleOutline fontSize="small" />, label: 'Tạo bài tập', path: '/workouts/create' },
             'divider',
             { icon: <BarChart fontSize="small" />, label: 'Theo dõi tiến độ', path: '/workouts/progress' },
