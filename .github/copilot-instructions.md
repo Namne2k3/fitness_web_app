@@ -21,6 +21,7 @@
 > - [Coding Standards](./instructions/coding-standards.md)
 > - [Schema Complete](../Client/docs/DATABASE_SCHEMA_COMPLETE.md)
 > - [Redis Integration Guide](./instructions/redis-integration.md)
+> - [ChatBot API Usage](./instructions/API_USAGE_GUIDE.md)
 
 ---
 

@@ -457,6 +457,174 @@ router.post('/list', WorkoutController.getWorkouts);
 
 /**
  * @swagger
+ * /workouts/my-workouts:
+ *   post:
+ *     summary: Get user's personal workouts (My Workouts)
+ *     description: |
+ *       Retrieve paginated list of user's personal workouts with advanced filtering, sorting, and search capabilities.
+ *       Supports filtering by category, difficulty, duration, equipment, muscle groups, and more.
+ *       Can include user data and detailed exercise information based on options.
+ *     tags: [Workouts]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/WorkoutFilter'
+ *           examples:
+ *             basic:
+ *               summary: Basic pagination
+ *               value:
+ *                 page: 1
+ *                 limit: 10
+ *             filtered:
+ *               summary: Filtered search
+ *               value:
+ *                 page: 1
+ *                 limit: 20
+ *                 filters:
+ *                   category: "strength"
+ *                   difficulty: "intermediate"
+ *                   duration:
+ *                     min: 30
+ *                     max: 60
+ *                   equipment: ["dumbbells", "barbell"]
+ *                   search: "upper body"
+ *                 sort:
+ *                   field: "averageRating"
+ *                   order: "desc"
+ *                 options:
+ *                   includeUserData: true
+ *             sponsored:
+ *               summary: Sponsored content only
+ *               value:
+ *                 page: 1
+ *                 limit: 10
+ *                 filters:
+ *                   isSponsored: true
+ *                   minRating: 4
+ *                 sort:
+ *                   field: "views"
+ *                   order: "desc"
+ *     responses:
+ *       200:
+ *         description: User's workouts retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PaginatedWorkoutResponse'
+ *             examples:
+ *               success:
+ *                 summary: Successful response
+ *                 value:
+ *                   success: true
+ *                   data:
+ *                     data:
+ *                       - _id: "675a1234567890abcdef1234"
+ *                         name: "Upper Body Strength Training"
+ *                         description: "Comprehensive upper body workout"
+ *                         category: "strength"
+ *                         difficulty: "intermediate"
+ *                         estimatedDuration: 45
+ *                         likeCount: 12
+ *                         averageRating: 4.5
+ *                         createdAt: "2024-12-12T10:00:00Z"
+ *                     pagination:
+ *                       currentPage: 1
+ *                       totalPages: 5
+ *                       totalItems: 48
+ *                       itemsPerPage: 10
+ *                       hasNextPage: true
+ *                       hasPrevPage: false
+ *                   message: "Workouts retrieved successfully"
+ *       400:
+ *         description: Bad request - Invalid filter parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               error: "Invalid filter parameters"
+ *               data: null
+ *       401:
+ *         description: Unauthorized - Authentication required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               error: "Authentication required"
+ *               data: null
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post('/my-workouts', authenticate, WorkoutController.getMyWorkouts);
+
+/**
+ * @swagger
+ * /workouts/my-stats:
+ *   get:
+ *     summary: Get user workout statistics
+ *     description: |
+ *       Retrieve workout statistics for the authenticated user, including total workouts, total duration, and estimated calories burned.
+ *     tags: [Workouts]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User workout statistics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     totalWorkouts:
+ *                       type: number
+ *                       example: 25
+ *                     totalDuration:
+ *                       type: number
+ *                       example: 120
+ *                     totalCaloriesBurned:
+ *                       type: number
+ *                       example: 3500
+ *                 message:
+ *                   type: string
+ *                   example: "Workout statistics retrieved successfully"
+ *       401:
+ *         description: Unauthorized - Authentication required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               error: "Authentication required"
+ *               data: null
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.get('/my-stats', authenticate, WorkoutController.getMyWorkoutStats);
+
+/**
+ * @swagger
  * /workouts/{id}:
  *   get:
  *     summary: Get workout by ID
@@ -509,7 +677,181 @@ router.post('/list', WorkoutController.getWorkouts);
  */
 router.get('/:id', WorkoutController.getWorkoutById);
 
-router.get('/my-workouts', authenticate, WorkoutController.getMyWorkout);
+/**
+ * @swagger
+ * /workouts/{id}/like:
+ *   post:
+ *     summary: Toggle workout like status
+ *     description: |
+ *       Like or unlike a workout. Requires authentication.
+ *       Returns updated workout data including new like count.
+ *     tags: [Workouts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workout ID (MongoDB ObjectId)
+ *     responses:
+ *       200:
+ *         description: Workout like status toggled successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Workout'
+ *                 message:
+ *                   type: string
+ *                   example: "Workout like status updated"
+ *       400:
+ *         description: Invalid workout ID format
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Workout not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized - Authentication required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               error: "Authentication required"
+ *               data: null
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post('/:id/like', authenticate, WorkoutController.toggleLike);
+
+/**
+ * @swagger
+ * /workouts/{id}/save:
+ *   post:
+ *     summary: Toggle workout save status
+ *     description: |
+ *       Save or unsave a workout to user's profile. Requires authentication.
+ *       Returns updated workout data including new save count.
+ *     tags: [Workouts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workout ID (MongoDB ObjectId)
+ *     responses:
+ *       200:
+ *         description: Workout save status toggled successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Workout'
+ *                 message:
+ *                   type: string
+ *                   example: "Workout save status updated"
+ *       400:
+ *         description: Invalid workout ID format
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Workout not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized - Authentication required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               error: "Authentication required"
+ *               data: null
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post('/:id/save', authenticate, WorkoutController.toggleSave);
+
+/**
+ * @swagger
+ * /workouts/{id}/duplicate:
+ *   post:
+ *     summary: Duplicate a workout
+ *     description: |
+ *       Create a copy of an existing workout for the authenticated user.
+ *       The duplicated workout will be marked as private by default and have "(Copy)" appended to the name.
+ *     tags: [Workouts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the workout to duplicate
+ *         schema:
+ *           type: string
+ *           example: "675a1234567890abcdef5678"
+ *     responses:
+ *       201:
+ *         description: Workout duplicated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Workout'
+ *                 message:
+ *                   type: string
+ *                   example: "Workout duplicated successfully"
+ *       400:
+ *         description: Bad request - Invalid workout ID
+ *       401:
+ *         description: Unauthorized - Authentication required
+ *       404:
+ *         description: Workout not found
+ *       500:
+ *         description: Internal server error
+ */
+router.post('/:id/duplicate', authenticate, WorkoutController.duplicateWorkout);
 
 /**
  * @swagger
@@ -697,5 +1039,246 @@ router.get('/my-workouts', authenticate, WorkoutController.getMyWorkout);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/', authenticate, WorkoutController.createWorkout);
+
+// ===================================
+// MyWorkout Routes
+// ===================================
+
+/**
+ * @swagger
+ * /workouts/my-workouts:
+ *   get:
+ *     summary: Get user's workouts for MyWorkout page
+ *     tags: [Workouts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 50
+ *           default: 12
+ *         description: Number of workouts per page
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Filter by workout category
+ *       - in: query
+ *         name: difficulty
+ *         schema:
+ *           type: string
+ *           enum: [beginner, intermediate, advanced]
+ *         description: Filter by difficulty level
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search in workout name, description, and tags
+ *     responses:
+ *       200:
+ *         description: User workouts retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     data:
+ *                       type: array
+ *                       items:
+ *                         allOf:
+ *                           - $ref: '#/components/schemas/Workout'
+ *                           - type: object
+ *                             properties:
+ *                               isLiked:
+ *                                 type: boolean
+ *                               isSaved:
+ *                                 type: boolean
+ *                               sponsorData:
+ *                                 type: object
+ *                               reviewStats:
+ *                                 type: object
+ *                                 properties:
+ *                                   averageRating:
+ *                                     type: number
+ *                                   totalReviews:
+ *                                     type: number
+ *                     pagination:
+ *                       $ref: '#/components/schemas/PaginationInfo'
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/my-workouts', authenticate, WorkoutController.getMyWorkouts);
+
+/**
+ * @swagger
+ * /workouts/my-stats:
+ *   get:
+ *     summary: Get user's workout statistics
+ *     tags: [Workouts]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Workout statistics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     totalWorkouts:
+ *                       type: number
+ *                     totalTimeMinutes:
+ *                       type: number
+ *                     totalCalories:
+ *                       type: number
+ *                     averageRating:
+ *                       type: number
+ *                     byCategory:
+ *                       type: object
+ *                     byDifficulty:
+ *                       type: object
+ *                     recentActivity:
+ *                       type: object
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/my-stats', authenticate, WorkoutController.getMyWorkoutStats);
+
+/**
+ * @swagger
+ * /workouts/{id}/like:
+ *   post:
+ *     summary: Toggle like status on workout
+ *     tags: [Workouts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workout ID
+ *     responses:
+ *       200:
+ *         description: Like status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     isLiked:
+ *                       type: boolean
+ *                     likeCount:
+ *                       type: number
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Workout not found
+ */
+router.post('/:id/like', authenticate, WorkoutController.toggleLike);
+
+/**
+ * @swagger
+ * /workouts/{id}/save:
+ *   post:
+ *     summary: Toggle save status on workout
+ *     tags: [Workouts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workout ID
+ *     responses:
+ *       200:
+ *         description: Save status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     isSaved:
+ *                       type: boolean
+ *                     saveCount:
+ *                       type: number
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Workout not found
+ */
+router.post('/:id/save', authenticate, WorkoutController.toggleSave);
+
+/**
+ * @swagger
+ * /workouts/{id}/duplicate:
+ *   post:
+ *     summary: Duplicate a workout
+ *     tags: [Workouts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workout ID to duplicate
+ *     responses:
+ *       200:
+ *         description: Workout duplicated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Workout'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Workout not found
+ */
+router.post('/:id/duplicate', authenticate, WorkoutController.duplicateWorkout);
 
 export default router;

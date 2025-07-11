@@ -433,7 +433,7 @@ export default function HomePage() {
                                             variant="contained"
                                             size="large"
                                             startIcon={<PlayArrow />}
-                                            onClick={() => navigate('/workouts/browse')}
+                                            onClick={() => navigate('/workouts')}
                                             sx={{
                                                 py: 2.5,
                                                 px: 5,

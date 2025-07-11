@@ -150,7 +150,135 @@ export class WorkoutController {
         }
     }
 
-    static async getMyWorkout() {
+    /**
+     * Get user's workouts (MyWorkout page)
+     * @route GET /api/v1/workouts/my-workouts
+     */
+    static async getMyWorkouts(
+        req: RequestWithUser,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const userId = req.user!._id.toString();
 
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 12;
+            const category = req.query.category as string;
+            const difficulty = req.query.difficulty as string;
+            const search = req.query.search as string;
+
+            const result = await WorkoutService.getMyWorkouts(userId, {
+                page,
+                limit,
+                category,
+                difficulty,
+                search
+            });
+
+            ResponseHelper.success(res, result, 'Workouts retrieved successfully');
+        } catch (error) {
+            next(error);
+        }
     }
+
+    /**
+     * Get user workout statistics
+     * @route GET /api/v1/workouts/my-stats
+     */
+    static async getMyWorkoutStats(
+        req: RequestWithUser,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!requireAuth(res, req.user)) return;
+            const userId = req.user!._id.toString();
+
+            const stats = await WorkoutService.getMyWorkoutStats(userId);
+
+            ResponseHelper.success(res, stats, 'Workout statistics retrieved successfully');
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * Toggle like on workout
+     * @route POST /api/v1/workouts/:id/like
+     */
+    static async toggleLike(
+        req: RequestWithUser,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!requireAuth(res, req.user)) return;
+            const userId = req.user!._id.toString();
+            const workoutId = req.params.id;
+
+            if (!workoutId) {
+                return ResponseHelper.badRequest(res, 'Workout ID is required');
+            }
+
+            const result = await WorkoutService.toggleLike(workoutId, userId);
+
+            ResponseHelper.success(res, result, 'Like status updated successfully');
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * Toggle save on workout
+     * @route POST /api/v1/workouts/:id/save
+     */
+    static async toggleSave(
+        req: RequestWithUser,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!requireAuth(res, req.user)) return;
+            const userId = req.user!._id.toString();
+            const workoutId = req.params.id;
+
+            if (!workoutId) {
+                return ResponseHelper.badRequest(res, 'Workout ID is required');
+            }
+
+            const result = await WorkoutService.toggleSave(workoutId, userId);
+
+            ResponseHelper.success(res, result, 'Save status updated successfully');
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * Duplicate workout
+     * @route POST /api/v1/workouts/:id/duplicate
+     */
+    static async duplicateWorkout(
+        req: RequestWithUser,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!requireAuth(res, req.user)) return;
+            const userId = req.user!._id.toString();
+            const workoutId = req.params.id;
+
+            if (!workoutId) {
+                return ResponseHelper.badRequest(res, 'Workout ID is required');
+            }
+
+            const duplicatedWorkout = await WorkoutService.duplicateWorkout(workoutId, userId);
+
+            ResponseHelper.success(res, duplicatedWorkout, 'Workout duplicated successfully');
+        } catch (error) {
+            next(error);
+        }
+    }
+
 }

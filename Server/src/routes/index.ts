@@ -10,6 +10,7 @@ import accountRoutes from './account';
 import workoutRoutes from './workout';
 import exerciseRoutes from './exercise';
 import uploadRoutes from './upload';
+import chatbotRoutes from './chatbot';
 import { ResponseHelper } from '../utils/responseHelper';
 
 const router = Router();
@@ -37,6 +38,10 @@ router.use('/account', accountRoutes);
 router.use('/workouts', workoutRoutes);
 router.use('/exercises', exerciseRoutes);
 router.use('/upload', uploadRoutes);
+
+// ChatBot routes mounted directly on /api (theo API Usage Guide)
+// Endpoints: /api/chat và /api/health
+router.use('/', chatbotRoutes);
 
 /**
  * 404 Handler cho undefined routes

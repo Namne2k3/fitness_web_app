@@ -1,5 +1,81 @@
 
 /**
+ * 💰 Sponsor & Review Types 
+ * TypeScript interfaces cho Sponsored Content và Review data - updated với React 19 patterns
+ */
+
+// ================================
+// 🎯 UI Helper Types for MyWorkout  
+// ================================
+export interface SponsorBadgeProps {
+    sponsor: SponsorInfo;
+    campaign: CampaignInfo;
+    compact?: boolean;
+    showRate?: boolean;
+}
+
+export interface ReviewBadgeProps {
+    review: import('./review.interface').Review;
+    compact?: boolean;
+    showRating?: boolean;
+}
+
+export interface SponsorCardProps {
+    sponsoredContent: SponsoredContent;
+    onView?: () => void;
+    onClick?: () => void;
+}
+
+// ================================
+// 📊 Analytics Types for MyWorkout
+// ================================
+export interface SponsorAnalytics {
+    totalSponsored: number;
+    totalRevenue: number;
+    averageRate: number;
+    topSponsors: Array<{
+        company: string;
+        totalPaid: number;
+        contentCount: number;
+    }>;
+    monthlyRevenue: Array<{
+        month: string;
+        revenue: number;
+        contentCount: number;
+    }>;
+}
+
+export interface ReviewAnalytics {
+    totalReviews: number;
+    averageRating: number;
+    verifiedReviews: number;
+    sponsoredReviews: number;
+    ratingDistribution: Array<{
+        rating: number;
+        count: number;
+    }>;
+    monthlyReviews: Array<{
+        month: string;
+        reviews: number;
+        averageRating: number;
+    }>;
+}
+
+// ================================
+// 🔄 Workout Integration Types
+// ================================
+export interface WorkoutWithSponsorData {
+    workout: import('./workout.interface').Workout;
+    sponsoredContent?: SponsoredContent[];
+    reviews?: import('./review.interface').Review[];
+    sponsorAnalytics?: {
+        totalRevenue: number;
+        avgRating: number;
+        reviewCount: number;
+    };
+}
+
+/**
  * Sponsored Content interface matching DATABASE_SCHEMA_COMPLETE.md
  */
 export interface SponsoredContent {
