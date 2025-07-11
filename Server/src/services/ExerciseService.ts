@@ -3,8 +3,7 @@
  * Business logic cho exercise operations với advanced filtering và pagination
  */
 
-import { ExerciseModel, IExercise } from '../models/Exercise';
-import { UserModel } from '../models/User';
+import { ExerciseRepository } from '../repositories/ExerciseRepository';
 import { FilterExercise } from '../controllers/ExerciseController';
 import {
     Exercise,
@@ -19,246 +18,11 @@ export class ExerciseService {
      */
     static async getExercises(params: FilterExercise): Promise<PaginatedResult<Exercise>> {
         try {
-            const {
-                page = 1,
-                limit = 10,
-                filters = {},
-                sort = { field: 'name', order: 'asc' },
-                options = {}
-            } = params;
-
-            // ================================
-            // 🔍 Build MongoDB Query
-            // ================================
-            const query: any = {};
-
-            // Basic filters
-            if (filters.category) {
-                query.category = filters.category;
-            }
-
-            if (filters.difficulty) {
-                query.difficulty = filters.difficulty;
-            }
-
-            // Approval filter (default to approved only)
-            if (filters.isApproved !== undefined) {
-                query.isApproved = filters.isApproved;
-            } else {
-                query.isApproved = true; // Default: only show approved exercises
-            }
-
-            // Creator filter
-            if (filters.createdBy) {
-                query.createdBy = filters.createdBy;
-            }
-
-            // Primary muscle groups filter
-            if (filters.primaryMuscleGroups) {
-                const muscleGroupsArray = Array.isArray(filters.primaryMuscleGroups)
-                    ? filters.primaryMuscleGroups
-                    : [filters.primaryMuscleGroups];
-                query.primaryMuscleGroups = { $in: muscleGroupsArray };
-            }
-
-            // Secondary muscle groups filter
-            if (filters.secondaryMuscleGroups) {
-                const secondaryMuscleGroupsArray = Array.isArray(filters.secondaryMuscleGroups)
-                    ? filters.secondaryMuscleGroups
-                    : [filters.secondaryMuscleGroups];
-                query.secondaryMuscleGroups = { $in: secondaryMuscleGroupsArray };
-            }
-
-            // Equipment filter
-            if (filters.equipment) {
-                const equipmentArray = Array.isArray(filters.equipment)
-                    ? filters.equipment
-                    : [filters.equipment];
-                query.equipment = { $in: equipmentArray };
-            }
-
-            // Calories per minute range filter
-            if (filters.caloriesRange) {
-                const caloriesQuery: any = {};
-                if (filters.caloriesRange.min !== undefined) {
-                    caloriesQuery.$gte = filters.caloriesRange.min;
-                }
-                if (filters.caloriesRange.max !== undefined) {
-                    caloriesQuery.$lte = filters.caloriesRange.max;
-                }
-                if (Object.keys(caloriesQuery).length > 0) {
-                    query.caloriesPerMinute = caloriesQuery;
-                }
-            }
-
-            // Intensity range filter
-            if (filters.intensityRange) {
-                const intensityQuery: any = {};
-                if (filters.intensityRange.min !== undefined) {
-                    intensityQuery.$gte = filters.intensityRange.min;
-                }
-                if (filters.intensityRange.max !== undefined) {
-                    intensityQuery.$lte = filters.intensityRange.max;
-                }
-                if (Object.keys(intensityQuery).length > 0) {
-                    query.averageIntensity = intensityQuery;
-                }
-            }
-
-            // ================================
-            // 🔍 Enhanced Search Logic với Partial Matching
-            // ================================
-            if (filters.search) {
-                const searchTerm = filters.search.trim();
-
-                if (searchTerm.length > 0) {
-                    // Create regex pattern for partial matching (case-insensitive)
-                    const regexPattern = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-
-                    // Search across multiple fields với $or operator
-                    query.$or = [
-                        // Primary search: exercise name (highest priority)
-                        { name: { $regex: regexPattern } },
-
-                        // Secondary search: description
-                        { description: { $regex: regexPattern } },
-
-                        // Tertiary search: muscle groups (fix regex pattern)
-                        { primaryMuscleGroups: { $regex: regexPattern } },
-                        { secondaryMuscleGroups: { $regex: regexPattern } },
-
-                        // Equipment search (fix regex pattern)
-                        { equipment: { $regex: regexPattern } },
-
-                        // Instructions search (array element search)
-                        { instructions: { $elemMatch: { $regex: regexPattern } } },
-
-                        // Fallback: MongoDB text search cho exact phrase matching
-                        ...(searchTerm.includes(' ') ? [{ $text: { $search: `"${searchTerm}"` } }] : [])
-                    ];
-                }
-            }
-
-            // ================================
-            // 📊 Build Sort Options
-            // ================================
-            const sortOptions: any = {};
-
-            // Handle sorting
-            switch (sort.field) {
-                case 'name':
-                    sortOptions.name = sort.order === 'asc' ? 1 : -1;
-                    break;
-                case 'difficulty':
-                    sortOptions.difficulty = sort.order === 'asc' ? 1 : -1;
-                    break;
-                case 'category':
-                    sortOptions.category = sort.order === 'asc' ? 1 : -1;
-                    break;
-                case 'caloriesPerMinute':
-                    sortOptions.caloriesPerMinute = sort.order === 'asc' ? 1 : -1;
-                    break;
-                case 'averageIntensity':
-                    sortOptions.averageIntensity = sort.order === 'asc' ? 1 : -1;
-                    break;
-                case 'createdAt':
-                    sortOptions.createdAt = sort.order === 'asc' ? 1 : -1;
-                    break;
-                case 'updatedAt':
-                    sortOptions.updatedAt = sort.order === 'asc' ? 1 : -1;
-                    break;
-                default:
-                    sortOptions.name = 1; // Default sort by name ascending
-            }
-
-            // ================================
-            // 📄 Pagination Setup
-            // ================================
-            const skip = (page - 1) * limit;
-
-            // ================================
-            // 📊 Execute Query với Aggregation Pipeline
-            // ================================
-            const aggregationPipeline: any[] = [
-                // Match stage
-                { $match: query },
-
-                // Add user data if requested
-                ...(options.includeUserData ? [{
-                    $lookup: {
-                        from: 'users',
-                        localField: 'createdBy',
-                        foreignField: '_id',
-                        as: 'creator',
-                        pipeline: [{
-                            $project: {
-                                username: 1,
-                                'profile.firstName': 1,
-                                'profile.lastName': 1,
-                                'profile.avatar': 1
-                            }
-                        }]
-                    }
-                }] : []),
-
-                // Sort stage
-                { $sort: sortOptions },
-
-                // Facet stage cho pagination
-                {
-                    $facet: {
-                        data: [
-                            { $skip: skip },
-                            { $limit: limit }
-                        ],
-                        totalCount: [
-                            { $count: 'count' }
-                        ]
-                    }
-                }
-            ];
-
-            // Execute aggregation
-            const result = await ExerciseModel.aggregate(aggregationPipeline);
-
-            // ================================
-            // 📊 Process Results
-            // ================================
-            const exercises = result[0]?.data || [];
-            const totalItems = result[0]?.totalCount[0]?.count || 0;
-            const totalPages = Math.ceil(totalItems / limit);
-
-            // Post-process exercises để thêm virtual fields nếu cần
-            const processedExercises = exercises.map((exercise: any) => {
-                // Flatten creator data if included
-                if (options.includeUserData && exercise.creator?.length > 0) {
-                    exercise.creator = exercise.creator[0];
-                } else if (options.includeUserData) {
-                    exercise.creator = null;
-                }
-
-                return exercise;
-            });
-
-            // ================================
-            // 📦 Return Paginated Result
-            // ================================
-            return {
-                data: processedExercises,
-                pagination: {
-                    currentPage: page,
-                    totalPages,
-                    totalItems,
-                    itemsPerPage: limit,
-                    hasNextPage: page < totalPages,
-                    hasPrevPage: page > 1
-                },
-                filters: filters, // Return applied filters
-                sort: sort // Return applied sort
-            };
+            // Delegate to repository
+            return await ExerciseRepository.findExercises(params);
         } catch (error) {
-            console.error('Error in ExerciseService.getExercises:', error);
-            throw error;
+            console.error('❌ Error getting exercises:', error);
+            throw new Error('Failed to get exercises');
         }
     }
 
@@ -269,18 +33,10 @@ export class ExerciseService {
      */
     static async getExerciseById(id: string): Promise<Exercise | null> {
         try {
-            const exercise = await ExerciseModel.findById(id)
-                .populate('createdBy', 'username profile.firstName profile.lastName')
-                .lean();
-
-            if (!exercise) {
-                return null;
-            }
-
-            return exercise as Exercise;
+            return await ExerciseRepository.findById(id);
         } catch (error) {
-            console.error('Error in ExerciseService.getExerciseById:', error);
-            throw error;
+            console.error('❌ Error getting exercise by ID:', error);
+            throw new Error('Failed to get exercise');
         }
     }
 
@@ -291,18 +47,123 @@ export class ExerciseService {
      */
     static async getExerciseBySlug(slug: string): Promise<Exercise | null> {
         try {
-            const exercise = await ExerciseModel.findOne({ slug })
-                .populate('createdBy', 'username profile.firstName profile.lastName')
-                .lean();
-
-            if (!exercise) {
-                return null;
-            }
-
-            return exercise as Exercise;
+            return await ExerciseRepository.findBySlug(slug);
         } catch (error) {
-            console.error('Error in ExerciseService.getExerciseBySlug:', error);
-            throw error;
+            console.error('❌ Error getting exercise by slug:', error);
+            throw new Error('Failed to get exercise');
+        }
+    }
+
+    /**
+     * Create new exercise
+     * @param exerciseData Exercise data
+     * @returns Created exercise
+     */
+    static async createExercise(exerciseData: Partial<Exercise>): Promise<Exercise> {
+        try {
+            return await ExerciseRepository.create(exerciseData);
+        } catch (error) {
+            console.error('❌ Error creating exercise:', error);
+            throw new Error('Failed to create exercise');
+        }
+    }
+
+    /**
+     * Update exercise
+     * @param id Exercise ID
+     * @param updateData Update data
+     * @returns Updated exercise
+     */
+    static async updateExercise(id: string, updateData: Partial<Exercise>): Promise<Exercise | null> {
+        try {
+            return await ExerciseRepository.updateById(id, updateData);
+        } catch (error) {
+            console.error('❌ Error updating exercise:', error);
+            throw new Error('Failed to update exercise');
+        }
+    }
+
+    /**
+     * Delete exercise
+     * @param id Exercise ID
+     * @returns Success status
+     */
+    static async deleteExercise(id: string): Promise<boolean> {
+        try {
+            return await ExerciseRepository.deleteById(id);
+        } catch (error) {
+            console.error('❌ Error deleting exercise:', error);
+            throw new Error('Failed to delete exercise');
+        }
+    }
+
+    /**
+     * Get exercises by category
+     * @param category Exercise category
+     * @returns Exercises in category
+     */
+    static async getExercisesByCategory(category: string): Promise<Exercise[]> {
+        try {
+            return await ExerciseRepository.findByCategory(category);
+        } catch (error) {
+            console.error('❌ Error getting exercises by category:', error);
+            throw new Error('Failed to get exercises by category');
+        }
+    }
+
+    /**
+     * Get exercises by muscle groups
+     * @param muscleGroups Muscle groups
+     * @returns Exercises targeting muscle groups
+     */
+    static async getExercisesByMuscleGroups(muscleGroups: string[]): Promise<Exercise[]> {
+        try {
+            return await ExerciseRepository.findByMuscleGroups(muscleGroups);
+        } catch (error) {
+            console.error('❌ Error getting exercises by muscle groups:', error);
+            throw new Error('Failed to get exercises by muscle groups');
+        }
+    }
+
+    /**
+     * Get exercises by equipment
+     * @param equipment Equipment list
+     * @returns Exercises using equipment
+     */
+    static async getExercisesByEquipment(equipment: string[]): Promise<Exercise[]> {
+        try {
+            return await ExerciseRepository.findByEquipment(equipment);
+        } catch (error) {
+            console.error('❌ Error getting exercises by equipment:', error);
+            throw new Error('Failed to get exercises by equipment');
+        }
+    }
+
+    /**
+     * Get exercises by IDs
+     * @param ids Exercise IDs
+     * @returns Exercises matching IDs
+     */
+    static async getExercisesByIds(ids: string[]): Promise<Exercise[]> {
+        try {
+            return await ExerciseRepository.findByIds(ids);
+        } catch (error) {
+            console.error('❌ Error getting exercises by IDs:', error);
+            throw new Error('Failed to get exercises by IDs');
+        }
+    }
+
+    /**
+     * Count exercises with filters
+     * @param filters Filter criteria
+     * @returns Count of exercises
+     */
+    static async countExercises(filters: any = {}): Promise<number> {
+        try {
+            return await ExerciseRepository.count(filters);
+        } catch (error) {
+            console.error('❌ Error counting exercises:', error);
+            throw new Error('Failed to count exercises');
         }
     }
 }

@@ -1,21 +1,22 @@
-import { UserModel } from "../models/User";
+import { AccountRepository } from "../repositories/AccountRepository";
 import { calculateBMI, getBMICategory, validateBMIForGoals } from "../utils/healthCalculations";
 
 export class AccountService {
     /**
-        * Get user prpfile với health metrics
-        */
+     * Get user profile với health metrics
+     */
     static async getUserProfile(userId: string): Promise<any> {
-        const user = await UserModel.findById(userId);
+        // Delegate data access to repository
+        const user = await AccountRepository.findById(userId);
         if (!user) {
             throw new Error('User not found');
         }
 
-        // Calculate health metrics
+        // Business logic: Calculate health metrics
         const bmi = calculateBMI(user.profile.weight, user.profile.height);
         const bmiCategory = getBMICategory(bmi);
 
-        // BMI warnings based on fitness goals
+        // Business logic: BMI warnings based on fitness goals
         const bmiWarnings = validateBMIForGoals(bmi, user.profile.fitnessGoals);
 
         return {

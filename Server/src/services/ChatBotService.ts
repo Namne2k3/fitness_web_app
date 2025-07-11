@@ -11,6 +11,7 @@
 
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { ChatRequest, ChatResponse, ChatErrorResponse, ChatHealthResponse } from '../types/chatbot.types';
+import { ChatBotRepository, ChatMessage, ChatLog } from '../repositories/ChatBotRepository';
 
 export class ChatBotService {
     private static readonly API_URL = process.env.CHATBOT_API_URL || 'http://localhost:8000';
@@ -34,24 +35,91 @@ export class ChatBotService {
      * @returns ChatResponse từ external API
      */
     static async sendMessage(request: ChatRequest): Promise<ChatResponse> {
+        const startTime = Date.now();
+        let conversationId = request.conversation_id;
+
         try {
+            // Validate input using repository
+            const validation = ChatBotRepository.validateChatRequest({
+                message: request.message,
+                ...(request.user_id && { user_id: request.user_id }),
+                ...(request.conversation_id && { conversation_id: request.conversation_id })
+            });
+
+            if (!validation.isValid) {
+                throw new Error(`Invalid request: ${validation.errors.join(', ')}`);
+            }
+
+            // Sanitize input using repository
+            const sanitizedMessage = ChatBotRepository.sanitizeInput(request.message);
+
+            // Check if message is safe using repository
+            if (!ChatBotRepository.isMessageSafe(sanitizedMessage)) {
+                throw new Error('Message contains potentially harmful content');
+            }
+
+            // Generate conversation ID if not provided
+            if (!conversationId) {
+                conversationId = ChatBotRepository.generateConversationId();
+            }
+
             console.log(`🤖 Sending message to ChatBot API: ${this.API_URL}/api/chat`);
-            console.log(`📝 Message length: ${request.message.length} chars`);
+            console.log(`📝 Message length: ${sanitizedMessage.length} chars`);
+
+            // Extract fitness keywords for analytics
+            const keywords = ChatBotRepository.extractFitnessKeywords(sanitizedMessage);
+            console.log(`🏋️ Fitness keywords detected: ${keywords.join(', ')}`);
 
             // Gửi request đến external Python API theo đúng format
             const response = await this.apiClient.post<ChatResponse>('http://0.0.0.0:8000/api/chat', {
-                message: request.message,
+                message: sanitizedMessage,
                 user_id: request.user_id,
-                conversation_id: request.conversation_id
+                conversation_id: conversationId
             });
 
             console.log(`✅ ChatBot API response received`);
             console.log(`💬 Reply length: ${response.data.reply.length} chars`);
 
-            return response.data;
+            // Calculate metrics using repository
+            const endTime = Date.now();
+            const metrics = ChatBotRepository.calculateMetrics(startTime, endTime, true);
+
+            // Log interaction using repository
+            const logData: Omit<ChatLog, 'id'> = {
+                conversationId: conversationId,
+                userMessage: sanitizedMessage,
+                botResponse: response.data.reply,
+                timestamp: metrics.timestamp,
+                responseTime: metrics.responseTime,
+                successful: metrics.successful
+            };
+            if (request.user_id) {
+                logData.userId = request.user_id;
+            }
+            await ChatBotRepository.logChatInteraction(logData);
+
+            return ChatBotRepository.createChatResponse(response.data.reply, conversationId);
 
         } catch (error) {
             console.error('❌ ChatBot API Error:', error);
+
+            const endTime = Date.now();
+            const metrics = ChatBotRepository.calculateMetrics(startTime, endTime, false);
+
+            // Log failed interaction using repository
+            const errorLogData: Omit<ChatLog, 'id'> = {
+                conversationId: conversationId || 'unknown',
+                userMessage: request.message,
+                botResponse: '',
+                timestamp: metrics.timestamp,
+                responseTime: metrics.responseTime,
+                successful: false,
+                errorMessage: error instanceof Error ? error.message : 'Unknown error'
+            };
+            if (request.user_id) {
+                errorLogData.userId = request.user_id;
+            }
+            await ChatBotRepository.logChatInteraction(errorLogData);
 
             if (axios.isAxiosError(error)) {
                 const axiosError = error as AxiosError<ChatErrorResponse>;
@@ -90,7 +158,13 @@ export class ChatBotService {
             const response = await this.apiClient.get<ChatHealthResponse>('/api/health');
 
             console.log(`✅ ChatBot API is healthy`);
-            return response.data;
+
+            // Return consistent response using repository helper
+            return {
+                status: 'healthy',
+                gemini_api: 'connected',
+                timestamp: new Date().toISOString()
+            };
 
         } catch (error) {
             console.error('❌ ChatBot Health Check Failed:', error);
