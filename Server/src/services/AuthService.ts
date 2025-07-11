@@ -3,7 +3,8 @@
  * Business logic cho user authentication và management
  */
 
-import { UserModel, IUser, FitnessGoal } from '../models/User';
+import { IUser, FitnessGoal } from '../models/User';
+import { AuthRepository } from '../repositories/AuthRepository';
 import {
     hashPassword,
     comparePassword,
@@ -105,20 +106,14 @@ export class AuthService {
         const { email, username, password, profile } = validation.data;
 
         // Check if user already exists
-        const existingUser = await UserModel.findOne({
-            $or: [
-                { email: email.toLowerCase() },
-                { username: username.toLowerCase() }
-            ]
-        });
+        const emailExists = await AuthRepository.emailExists(email.toLowerCase());
+        const usernameExists = await AuthRepository.usernameExists(username.toLowerCase());
 
-        if (existingUser) {
-            if (existingUser.email === email.toLowerCase()) {
-                throw new Error('Email already registered');
-            }
-            if (existingUser.username === username.toLowerCase()) {
-                throw new Error('Username already taken');
-            }
+        if (emailExists) {
+            throw new Error('Email already registered');
+        }
+        if (usernameExists) {
+            throw new Error('Username already taken');
         }
 
         // Hash password
@@ -128,30 +123,26 @@ export class AuthService {
         const emailVerificationToken = generateSecureToken();
 
         // Create new user
-        const user = new UserModel({
+        const user = await AuthRepository.createUser({
             email: email.toLowerCase(),
             username: username.toLowerCase(),
             password: hashedPassword,
             role: UserRole.USER,
             profile,
-            isEmailVerified: false,
-            emailVerificationToken,
-            isActive: true
+            emailVerificationToken
         });
-
-        await user.save();
 
         // Generate JWT tokens
         const tokens = generateTokens(user._id, user.email, user.role);
 
         // Update last login
-        await user.updateLastLogin();
+        await AuthRepository.updateLastLogin(user._id.toString());
 
         // Return user without sensitive data
-        const userWithoutPassword = await UserModel.findById(user._id);
+        const userWithoutPassword = await AuthRepository.findByIdForAuth(user._id.toString());
 
         return {
-            user: userWithoutPassword!.toJSON(),
+            user: userWithoutPassword! as User,
             tokens
         };
     }
@@ -169,12 +160,9 @@ export class AuthService {
         const { email, password, rememberMe } = validation.data;
 
         // Find user by email (include password for comparison)
-        const user = await UserModel.findOne({
-            email: email.toLowerCase(),
-            isActive: true
-        }).select('+password');
+        const user = await AuthRepository.findByEmailWithPassword(email.toLowerCase());
 
-        if (!user) {
+        if (!user || !user.isActive) {
             throw new Error('Email không tồn tại hoặc tài khoản đã bị vô hiệu hóa');
         }
 
@@ -188,13 +176,13 @@ export class AuthService {
         const tokens = generateTokens(user._id, user.email, user.role);
 
         // Update last login
-        await user.updateLastLogin();
+        await AuthRepository.updateLastLogin(user._id.toString());
 
         // Return user without sensitive data
-        const userWithoutPassword = await UserModel.findById(user._id);
+        const userWithoutPassword = await AuthRepository.findByIdForAuth(user._id.toString());
 
         return {
-            user: userWithoutPassword!.toJSON(),
+            user: userWithoutPassword as User,
             tokens
         };
     }
@@ -203,8 +191,8 @@ export class AuthService {
      * Lấy user profile theo ID
      */
     static async getUserById(userId: string): Promise<User | null> {
-        const user = await UserModel.findById(userId);
-        return user ? user.toJSON() : null;
+        const user = await AuthRepository.findByIdForAuth(userId);
+        return user as User | null;
     }
 
     /**
@@ -217,16 +205,12 @@ export class AuthService {
             throw new Error(validation.message || 'Validation failed');
         }
 
-        const user = await UserModel.findById(userId);
-        if (!user) {
+        const updatedUser = await AuthRepository.updateUserProfile(userId, validation.data);
+        if (!updatedUser) {
             throw new Error('User not found');
         }
 
-        // Update profile fields
-        Object.assign(user.profile, validation.data);
-        await user.save();
-
-        return user.toJSON();
+        return updatedUser as User;
     }
 
     /**
@@ -242,7 +226,7 @@ export class AuthService {
         const { currentPassword, newPassword } = validation.data;
 
         // Get user with password
-        const user = await UserModel.findById(userId).select('+password');
+        const user = await AuthRepository.findByIdWithPassword(userId);
         if (!user) {
             throw new Error('User not found');
         }
@@ -257,8 +241,7 @@ export class AuthService {
         const hashedNewPassword = await hashPassword(newPassword);
 
         // Update password
-        user.password = hashedNewPassword;
-        await user.save();
+        await AuthRepository.updatePassword(userId, hashedNewPassword);
     }
 
     /**
@@ -270,11 +253,7 @@ export class AuthService {
             throw new Error(validation.message || 'Invalid email format');
         }
 
-        const user = await UserModel.findOne({
-            email: email.toLowerCase()
-        }).select('_id');
-
-        return !!user;
+        return await AuthRepository.emailExists(email.toLowerCase());
     }
 
     /**
@@ -285,56 +264,37 @@ export class AuthService {
             throw new Error('Username must be at least 3 characters');
         }
 
-        const user = await UserModel.findOne({
-            username: username.toLowerCase()
-        }).select('_id');
-
-        return !!user;
+        return await AuthRepository.usernameExists(username.toLowerCase());
     }
 
     /**
      * Deactivate user account
      */
     static async deactivateAccount(userId: string): Promise<void> {
-        const user = await UserModel.findById(userId);
-        if (!user) {
-            throw new Error('User not found');
-        }
-
-        user.isActive = false;
-        await user.save();
+        await AuthRepository.updateUserStatus(userId, false);
     }
 
     /**
      * Activate user account
      */
     static async activateAccount(userId: string): Promise<void> {
-        const user = await UserModel.findById(userId);
-        if (!user) {
-            throw new Error('User not found');
-        }
-
-        user.isActive = true;
-        await user.save();
+        await AuthRepository.updateUserStatus(userId, true);
     }
 
     /**
      * Verify email với verification token
      */
     static async verifyEmail(token: string): Promise<User> {
-        const user = await UserModel.findOne({
-            emailVerificationToken: token
-        }).select('+emailVerificationToken');
+        const user = await AuthRepository.findByEmailVerificationToken(token);
 
         if (!user) {
             throw new Error('Invalid verification token');
         }
 
-        user.isEmailVerified = true;
-        user.emailVerificationToken = '';
-        await user.save();
+        await AuthRepository.updateEmailVerification(user._id.toString(), true);
+        const updatedUser = await AuthRepository.findByIdForAuth(user._id.toString());
 
-        return user.toJSON();
+        return updatedUser as User;
     }
 
     /**
@@ -346,9 +306,7 @@ export class AuthService {
             throw new Error(validation.message || 'Invalid email format');
         }
 
-        const user = await UserModel.findOne({
-            email: email.toLowerCase()
-        }).select('+emailVerificationToken');
+        const user = await AuthRepository.findByEmailForAuth(email.toLowerCase());
 
         if (!user) {
             throw new Error('User not found');
@@ -360,8 +318,11 @@ export class AuthService {
 
         // Generate new verification token
         const emailVerificationToken = generateSecureToken();
-        user.emailVerificationToken = emailVerificationToken;
-        await user.save();
+        await AuthRepository.updateEmailVerification(
+            user._id.toString(),
+            false,
+            emailVerificationToken
+        );
 
         return emailVerificationToken;
     }
@@ -370,17 +331,19 @@ export class AuthService {
      * Get detailed health insights và recommendations
      */
     static async getHealthInsights(userId: string): Promise<any> {
-        const user = await UserModel.findById(userId);
+        const user = await AuthRepository.findByIdForAuth(userId);
         if (!user) {
             throw new Error('User not found');
         }
 
-        // Calculate health metrics
+        // Business logic: Calculate health metrics
         const bmi = calculateBMI(user.profile.weight, user.profile.height);
         const bmiCategory = getBMICategory(bmi);
 
-        // BMI warnings and recommendations
-        const bmiWarnings = validateBMIForGoals(bmi, user.profile.fitnessGoals);        // Calculate BMR using actual gender data (Mifflin-St Jeor Equation)
+        // Business logic: BMI warnings and recommendations
+        const bmiWarnings = validateBMIForGoals(bmi, user.profile.fitnessGoals);
+
+        // Business logic: Calculate BMR using actual gender data (Mifflin-St Jeor Equation)
         const estimatedBMR = calculateBMR(
             user.profile.weight,
             user.profile.height,
@@ -488,7 +451,7 @@ export class AuthService {
             const { userId } = verifyRefreshToken(refreshToken);
 
             // Fetch user to ensure they still exist
-            const user = await UserModel.findById(userId);
+            const user = await AuthRepository.findByIdForAuth(userId);
             if (!user || !user.isActive) {
                 throw new Error('User not found or inactive');
             }
@@ -513,31 +476,24 @@ export class AuthService {
         const { email } = validation.data;
 
         // Find user by email
-        const user = await UserModel.findOne({
-            email: email.toLowerCase(),
-            isActive: true
-        });
+        const user = await AuthRepository.findByEmailForAuth(email.toLowerCase());
 
         // Always return success message for security (không reveal user existence)
-        if (!user) {
+        if (!user || !user.isActive) {
             return {
                 message: 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link reset password trong vài phút.'
             };
         }
 
-        // Generate reset token (expires in 1 hour)
+        // Generate reset token (expires in 15 minutes)
         const resetToken = generateSecureToken();
         const resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 phút
 
         // Save reset token to user
-        user.passwordResetToken = resetToken;
-        user.passwordResetExpires = resetTokenExpiry;
-        await user.save();
+        await AuthRepository.setPasswordResetToken(user._id.toString(), resetToken, resetTokenExpiry);
 
         // TODO: Send email với reset link
         EmailService.sendPasswordResetEmail(user.email, resetToken, user.username);
-        // console.log(`🔗 Password reset token for ${email}: ${resetToken}`);
-        // console.log(`🔗 Reset link: ${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`);
 
         return {
             message: 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link reset password trong vài phút.'
@@ -557,13 +513,9 @@ export class AuthService {
         const { token, newPassword } = validation.data;
 
         // Find user by reset token
-        const user = await UserModel.findOne({
-            passwordResetToken: token,
-            passwordResetExpires: { $gt: new Date() }, // Token chưa expired
-            isActive: true
-        });
+        const user = await AuthRepository.findByPasswordResetToken(token);
 
-        if (!user) {
+        if (!user || !user.isActive) {
             throw new Error('Token không hợp lệ hoặc đã hết hạn');
         }
 
@@ -571,10 +523,7 @@ export class AuthService {
         const hashedPassword = await hashPassword(newPassword);
 
         // Update password và clear reset token
-        user.password = hashedPassword;
-        user.passwordResetToken = '';
-        user.passwordResetExpires = null;
-        await user.save();
+        await AuthRepository.updatePassword(user._id.toString(), hashedPassword);
 
         return { message: 'Mật khẩu đã được cập nhật thành công' };
     }
@@ -600,10 +549,7 @@ export class AuthService {
         const normalizedToken = tokenValidation.data;
 
         // Find user by reset token
-        const user = await UserModel.findOne({
-            passwordResetToken: normalizedToken,
-            isActive: true
-        }).select('+passwordResetExpires');
+        const user = await AuthRepository.findByPasswordResetToken(normalizedToken);
 
         if (!user) {
             return {

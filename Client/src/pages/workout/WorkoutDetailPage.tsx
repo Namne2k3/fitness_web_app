@@ -24,7 +24,7 @@ import { Avatar, Badge, IconButton, Paper, Tooltip, Typography } from '@mui/mate
 import {
     WorkoutDetailSkeleton
 } from '../../components/workout/detail';
-import { WorkoutExercise } from '../../types';
+import { ExerciseFull, WorkoutExercise } from '../../types';
 
 /**
  * 🎯 Main WorkoutDetailPage Component
@@ -464,8 +464,10 @@ const WorkoutDetailPage: React.FC = () => {
                                 </Box>
                                 <Stack spacing={2}>
                                     {(workout.exercises as Array<WorkoutExercise>)?.map((exercise) => {
-                                        const info = exercise.exerciseInfo as import('../../types/workout.interface').ExerciseFull | undefined;
-                                        const gifUrl = info?.gifUrl || info?.images?.[0] || '/placeholder.svg';
+                                        const info = exercise.exerciseInfo as ExerciseFull | undefined;
+                                        console.log("Check info >>> ", info);
+
+                                        const gifUrl = info?.gifUrl || '/placeholder.svg';
                                         // Tooltip wraps the whole item if note exists, otherwise no tooltip
                                         const ExerciseItem = (
                                             <Box

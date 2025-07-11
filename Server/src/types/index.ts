@@ -133,6 +133,7 @@ export interface WorkoutExercise {
     restTime?: number; // seconds between sets
     notes?: string;
     completed?: boolean; // for workout tracking
+    exerciseInfo?: Exercise; // populated exercise data (chứa gifUrl và các field khác)
 }
 
 export interface Exercise {
