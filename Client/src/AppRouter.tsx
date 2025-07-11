@@ -17,6 +17,7 @@ import ExerciseDetailPage from './pages/exercise/ExerciseDetailPage';
 import ExercisePage from './pages/exercise/ExercisePage';
 import HomePage from './pages/home/HomePage';
 import MyWorkoutPage from './pages/my-workout/MyWorkout';
+import StartWorkoutPage from './pages/workout/StartWorkout';
 import CreateWorkoutPage from './pages/workout/create/CreateWorkoutPage';
 import WorkoutDetailPage from './pages/workout/WorkoutDetailPage';
 import WorkoutPage from './pages/workout/WorkoutPage';
@@ -73,6 +74,7 @@ export default function AppRouter() {
                                 <Route path="/workouts" element={<WorkoutPage />} />
                                 <Route path="/workouts/create" element={<CreateWorkoutPage />} />
                                 <Route path="/my-workouts" element={<MyWorkoutPage />} />
+                                <Route path="/workouts/:id/start" element={<StartWorkoutPage />} />
                                 {/* Workout Detail Route */}
                                 <Route path="/workouts/:id" element={<WorkoutDetailPage />} />
                                 <Route path="/library/exercises" element={<ExercisePage />} />

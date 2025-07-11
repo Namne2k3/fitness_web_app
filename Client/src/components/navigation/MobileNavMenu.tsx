@@ -194,11 +194,11 @@ const MobileNavMenu: React.FC = () => {
                         </ListItemButton>
                         <Collapse in={workoutsOpen} timeout="auto" unmountOnExit>
                             <List component="div" disablePadding>
-                                <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/workouts/browse')}>
+                                <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/workouts')}>
                                     <ListItemIcon><MenuBook /></ListItemIcon>
                                     <ListItemText primary="Khám phá bài tập" />
                                 </ListItemButton>
-                                <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/workouts/my-workouts')}>
+                                <ListItemButton sx={{ pl: 4 }} onClick={() => handleNavigate('/my-workouts')}>
                                     <ListItemIcon><DirectionsRun /></ListItemIcon>
                                     <ListItemText primary="Bài tập của tôi" />
                                 </ListItemButton>

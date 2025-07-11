@@ -20,6 +20,18 @@ export interface SearchParams {
     limit?: number;
 }
 
+// ================================
+// 📊 Paginated Result Interface
+// ================================
+export interface PaginatedResult<T> {
+    data: T[];
+    total: number;
+    page: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+}
+
 // Utility types
 export type DeepPartial<T> = {
     [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];

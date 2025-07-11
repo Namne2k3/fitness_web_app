@@ -57,7 +57,7 @@ const WorkoutDetailPage: React.FC = () => {
                     severity="error"
                     sx={{ mb: 4 }}
                     action={
-                        <Button color="inherit" size="small" onClick={() => navigate('/workouts/browse')}>
+                        <Button color="inherit" size="small" onClick={() => navigate('/workouts')}>
                             Back to Workouts
                         </Button>
                     }

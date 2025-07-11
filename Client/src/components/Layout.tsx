@@ -3,6 +3,7 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 import Navbar from './navigation/Navbar';
 import Footer from './navigation/Footer';
+import { ChatBot } from './chatbot';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -37,6 +38,9 @@ export default function Layout({ children }: LayoutProps) {
 
             {/* Hide Footer cho full-screen pages */}
             {!isFullScreenPage && <Footer />}
+
+            {/* ChatBot - hiển thị trên tất cả trang trừ full-screen */}
+            {!isFullScreenPage && <ChatBot />}
         </Box>
     );
 }

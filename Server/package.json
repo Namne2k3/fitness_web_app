@@ -10,6 +10,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:auth-mapper": "npx ts-node src/tests/authMapper.test.ts",
+    "test:chatbot": "npx ts-node src/tests/chatbot.test.ts",
+    "test:chatbot-api": "npx ts-node src/scripts/testChatBot.ts",
     "auth-mapper": "npx ts-node src/scripts/authMapperRunner.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
@@ -27,6 +29,7 @@
   "dependencies": {
     "@types/express-session": "^1.18.2",
     "@types/nodemailer": "^6.4.17",
+    "axios": "^1.10.0",
     "bcryptjs": "^2.4.3",
     "bull": "^4.16.5",
     "cloudinary": "^1.41.0",

@@ -67,9 +67,9 @@ const NAV_MENUS: NavMenu[] = [
         key: 'workouts',
         icon: <FitnessCenter />,
         label: 'Bài tập',
-        path: '/workouts/browse',
+        path: '/workouts',
         subItems: [
-            { icon: <MenuBook fontSize="small" />, label: 'Khám phá bài tập', path: '/workouts/browse' },
+            { icon: <MenuBook fontSize="small" />, label: 'Khám phá bài tập', path: '/workouts' },
             { icon: <DirectionsRun fontSize="small" />, label: 'Bài tập của tôi', path: '/my-workouts' },
             { icon: <AddCircleOutline fontSize="small" />, label: 'Tạo bài tập', path: '/workouts/create' },
             'divider',

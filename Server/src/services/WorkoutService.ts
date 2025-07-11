@@ -3,6 +3,7 @@
  * Business logic cho workout operations với advanced filtering và pagination
  */
 
+import mongoose from 'mongoose';
 import { WorkoutModel, IWorkout } from '../models/Workout';
 import { ExerciseModel } from '../models/Exercise';
 import { UserModel } from '../models/User';
@@ -470,32 +471,362 @@ export class WorkoutService {
         }
     }
 
-    // static async getMyWorkouts(userId: string): Promise<Workout[]> {
-    //     try {
-    //         // Validate userId
-    //         if (!userId) {
-    //             throw new Error('User ID is required to fetch workouts');
-    //         }
+    /**
+     * Get user workout statistics and analytics
+     * @param userId User ID to get stats for
+     * @returns User workout statistics
+     */
+    static async getUserWorkoutStats(userId: string): Promise<{
+        totalWorkouts: number;
+        totalDuration: number;
+        totalExercises: number;
+        averageRating: number;
+        totalLikes: number;
+        totalSaves: number;
+        totalViews: number;
+        totalCompletions: number;
+        byCategory: Record<string, number>;
+        byDifficulty: Record<string, number>;
+        recentActivity: {
+            lastWorkoutDate: Date | null;
+            workoutsThisWeek: number;
+            workoutsThisMonth: number;
+        };
+    }> {
+        try {
+            // Validate userId
+            if (!userId) {
+                throw new Error('User ID is required');
+            }
 
-    //         // Fetch workouts created by the user
-    //         const workouts = await WorkoutModel.find({ userId })
-    //             .populate('exercises.exerciseId')
-    //             .populate('userId', '-password') // Exclude password from user data
-    //             .exec();
+            // Get all user workouts for aggregation
+            const aggregationPipeline = [
+                {
+                    $match: { userId: new mongoose.Types.ObjectId(userId) }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalWorkouts: { $sum: 1 },
+                        totalDuration: { $sum: '$estimatedDuration' },
+                        totalExercises: { $sum: { $size: '$exercises' } },
+                        totalLikes: { $sum: '$likeCount' },
+                        totalSaves: { $sum: '$saveCount' },
+                        totalViews: { $sum: '$views' },
+                        totalCompletions: { $sum: '$completions' },
+                        totalRatings: { $sum: '$totalRatings' },
+                        averageRatingSum: { $sum: { $multiply: ['$averageRating', '$totalRatings'] } },
+                        categories: { $push: '$category' },
+                        difficulties: { $push: '$difficulty' },
+                        lastWorkout: { $max: '$createdAt' }
+                    }
+                }
+            ];
 
-    //         // Convert to plain objects and format exercises
-    //         return workouts.map((workout) => {
-    //             const plainWorkout = workout.toObject();
-    //             plainWorkout.exercises = plainWorkout.exercises.map((ex: any) => ({
-    //                 ...ex,
-    //                 exerciseId: ex.exerciseId._id.toString(),
-    //                 exerciseInfo: ex.exerciseId // Include full exercise object
-    //             }));
-    //             return plainWorkout;
-    //         });
-    //     } catch (error) {
-    //         console.error('Error fetching my workouts:', error);
-    //         throw new Error(`Failed to fetch my workouts: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    //     }
-    // }
+            const result = await WorkoutModel.aggregate(aggregationPipeline);
+            const stats = result[0] || {
+                totalWorkouts: 0,
+                totalDuration: 0,
+                totalExercises: 0,
+                totalLikes: 0,
+                totalSaves: 0,
+                totalViews: 0,
+                totalCompletions: 0,
+                totalRatings: 0,
+                averageRatingSum: 0,
+                categories: [],
+                difficulties: [],
+                lastWorkout: null
+            };
+
+            // Calculate average rating
+            const averageRating = stats.totalRatings > 0
+                ? Number((stats.averageRatingSum / stats.totalRatings).toFixed(1))
+                : 0;
+
+            // Count by category
+            const byCategory: Record<string, number> = {};
+            stats.categories.forEach((category: string) => {
+                byCategory[category] = (byCategory[category] || 0) + 1;
+            });
+
+            // Count by difficulty
+            const byDifficulty: Record<string, number> = {};
+            stats.difficulties.forEach((difficulty: string) => {
+                byDifficulty[difficulty] = (byDifficulty[difficulty] || 0) + 1;
+            });
+
+            // Recent activity calculations
+            const now = new Date();
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+            const [workoutsThisWeek, workoutsThisMonth] = await Promise.all([
+                WorkoutModel.countDocuments({
+                    userId: new mongoose.Types.ObjectId(userId),
+                    createdAt: { $gte: weekAgo }
+                }),
+                WorkoutModel.countDocuments({
+                    userId: new mongoose.Types.ObjectId(userId),
+                    createdAt: { $gte: monthAgo }
+                })
+            ]);
+
+            return {
+                totalWorkouts: stats.totalWorkouts,
+                totalDuration: stats.totalDuration,
+                totalExercises: stats.totalExercises,
+                averageRating,
+                totalLikes: stats.totalLikes,
+                totalSaves: stats.totalSaves,
+                totalViews: stats.totalViews,
+                totalCompletions: stats.totalCompletions,
+                byCategory,
+                byDifficulty,
+                recentActivity: {
+                    lastWorkoutDate: stats.lastWorkout,
+                    workoutsThisWeek,
+                    workoutsThisMonth
+                }
+            };
+
+        } catch (error) {
+            console.error('Error getting user workout stats:', error);
+            throw new Error(`Failed to get workout stats: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * Get user's workouts for MyWorkout page with enhanced data
+     */
+    static async getMyWorkouts(
+        userId: string,
+        params: {
+            page?: number;
+            limit?: number;
+            category?: string;
+            difficulty?: string;
+            search?: string;
+        }
+    ): Promise<PaginatedResult<Workout & {
+        sponsorData?: any;
+        reviewStats?: {
+            averageRating: number;
+            totalReviews: number;
+        };
+        isLiked?: boolean;
+        isSaved?: boolean;
+    }>> {
+        try {
+            const { page = 1, limit = 12, category, difficulty, search } = params;
+            const skip = (page - 1) * limit;
+
+            // Build query
+            const query: any = { userId: new mongoose.Types.ObjectId(userId) };
+
+            if (category) {
+                query.category = category;
+            }
+
+            if (difficulty) {
+                query.difficulty = difficulty;
+            }
+
+            if (search) {
+                query.$or = [
+                    { name: { $regex: search, $options: 'i' } },
+                    { description: { $regex: search, $options: 'i' } },
+                    { tags: { $in: [new RegExp(search, 'i')] } }
+                ];
+            }
+
+            // Get workouts with enhanced data
+            const workouts = await WorkoutModel.find(query)
+                .populate('exercises.exerciseId', 'name category muscleGroups')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean();
+
+            const totalWorkouts = await WorkoutModel.countDocuments(query);
+
+            // Enhanced workouts with sponsor and review data
+            const enhancedWorkouts = await Promise.all(
+                workouts.map(async (workout) => {
+                    // Get sponsor data if sponsored
+                    let sponsorData = null;
+                    // if (workout.isSponsored && workout.sponsorId) {
+                    //     // Giả sử có SponsoredContentModel
+                    //     sponsorData = await SponsoredContentModel.findById(workout.sponsorId);
+                    // }
+
+                    // Get review stats
+                    // const reviewStats = await ReviewModel.aggregate([
+                    //     { $match: { targetType: 'workout', targetId: workout._id } },
+                    //     {
+                    //         $group: {
+                    //             _id: null,
+                    //             averageRating: { $avg: '$rating.overall' },
+                    //             totalReviews: { $sum: 1 }
+                    //         }
+                    //     }
+                    // ]);
+
+                    return {
+                        ...workout,
+                        sponsorData,
+                        reviewStats: {
+                            averageRating: 0, // reviewStats[0]?.averageRating || 0,
+                            totalReviews: 0 // reviewStats[0]?.totalReviews || 0
+                        },
+                        isLiked: workout.likes?.includes(userId) || false,
+                        isSaved: workout.saves?.includes(userId) || false
+                    };
+                })
+            );
+
+            return {
+                data: enhancedWorkouts as any,
+                pagination: {
+                    currentPage: page,
+                    totalPages: Math.ceil(totalWorkouts / limit),
+                    totalItems: totalWorkouts,
+                    itemsPerPage: limit,
+                    hasNextPage: page < Math.ceil(totalWorkouts / limit),
+                    hasPrevPage: page > 1
+                }
+            };
+
+        } catch (error) {
+            console.error('Error getting user workouts:', error);
+            throw new Error(`Failed to get user workouts: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * Get user's workout statistics - alias for getUserWorkoutStats for MyWorkout page
+     */
+    static async getMyWorkoutStats(userId: string) {
+        return await this.getUserWorkoutStats(userId);
+    }
+
+    /**
+     * Toggle like status on workout
+     */
+    static async toggleLike(workoutId: string, userId: string) {
+        // try {
+        //     const workout = await WorkoutModel.findById(workoutId);
+
+        //     if (!workout) {
+        //         throw new Error('Workout not found');
+        //     }
+
+        //     const userObjectId = new mongoose.Types.ObjectId(userId);
+        //     const isCurrentlyLiked = workout.likes?.some(id => id.equals(userObjectId));
+
+        //     if (isCurrentlyLiked) {
+        //         // Unlike
+        //         workout.likes = workout.likes?.filter(id => !id.equals(userObjectId)) || [];
+        //         workout.likeCount = Math.max((workout.likeCount || 0) - 1, 0);
+        //     } else {
+        //         // Like
+        //         workout.likes = workout.likes || [];
+        //         workout.likes.push(userObjectId);
+        //         workout.likeCount = (workout.likeCount || 0) + 1;
+        //     }
+
+        //     await workout.save();
+
+        //     return {
+        //         isLiked: !isCurrentlyLiked,
+        //         likeCount: workout.likeCount || 0
+        //     };
+
+        // } catch (error) {
+        //     console.error('Error toggling like:', error);
+        //     throw new Error(`Failed to toggle like: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        // }
+    }
+
+    /**
+     * Toggle save status on workout
+     */
+    static async toggleSave(workoutId: string, userId: string) {
+        // try {
+        //     const workout = await WorkoutModel.findById(workoutId);
+
+        //     if (!workout) {
+        //         throw new Error('Workout not found');
+        //     }
+
+        //     const userObjectId = new mongoose.Types.ObjectId(userId);
+        //     const isCurrentlySaved = workout.saves?.some(id => id.equals(userObjectId));
+
+        //     if (isCurrentlySaved) {
+        //         // Unsave
+        //         workout.saves = workout.saves?.filter(id => !id.equals(userObjectId)) || [];
+        //         workout.saveCount = Math.max((workout.saveCount || 0) - 1, 0);
+        //     } else {
+        //         // Save
+        //         workout.saves = workout.saves || [];
+        //         workout.saves.push(userObjectId);
+        //         workout.saveCount = (workout.saveCount || 0) + 1;
+        //     }
+
+        //     await workout.save();
+
+        //     return {
+        //         isSaved: !isCurrentlySaved,
+        //         saveCount: workout.saveCount || 0
+        //     };
+
+        // } catch (error) {
+        //     console.error('Error toggling save:', error);
+        //     throw new Error(`Failed to toggle save: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        // }
+    }
+
+    /**
+     * Duplicate workout for user
+     */
+    static async duplicateWorkout(workoutId: string, userId: string): Promise<Workout> {
+        try {
+            const originalWorkout = await WorkoutModel.findById(workoutId)
+                .populate('exercises.exerciseId')
+                .lean();
+
+            if (!originalWorkout) {
+                throw new Error('Workout not found');
+            }
+
+            // Create duplicate workout
+            const duplicateData = {
+                ...originalWorkout,
+                _id: undefined,
+                name: `${originalWorkout.name} (Copy)`,
+                userId: new mongoose.Types.ObjectId(userId),
+                isPublic: false, // Make copy private by default
+                likes: [],
+                saves: [],
+                likeCount: 0,
+                saveCount: 0,
+                views: 0,
+                completions: 0,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            };
+
+            const duplicatedWorkout = new WorkoutModel(duplicateData);
+            await duplicatedWorkout.save();
+
+            // Populate exercise data for response
+            await duplicatedWorkout.populate('exercises.exerciseId', 'name category muscleGroups');
+
+            return duplicatedWorkout.toObject() as Workout;
+
+        } catch (error) {
+            console.error('Error duplicating workout:', error);
+            throw new Error(`Failed to duplicate workout: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
 }
