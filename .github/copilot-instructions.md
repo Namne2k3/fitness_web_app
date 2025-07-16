@@ -1,24 +1,10 @@
 
 # 🏋️ Fitness Web App (TrackMe) - Kế hoạch Triển khai Chi tiết
 ## Focus: Sponsored Content & Reviews Monetization
-
-> **🚀 REACT 19 PRIORITY**: Chỉ áp dụng các pattern React 19 (Actions, use(), useOptimistic, Suspense, v.v.) khi thực sự phù hợp với best practice và mang lại lợi ích rõ ràng về maintainability, performance hoặc developer experience.
-> - **Không nên lạm dụng**: Những chỗ code đơn giản, không phức tạp, hoặc không cần tối ưu đặc biệt thì có thể dùng pattern React truyền thống (useState, useEffect, v.v.) để code ngắn gọn, dễ hiểu.
-> - **Chỉ dùng React 19 pattern** khi thực sự cần thiết, ví dụ: form lớn, async workflow phức tạp, data fetching nhiều trạng thái, optimistic update cho social features, hoặc cần concurrent rendering.
-> - **Actions**: `useActionState` cho form handling thay vì useState + event handlers (chỉ khi form có async logic hoặc validation phức tạp).
-> - **Data Fetching**: `use()` hook với Suspense thay vì useEffect patterns (chỉ khi cần concurrent loading hoặc data dependencies rõ ràng).
-> - **Optimistic Updates**: `useOptimistic` cho social features (likes, comments) hoặc UX cần phản hồi tức thì.
-> - **Performance**: Không cần thủ công useMemo/useCallback - React Compiler tự optimize.
-> - **TypeScript**: Strong typing cho tất cả Actions và hooks.
-> 
-> 📖 **Documentation**: [React 19 Features Guide](./instructions/react-19-features.md) | [Migration Guide](./instructions/react-19-migration.md)
-
+>
 > **📖 IMPORTANT**: Khi code, luôn tham khảo:
-> - [React 19 Features](./instructions/react-19-features.md) 
 > - [Design UI](./instructions/design-instructions.md)
 > - [Plan](./instructions/plan.instructions.md) 
-> - [Migration Guide](./instructions/react-19-migration.md)
-> - [Coding Standards](./instructions/coding-standards.md)
 > - [Schema Complete](../Client/docs/DATABASE_SCHEMA_COMPLETE.md)
 > - [Redis Integration Guide](./instructions/redis-integration.md)
 > - [ChatBot API Usage](./instructions/API_USAGE_GUIDE.md)

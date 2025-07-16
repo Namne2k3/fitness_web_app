@@ -50,7 +50,7 @@ export class ExerciseService {
     static async searchExercises(query: string): Promise<Exercise[]> {
         const response = await this.getExercises({
             page: 1,
-            limit: 10,
+            limit: 12,
             filters: { search: query, isApproved: true }
         });
         return response.data;

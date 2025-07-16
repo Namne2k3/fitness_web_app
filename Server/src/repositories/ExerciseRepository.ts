@@ -15,7 +15,7 @@ export class ExerciseRepository {
     static async findExercises(params: FilterExercise): Promise<PaginatedResult<IExercise>> {
         const {
             page = 1,
-            limit = 10,
+            limit = 12,
             filters = {},
             sort = { field: 'name', order: 'asc' },
             options = {}
@@ -190,6 +190,14 @@ export class ExerciseRepository {
      */
     static async findById(id: string): Promise<IExercise | null> {
         return await ExerciseModel.findById(id);
+    }
+
+    /**
+     * Find all exercises (with optional basic filter)
+     */
+    static async findAll(isApproved: boolean = true): Promise<IExercise[]> {
+        const filter = isApproved ? { isApproved: true } : {};
+        return await ExerciseModel.find(filter).sort({ name: 1 });
     }
 
     /**

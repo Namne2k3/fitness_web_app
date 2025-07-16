@@ -1,21 +1,19 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable prefer-const */
 /**
  * 🤖 ChatBot Component
- * AI Assistant floating chatbot with stream response handling
- * Sử dụng Material UI và React 19 patterns
+ * AI Assistant floating chatbot with markdown response rendering
+ * Sử dụng Material UI và React 19 patterns với Optimistic UI Updates
  */
 
 import {
-    AutoAwesome as AIIcon,
     SmartToy as BotIcon,
     Close as CloseIcon,
-    Minimize as MinimizeIcon,
+    Fullscreen as FullscreenIcon,
     Send as SendIcon,
     Person as UserIcon
 } from '@mui/icons-material';
 import {
     Avatar,
+    Backdrop,
     Box,
     Card,
     CardHeader,
@@ -24,15 +22,22 @@ import {
     Fab,
     IconButton,
     InputAdornment,
+    Modal,
     Slide,
     TextField,
     Typography,
     Zoom
 } from '@mui/material';
-import { useActionState, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import rehypeHighlight from 'rehype-highlight';
+import remarkGfm from 'remark-gfm';
 
 import { ChatBotService } from '../../services/chatBotService';
 import { DEFAULT_QUICK_ACTIONS } from '../../types/chatbot.interface';
+
+// Import highlight.js styles
+import 'highlight.js/styles/github.css';
 
 // ================================
 // 📝 Types & Interfaces
@@ -42,7 +47,6 @@ interface ChatMessage {
     content: string;
     role: 'user' | 'assistant';
     timestamp: Date;
-    isStreaming?: boolean;
 }
 
 interface ChatState {
@@ -81,9 +85,32 @@ const chatbotStyles = {
         backdropFilter: 'blur(10px)',
         border: '1px solid rgba(25,118,210,0.1)',
         boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    fullscreenModal: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1300,
+    },
+    fullscreenWindow: {
+        width: { xs: '95vw', sm: '80vw', md: '70vw' },
+        height: { xs: '90vh', sm: '80vh' },
+        maxWidth: 800,
+        maxHeight: 700,
+        borderRadius: 3,
+        overflow: 'hidden',
+        background: 'rgba(255,255,255,0.98)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(25,118,210,0.1)',
+        boxShadow: '0 30px 60px rgba(0,0,0,0.2)',
+        display: 'flex',
+        flexDirection: 'column',
     },
     messageList: {
-        height: 'calc(100% - 140px)',
+        flex: 1,
+        minHeight: 0,
         overflowY: 'auto',
         p: 2,
         display: 'flex',
@@ -121,10 +148,7 @@ const chatbotStyles = {
         border: '1px solid rgba(0,0,0,0.05)',
     },
     inputContainer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
+        position: 'relative',
         p: 2,
         background: 'white',
         borderTop: '1px solid rgba(0,0,0,0.1)',
@@ -132,7 +156,7 @@ const chatbotStyles = {
 };
 
 // ================================
-// 💬 Message Component
+// 💬 Message Component với Markdown Support
 // ================================
 interface MessageProps {
     message: ChatMessage;
@@ -164,26 +188,55 @@ function Message({ message }: MessageProps) {
             <Box
                 sx={isUser ? chatbotStyles.userMessage : chatbotStyles.botMessage}
             >
-                <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
-                    {message.content}
-                    {message.isStreaming && (
-                        <Box
-                            component="span"
-                            sx={{
-                                display: 'inline-block',
-                                width: 2,
-                                height: 16,
-                                bgcolor: 'primary.main',
-                                ml: 0.5,
-                                animation: 'blink 1s infinite',
-                                '@keyframes blink': {
-                                    '0%, 50%': { opacity: 1 },
-                                    '51%, 100%': { opacity: 0 },
-                                },
-                            }}
-                        />
-                    )}
-                </Typography>
+                {isUser ? (
+                    // User messages - plain text
+                    <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+                        {message.content}
+                    </Typography>
+                ) : (
+                    // AI messages - render as markdown
+                    <Box
+                        sx={{
+                            '& p': { margin: 0, lineHeight: 1.6 },
+                            '& ul, & ol': { margin: '8px 0', paddingLeft: '20px' },
+                            '& li': { margin: '4px 0' },
+                            '& h1, & h2, & h3, & h4, & h5, & h6': {
+                                margin: '12px 0 8px 0',
+                                fontWeight: 600
+                            },
+                            '& pre': {
+                                backgroundColor: '#f5f5f5',
+                                padding: '12px',
+                                borderRadius: '8px',
+                                overflow: 'auto',
+                                fontSize: '0.875rem'
+                            },
+                            '& code': {
+                                backgroundColor: '#f5f5f5',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontSize: '0.875rem'
+                            },
+                            '& blockquote': {
+                                borderLeft: '4px solid #ddd',
+                                margin: '8px 0',
+                                paddingLeft: '12px',
+                                fontStyle: 'italic'
+                            },
+                            '& strong': { fontWeight: 600 },
+                            '& em': { fontStyle: 'italic' },
+                            fontSize: '0.875rem'
+                        }}
+                    >
+                        <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            rehypePlugins={[rehypeHighlight]}
+                        >
+                            {message.content}
+                        </ReactMarkdown>
+                    </Box>
+                )}
+
                 <Typography
                     variant="caption"
                     sx={{
@@ -208,135 +261,341 @@ function Message({ message }: MessageProps) {
 // ================================
 export default function ChatBot() {
     const [isOpen, setIsOpen] = useState(false);
-    const [isMinimized, setIsMinimized] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
     const [inputValue, setInputValue] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    // React 19: useActionState for chat handling
-    const [chatState, sendMessageAction, isPending] = useActionState(
-        async (prevState: ChatState, formData: FormData): Promise<ChatState> => {
-            const message = formData.get('message') as string;
-
-            if (!message.trim()) return prevState;
-
-            const userMessage: ChatMessage = {
-                id: `user-${Date.now()}`,
-                content: message.trim(),
-                role: 'user',
+    // Chat state quản lý local
+    const [chatState, setChatState] = useState<ChatState>({
+        messages: [
+            {
+                id: 'welcome',
+                content: 'Chào mừng bạn đến với **AI Fitness Assistant**! 🏋️‍♂️\n\nTôi sẵn sàng giúp bạn với:\n- Tư vấn bài tập phù hợp\n- Lập kế hoạch tập luyện\n- Hướng dẫn dinh dưỡng\n- Theo dõi tiến độ\n\nHãy hỏi tôi bất cứ điều gì về fitness nhé! 💪',
+                role: 'assistant',
                 timestamp: new Date(),
-            };
+            }
+        ],
+        isLoading: false,
+        error: null,
+    });
 
-            const newState: ChatState = {
-                ...prevState,
-                messages: [...prevState.messages, userMessage],
-                isLoading: true,
-                error: null,
-            }; try {
-                // Create streaming bot message
-                const botMessage: ChatMessage = {
-                    id: `bot-${Date.now()}`,
-                    content: '',
-                    role: 'assistant',
-                    timestamp: new Date(),
-                    isStreaming: true,
-                };
+    // State for loading status
+    const [isPending, setIsPending] = useState(false);
 
-                // Add initial bot message for streaming
-                // (In real implementation, this would be handled by state updates)
-
-                // Use ChatBotService for streaming response
-                let streamedContent = '';
-                const responses = ChatBotService.sendMessage(message);
-                console.log(`🤖 Streaming response: ${responses}`);
-
-                // Simulate streaming
-                // for (const chunk of responses) {
-                //     await new Promise(resolve => setTimeout(resolve, 100));
-                //     streamedContent += chunk;
-
-                //     // Update message content (this simulates real streaming)
-                //     botMessage.content = streamedContent;
-                // }
-
-                // Final message
-                const finalBotMessage = {
-                    ...botMessage,
-                    content: streamedContent,
-                    isStreaming: false,
-                };
-
-                // Save to local storage
-                const finalMessages = [...newState.messages, finalBotMessage];
-                ChatBotService.saveChatToStorage(finalMessages);
-
-                return {
-                    messages: finalMessages,
+    // Hàm gửi tin nhắn (thông thường, không dùng useActionState)
+    const sendMessage = async (message: string) => {
+        if (!message.trim()) return;
+        setIsPending(true);
+        try {
+            const response = await ChatBotService.sendMessage(
+                message.trim(),
+                'default-conversation'
+            );
+            setChatState(prev => {
+                const newMessages = [...prev.messages];
+                // Tìm và thay thế loading message bằng response thực tế
+                const loadingIndex = newMessages.findIndex(msg =>
+                    msg.role === 'assistant' && msg.content === ''
+                );
+                if (loadingIndex !== -1) {
+                    newMessages[loadingIndex] = {
+                        id: `bot-${Date.now()}`,
+                        content: response.reply,
+                        role: 'assistant',
+                        timestamp: new Date(),
+                    };
+                }
+                const finalState = {
+                    ...prev,
+                    messages: newMessages,
                     isLoading: false,
                     error: null,
                 };
-            } catch (error) {
-                return {
-                    ...newState,
-                    isLoading: false,
-                    error: error instanceof Error ? error.message : 'Đã xảy ra lỗi',
-                };
-            }
-        },
-        {
-            messages: [
-                {
-                    id: 'welcome',
-                    content: 'Chào mừng bạn đến với AI Fitness Assistant! 🏋️‍♂️ Tôi sẵn sàng giúp bạn với mọi câu hỏi về tập luyện và sức khỏe.',
-                    role: 'assistant',
-                    timestamp: new Date(),
+                ChatBotService.saveChatToStorage(finalState.messages);
+                return finalState;
+            });
+        } catch (error) {
+            setChatState(prev => {
+                const newMessages = [...prev.messages];
+                const loadingIndex = newMessages.findIndex(msg =>
+                    msg.role === 'assistant' && msg.content === ''
+                );
+                if (loadingIndex !== -1) {
+                    newMessages[loadingIndex] = {
+                        id: `bot-error-${Date.now()}`,
+                        content: error instanceof Error ? error.message : 'Đã xảy ra lỗi khi gửi tin nhắn',
+                        role: 'assistant',
+                        timestamp: new Date(),
+                    };
                 }
-            ],
-            isLoading: false,
-            error: null,
+                return {
+                    ...prev,
+                    messages: newMessages,
+                    isLoading: false,
+                    error: error instanceof Error ? error.message : 'Đã xảy ra lỗi khi gửi tin nhắn',
+                };
+            });
+        } finally {
+            setIsPending(false);
         }
-    );
+    };
 
-    // Auto scroll to bottom
+    // Handle form submit - Optimistic UI update (thông thường)
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (inputValue.trim() && !isPending) {
+            // Thêm user message ngay lập tức (Optimistic Update)
+            const userMessage: ChatMessage = {
+                id: `user-${Date.now()}`,
+                content: inputValue.trim(),
+                role: 'user',
+                timestamp: new Date(),
+            };
+            // Thêm loading message cho bot
+            const loadingMessage: ChatMessage = {
+                id: `bot-loading-${Date.now()}`,
+                content: '', // Empty content sẽ hiển thị loading indicator
+                role: 'assistant',
+                timestamp: new Date(),
+            };
+            // Cập nhật state ngay lập tức
+            setChatState(prev => ({
+                ...prev,
+                messages: [...prev.messages, userMessage, loadingMessage],
+                isLoading: true,
+                error: null,
+            }));
+            // Gửi message qua hàm thường
+            sendMessage(inputValue);
+            setInputValue('');
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    const toggleChat = () => {
+        setIsOpen(!isOpen);
+    };
+
+    const closeChat = () => {
+        setIsOpen(false);
+        setIsFullscreen(false);
+    };
+
+    const toggleFullscreen = () => {
+        setIsFullscreen(!isFullscreen);
+    };
+
+    // Auto scroll to bottom when new messages added
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [chatState.messages]);
 
     // Focus input when opened
     useEffect(() => {
-        if (isOpen && !isMinimized) {
+        if (isOpen && !isFullscreen) {
             setTimeout(() => inputRef.current?.focus(), 100);
         }
-    }, [isOpen, isMinimized]);
+    }, [isOpen, isFullscreen]);
 
-    // const handleSubmit = (e: React.FormEvent) => {
-    //     e.preventDefault();
-    //     if (inputValue.trim() && !isPending) {
-    //         const formData = new FormData();
-    //         formData.append('message', inputValue);
-    //         sendMessageAction(formData);
-    //         setInputValue('');
-    //     }
-    // };
+    // Render chat window content
+    const renderChatContent = () => (
+        <Card sx={isFullscreen ? chatbotStyles.fullscreenWindow : chatbotStyles.chatWindow}>
+            {/* Header */}
+            <CardHeader
+                avatar={
+                    <Box
+                        component="img"
+                        src="/trackmebot.png"
+                        alt="TrackMe Bot"
+                        sx={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                            boxShadow: '0 2px 8px rgba(25,118,210,0.15)',
+                            background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)'
+                        }}
+                    />
+                }
+                title={
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        TrackMe Bot
+                    </Typography>
+                }
+                subheader={
+                    <Box display="flex" alignItems="center" gap={1}>
+                        <Box
+                            sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: '50%',
+                                bgcolor: 'success.main',
+                            }}
+                        />
+                        <Typography variant="caption" color="success.main">
+                            Đang hoạt động
+                        </Typography>
+                    </Box>
+                }
+                action={
+                    <Box>
+                        <IconButton onClick={toggleFullscreen} size="small">
+                            <FullscreenIcon />
+                        </IconButton>
+                        <IconButton onClick={closeChat} size="small">
+                            <CloseIcon />
+                        </IconButton>
+                    </Box>
+                }
+                sx={{
+                    bgcolor: 'white',
+                    borderBottom: '1px solid rgba(0,0,0,0.1)',
+                }}
+            />
 
-    const toggleChat = () => {
-        setIsOpen(!isOpen);
-        setIsMinimized(false);
-    };
+            {/* Messages */}
+            <Box sx={chatbotStyles.messageList}>
+                {chatState.messages.map((message: ChatMessage) => (
+                    message.content === '' ? (
+                        // Loading indicator for empty bot messages
+                        <Box
+                            key={message.id}
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                alignSelf: 'flex-start',
+                            }}
+                        >
+                            <Avatar sx={{ width: 32, height: 32, bgcolor: 'grey.300' }}>
+                                <BotIcon />
+                            </Avatar>
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1,
+                                    p: 2,
+                                    borderRadius: '18px 18px 18px 4px',
+                                    background: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)',
+                                }}
+                            >
+                                <CircularProgress size={16} />
+                                {/* Only show loading spinner, no label */}
+                            </Box>
+                        </Box>
+                    ) : (
+                        <Message key={message.id} message={message} />
+                    )
+                ))}
 
-    const minimizeChat = () => {
-        setIsMinimized(true);
-    };
+                {/* Error message */}
+                {chatState.error && (
+                    <Chip
+                        label={chatState.error}
+                        color="error"
+                        size="small"
+                        sx={{ alignSelf: 'center', mt: 1 }}
+                    />
+                )}
 
-    const closeChat = () => {
-        setIsOpen(false);
-        setIsMinimized(false);
-    };
+                {/* End of messages for scroll anchor */}
+                <div ref={messagesEndRef} />
+            </Box>
+
+            {/* Input */}
+            <Box sx={chatbotStyles.inputContainer}>
+                <form onSubmit={handleSubmit}>
+                    <TextField
+                        name='message'
+                        ref={inputRef}
+                        fullWidth
+                        variant="outlined"
+                        placeholder="Nhập tin nhắn của bạn..."
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        disabled={isPending}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        type="submit"
+                                        disabled={!inputValue.trim() || isPending}
+                                        sx={{
+                                            bgcolor: 'primary.main',
+                                            color: 'white',
+                                            '&:hover': { bgcolor: 'primary.dark' },
+                                            '&:disabled': {
+                                                bgcolor: 'grey.300',
+                                                color: 'grey.500'
+                                            },
+                                        }}
+                                    >
+                                        <SendIcon />
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                            sx: {
+                                borderRadius: 3,
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: 'rgba(25,118,210,0.3)',
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: 'primary.main',
+                                }
+                            },
+                        }}
+                        sx={{
+                            '& .MuiInputBase-root': {
+                                fontSize: '0.875rem',
+                                minHeight: 'unset',
+                            },
+                            '& .MuiInputBase-multiline': {
+                                padding: '8px 12px',
+                            },
+                            borderRadius: 3,
+                            '& .MuiOutlinedInput-notchedOutline': {
+                                borderColor: 'rgba(25,118,210,0.3)',
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: 'primary.main',
+                            },
+                        }}
+                        multiline
+                        maxRows={3}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSubmit(e);
+                            }
+                        }}
+                    />
+                </form>
+
+                {/* Quick Actions */}
+                <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
+                    {DEFAULT_QUICK_ACTIONS.slice(0, 4).map((action) => (
+                        <Chip
+                            key={action.id}
+                            label={action.label}
+                            size="small"
+                            onClick={() => setInputValue(action.prompt)}
+                            sx={{
+                                fontSize: '0.7rem',
+                                '&:hover': { bgcolor: 'primary.light', color: 'white' }
+                            }}
+                        />
+                    ))}
+                </Box>
+            </Box>
+        </Card>
+    );
 
     return (
         <>
             {/* Floating Action Button */}
-            <Zoom in={!isOpen || isMinimized}>
+            <Zoom in={!isOpen}>
                 <Fab
                     onClick={toggleChat}
                     sx={chatbotStyles.fab}
@@ -356,176 +615,27 @@ export default function ChatBot() {
                 </Fab>
             </Zoom>
 
-            {/* Chat Window */}
-            <Slide direction="up" in={isOpen && !isMinimized} mountOnEnter unmountOnExit>
-                <Card sx={chatbotStyles.chatWindow}>
-                    {/* Header */}
-                    <CardHeader
-                        avatar={
-                            <Avatar sx={{
-                                bgcolor: 'primary.main',
-                                background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)'
-                            }}>
-                                <AIIcon />
-                            </Avatar>
-                        }
-                        title={
-                            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                AI Fitness Assistant
-                            </Typography>
-                        }
-                        subheader={
-                            <Box display="flex" alignItems="center" gap={1}>
-                                <Box
-                                    sx={{
-                                        width: 8,
-                                        height: 8,
-                                        borderRadius: '50%',
-                                        bgcolor: 'success.main',
-                                    }}
-                                />
-                                <Typography variant="caption" color="success.main">
-                                    Đang hoạt động
-                                </Typography>
-                            </Box>
-                        }
-                        action={
-                            <Box>
-                                <IconButton onClick={minimizeChat} size="small">
-                                    <MinimizeIcon />
-                                </IconButton>
-                                <IconButton onClick={closeChat} size="small">
-                                    <CloseIcon />
-                                </IconButton>
-                            </Box>
-                        }
-                        sx={{
-                            bgcolor: 'white',
-                            borderBottom: '1px solid rgba(0,0,0,0.1)',
-                        }}
-                    />
-
-                    {/* Messages */}
-                    <Box sx={chatbotStyles.messageList}>
-                        {chatState.messages.map((message) => (
-                            <Message key={message.id} message={message} />
-                        ))}
-
-                        {/* Loading indicator */}
-                        {isPending && (
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 1,
-                                    alignSelf: 'flex-start',
-                                }}
-                            >
-                                <Avatar sx={{ width: 32, height: 32, bgcolor: 'grey.300' }}>
-                                    <BotIcon />
-                                </Avatar>
-                                <Box
-                                    sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 1,
-                                        p: 2,
-                                        borderRadius: '18px 18px 18px 4px',
-                                        background: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)',
-                                    }}
-                                >
-                                    <CircularProgress size={16} />
-                                    <Typography variant="caption">
-                                        AI đang suy nghĩ...
-                                    </Typography>
-                                </Box>
-                            </Box>
-                        )}
-
-                        {/* Error message */}
-                        {chatState.error && (
-                            <Chip
-                                label={chatState.error}
-                                color="error"
-                                size="small"
-                                sx={{ alignSelf: 'center', mt: 1 }}
-                            />
-                        )}
-
-                        <div ref={messagesEndRef} />
-                    </Box>
-
-                    {/* Input */}
-                    <Box sx={chatbotStyles.inputContainer}>
-                        <form action={sendMessageAction}>
-                            <TextField
-                                name='message'
-                                ref={inputRef}
-                                fullWidth
-                                variant="outlined"
-                                placeholder="Nhập tin nhắn của bạn..."
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                disabled={isPending}
-                                InputProps={{
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                                type="submit"
-                                                disabled={!inputValue.trim() || isPending}
-                                                sx={{
-                                                    bgcolor: 'primary.main',
-                                                    color: 'white',
-                                                    '&:hover': { bgcolor: 'primary.dark' },
-                                                    '&:disabled': {
-                                                        bgcolor: 'grey.300',
-                                                        color: 'grey.500'
-                                                    },
-                                                }}
-                                            >
-                                                <SendIcon />
-                                            </IconButton>
-                                        </InputAdornment>
-                                    ),
-                                    sx: {
-                                        borderRadius: 3,
-                                        '& .MuiOutlinedInput-notchedOutline': {
-                                            borderColor: 'rgba(25,118,210,0.3)',
-                                        },
-                                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                                            borderColor: 'primary.main',
-                                        },
-                                    },
-                                }}
-                                multiline
-                                maxRows={3}
-                            // onKeyDown={(e) => {
-                            //     if (e.key === 'Enter' && !e.shiftKey) {
-                            //         e.preventDefault();
-                            //         handleSubmit(e);
-                            //     }
-                            // }}
-                            />
-                        </form>
-
-                        {/* Quick Actions */}
-                        <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
-                            {DEFAULT_QUICK_ACTIONS.slice(0, 4).map((action) => (
-                                <Chip
-                                    key={action.id}
-                                    label={action.label}
-                                    size="small"
-                                    onClick={() => setInputValue(action.prompt)}
-                                    sx={{
-                                        fontSize: '0.7rem',
-                                        '&:hover': { bgcolor: 'primary.light', color: 'white' }
-                                    }}
-                                />
-                            ))}
-                        </Box>
-                    </Box>
-                </Card>
+            {/* Regular Chat Window */}
+            <Slide direction="up" in={isOpen && !isFullscreen} mountOnEnter unmountOnExit>
+                {renderChatContent()}
             </Slide>
+
+            {/* Fullscreen Modal */}
+            <Modal
+                open={isFullscreen}
+                onClose={() => setIsFullscreen(false)}
+                sx={chatbotStyles.fullscreenModal}
+                closeAfterTransition
+                BackdropComponent={Backdrop}
+                BackdropProps={{
+                    timeout: 500,
+                    sx: { backgroundColor: 'rgba(0, 0, 0, 0.5)' }
+                }}
+            >
+                <Slide direction="up" in={isFullscreen} mountOnEnter unmountOnExit>
+                    {renderChatContent()}
+                </Slide>
+            </Modal>
         </>
     );
 }

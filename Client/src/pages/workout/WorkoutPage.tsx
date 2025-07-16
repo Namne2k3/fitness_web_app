@@ -105,12 +105,12 @@ const WorkoutPage: React.FC = () => {
     };
 
     // ✅ NEW: Mock quick stats
-    const quickStats = {
-        thisWeekWorkouts: 3,
-        totalCalories: 1250,
-        avgRating: 4.6,
-        trending: ['HIIT', 'Strength', 'Yoga']
-    };
+    // const quickStats = {
+    //     thisWeekWorkouts: 3,
+    //     totalCalories: 1250,
+    //     avgRating: 4.6,
+    //     trending: ['HIIT', 'Strength', 'Yoga']
+    // };
 
     // Build API params từ filters
     const apiParams = useMemo((): WorkoutListParams => {
@@ -372,7 +372,7 @@ const WorkoutPage: React.FC = () => {
                             onFiltersChange={handleFiltersChange}
                             totalResults={0}
                             currentUser={currentUser}
-                            quickStats={quickStats}
+                            // quickStats={quickStats}
                             onSortChange={handleSortChange}
                             onViewModeChange={handleViewModeChange}
                         />
@@ -391,7 +391,7 @@ const WorkoutPage: React.FC = () => {
                             onFiltersChange={handleFiltersChange}
                             totalResults={workoutData.pagination.totalItems}
                             currentUser={currentUser}
-                            quickStats={quickStats}
+                            // quickStats={quickStats}
                             onSortChange={handleSortChange}
                             onViewModeChange={handleViewModeChange}
                         />

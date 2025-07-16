@@ -14,7 +14,6 @@ import api from './api';
  * ChatBot API service theo API Usage Guide
  */
 export class ChatBotService {
-    private static readonly STREAM_DELAY = 50; // ms between chunks for UX simulation
 
     /**
      * Send message to ChatBot API
@@ -32,54 +31,12 @@ export class ChatBotService {
                 conversation_id: conversationId
             };
 
-            const response = await api.post('/chat', request);
+            const response = await api.post('http://localhost:3000/api/v1/chat', request);
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return (response.data as any).data as ChatBotResponse;
+            return (response.data as ChatBotResponse);
         } catch (error) {
             console.error('❌ ChatBot API Error:', error);
             throw new Error('Failed to send message to ChatBot');
-        }
-    }
-
-    /**
-     * Send message với streaming simulation cho better UX
-     * @param messages - Chat conversation history
-     * @param onChunk - Callback for each response chunk
-     * @param onComplete - Callback when stream is complete
-     * @param onError - Callback for errors
-     */
-    static async sendMessageWithStreaming(
-        messages: ChatMessage[],
-        onChunk: (chunk: string) => void,
-        onComplete: (fullResponse: string, conversationId?: string) => void,
-        onError: (error: Error) => void
-    ): Promise<void> {
-        try {
-            // Get the latest user message
-            const latestMessage = messages[messages.length - 1];
-            if (!latestMessage || latestMessage.role !== 'user') {
-                throw new Error('No user message found');
-            }
-
-            // Get conversation ID from previous messages
-            const conversationId = this.extractConversationId(messages);
-
-            // Call ChatBot API
-            const response = await this.sendMessage(latestMessage.content, conversationId);
-
-            // Simulate streaming for better UX
-            await this.simulateStreaming(
-                response.reply,
-                onChunk,
-                () => onComplete(response.reply, response.conversation_id)
-            );
-
-        } catch (error) {
-            console.error('❌ ChatBot Service Error:', error);
-
-            // Fallback to mock response if API fails
-            await this.sendMockMessage(messages, onChunk, onComplete, onError);
         }
     }
 
@@ -95,80 +52,6 @@ export class ChatBotService {
         } catch (error) {
             console.error('❌ ChatBot Health Check Error:', error);
             throw new Error('ChatBot health check failed');
-        }
-    }
-
-    /**
-     * Simulate streaming response for better UX
-     */
-    private static async simulateStreaming(
-        fullResponse: string,
-        onChunk: (chunk: string) => void,
-        onComplete: () => void
-    ): Promise<void> {
-        const words = fullResponse.split(' ');
-
-        for (let i = 0; i < words.length; i++) {
-            const word = words[i] + (i < words.length - 1 ? ' ' : '');
-
-            onChunk(word);
-
-            // Variable delay for more natural feeling
-            const delay = Math.random() * 100 + 30;
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
-
-        onComplete();
-    }
-
-    /**
-     * Extract conversation ID from messages
-     * Uses conversation_id from the most recent message if available
-     */
-    private static extractConversationId(messages: ChatMessage[]): string | undefined {
-        // Find conversation ID from the most recent messages
-        for (const message of messages.reverse()) {
-            if (message.conversation_id) {
-                return message.conversation_id;
-            }
-        }
-        return undefined;
-    }
-
-    /**
-     * Fallback mock message when API fails
-     */
-    private static async sendMockMessage(
-        _messages: ChatMessage[],
-        onChunk: (chunk: string) => void,
-        onComplete: (fullResponse: string) => void,
-        onError: (error: Error) => void
-    ): Promise<void> {
-        try {
-            // Mock streaming response
-            const mockResponses = [
-                "Xin lỗi, tôi đang gặp vấn đề kỹ thuật tạm thời. ",
-                "Tuy nhiên, tôi vẫn có thể giúp bạn với một số thông tin cơ bản! ",
-                "Đây là một số gợi ý về tập luyện:\n\n",
-                "🏃‍♂️ **Cardio**: Chạy bộ, đạp xe, bơi lội giúp cải thiện sức khỏe tim mạch\n",
-                "💪 **Strength**: Tập tạ, push-up, squat giúp xây dựng cơ bắp\n",
-                "🧘‍♀️ **Flexibility**: Yoga, stretching giúp tăng độ dẻo dai\n\n",
-                "Hãy thử lại sau để được tư vấn chi tiết hơn! 🌟"
-            ];
-
-            let fullResponse = '';
-
-            for (let i = 0; i < mockResponses.length; i++) {
-                await new Promise(resolve => setTimeout(resolve, this.STREAM_DELAY * (i + 1)));
-
-                const chunk = mockResponses[i];
-                fullResponse += chunk;
-                onChunk(chunk);
-            }
-
-            onComplete(fullResponse);
-        } catch (error) {
-            onError(error as Error);
         }
     }
 

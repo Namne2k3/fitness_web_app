@@ -95,11 +95,10 @@ export class WorkoutSessionController {
             }
 
             const updateData: UpdateSessionInput = {
-                ...req.body,
-                userId // Ensure user owns the session
+                ...req.body
             };
 
-            const session = await WorkoutSessionService.updateSession(id, updateData);
+            const session = await WorkoutSessionService.updateSession(id, userId, updateData);
 
             ResponseHelper.success(res, session, 'Session updated successfully');
 
@@ -130,11 +129,26 @@ export class WorkoutSessionController {
                 return ResponseHelper.badRequest(res, 'Valid session ID is required');
             }
 
-            const completionData = {
-                rating: rating ? Number(rating) : undefined,
-                notes: notes || undefined,
-                mood: mood || undefined
-            };
+            // Chuẩn hóa completionData với type safety
+            const completionData: { rating?: number; notes?: string; mood?: string } = {};
+
+            if (rating !== undefined) {
+                const ratingNum = Number(rating);
+                if (!isNaN(ratingNum) && ratingNum >= 1 && ratingNum <= 5) {
+                    completionData.rating = ratingNum;
+                }
+            }
+
+            if (notes && typeof notes === 'string') {
+                completionData.notes = notes.trim();
+            }
+
+            if (mood && typeof mood === 'string') {
+                const validMoods = ['great', 'good', 'okay', 'tired', 'poor'];
+                if (validMoods.includes(mood)) {
+                    completionData.mood = mood as 'great' | 'good' | 'okay' | 'tired' | 'poor';
+                }
+            }
 
             const session = await WorkoutSessionService.completeSession(id, userId, completionData);
 
@@ -325,6 +339,10 @@ export class WorkoutSessionController {
                 return ResponseHelper.badRequest(res, 'Valid session ID is required');
             }
 
+            if (!exerciseIndex) {
+                return ResponseHelper.badRequest(res, 'Exercise index is required');
+            }
+
             const exerciseIdx = parseInt(exerciseIndex);
             if (isNaN(exerciseIdx) || exerciseIdx < 0) {
                 return ResponseHelper.badRequest(res, 'Valid exercise index is required');
@@ -450,34 +468,6 @@ export class WorkoutSessionController {
             const session = await WorkoutSessionService.togglePause(id, userId);
 
             ResponseHelper.success(res, session, 'Session pause toggled successfully');
-
-        } catch (error) {
-            next(error);
-        }
-    }
-
-    /**
-     * Stop session
-     * @route POST /api/v1/workout-sessions/:id/stop
-     */
-    static async stopSession(
-        req: RequestWithUser,
-        res: Response<ApiResponse>,
-        next: NextFunction
-    ): Promise<void> {
-        try {
-            if (!requireAuth(res, req.user)) return;
-
-            const userId = req.user!._id.toString();
-            const { id } = req.params;
-
-            if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-                return ResponseHelper.badRequest(res, 'Valid session ID is required');
-            }
-
-            const session = await WorkoutSessionService.stopSession(id, userId);
-
-            ResponseHelper.success(res, session, 'Session stopped successfully');
 
         } catch (error) {
             next(error);

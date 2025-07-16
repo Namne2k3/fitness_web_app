@@ -142,4 +142,27 @@ export class ExerciseController {
             next(error);
         }
     }
+
+    /**
+     * Get all exercises (không phân trang)
+     * @route GET /exercises/all
+     */
+    static async getAllExercises(
+        req: Request,
+        res: Response<ApiResponse>,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const exercises = await ExerciseService.getAllExercises();
+
+            res.status(200).json({
+                success: true,
+                data: exercises,
+                message: 'All exercises retrieved successfully'
+            });
+
+        } catch (error) {
+            next(error);
+        }
+    }
 }

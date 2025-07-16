@@ -140,6 +140,19 @@ export class ExerciseService {
     }
 
     /**
+     * Get all exercises (không phân trang)
+     * @returns All exercises
+     */
+    static async getAllExercises(): Promise<Exercise[]> {
+        try {
+            return await ExerciseRepository.findAll();
+        } catch (error) {
+            console.error('❌ Error getting all exercises:', error);
+            throw new Error('Failed to get all exercises');
+        }
+    }
+
+    /**
      * Get exercises by IDs
      * @param ids Exercise IDs
      * @returns Exercises matching IDs

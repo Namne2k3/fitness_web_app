@@ -9,7 +9,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { ChatBotService } from '../services/ChatBotService';
-import { ClientChatRequest, ChatRequest } from '../types/chatbot.types';
+import { ClientChatRequest, ChatRequest, ChatResponse } from '../types/chatbot.types';
 import { ApiResponse, RequestWithUser } from '../types';
 import { ResponseHelper, requireAuth } from '../utils/responseHelper';
 
@@ -50,10 +50,9 @@ export class ChatBotController {
                 conversation_id: conversation_id || undefined
             };
 
-            console.log(`🤖 Processing ChatBot message for user: ${chatRequest.user_id}`);
-
-            // Gọi ChatBot service với retry logic
             const response = await ChatBotService.sendMessageWithRetry(chatRequest);
+
+            console.log(`🤖 Processing ChatBot message for user: ${chatRequest.user_id}`);
 
             // Trả về response theo đúng API spec
             ResponseHelper.success(res, {

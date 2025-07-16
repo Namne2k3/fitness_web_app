@@ -17,11 +17,13 @@ import ExerciseDetailPage from './pages/exercise/ExerciseDetailPage';
 import ExercisePage from './pages/exercise/ExercisePage';
 import HomePage from './pages/home/HomePage';
 import MyWorkoutPage from './pages/my-workout/MyWorkout';
-import StartWorkoutPage from './pages/workout/StartWorkout';
+// import StartWorkoutPage from './pages/workout/StartWorkout';
+import WorkoutSessionPage from './pages/workout/WorkoutSession';
 import CreateWorkoutPage from './pages/workout/create/CreateWorkoutPage';
 import WorkoutDetailPage from './pages/workout/WorkoutDetailPage';
 import WorkoutPage from './pages/workout/WorkoutPage';
 import fitnessTheme from './styles/theme';
+import StartWorkoutPage from './pages/workout/StartWorkout';
 
 // ✅ React Query Client Configuration
 const queryClient = new QueryClient({

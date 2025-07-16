@@ -1,709 +1,527 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-case-declarations */
-/**
- * 🏃 Start Workout Page
- * Trang thực thi workout với timer, tracking và React 19 patterns
- */
-
-import { use, useActionState, useState, useEffect } from 'react';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import BoltIcon from '@mui/icons-material/Bolt';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+import InfoIcon from '@mui/icons-material/Info';
+import TimerIcon from '@mui/icons-material/Timer';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import WhatshotIcon from '@mui/icons-material/Whatshot';
 import {
+    Alert,
+    Avatar,
     Box,
-    Container,
-    Typography,
+    Button,
     Card,
     CardContent,
-    Button,
-    LinearProgress,
-    Avatar,
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    DialogActions,
+    Chip,
+    Container,
+    Divider,
+    Fade,
     IconButton,
-    Grid,
+    LinearProgress,
     Paper,
     Stack,
-    Divider,
-    Alert,
-    Fab
+    Typography
 } from '@mui/material';
-import {
-    PlayArrow as PlayIcon,
-    Pause as PauseIcon,
-    Timer as TimerIcon,
-    FitnessCenter as FitnessCenterIcon,
-    CheckCircle as CompleteIcon,
-    Close as CloseIcon,
-    ExpandMore as ExpandIcon,
-    ExpandLess as CollapseIcon
-} from '@mui/icons-material';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Workout, WorkoutExercise } from '../../types/workout.interface';
-import { getWorkoutById, saveWorkoutSession, WorkoutSessionData } from '../../services/myWorkoutService';
+import React, { useEffect, useState } from 'react';
 
-// ====================================
-// 📊 Interfaces
-// ====================================
-
-interface WorkoutSession {
-    id: string;
-    workoutId: string;
-    startTime: Date;
-    currentExerciseIndex: number;
-    currentSetIndex: number;
-    isActive: boolean;
-    isPaused: boolean;
-    completedSets: Array<{
-        exerciseIndex: number;
-        setIndex: number;
-        reps: number;
-        weight: number;
-        duration: number;
-        completedAt: Date;
-    }>;
-    totalDuration: number; // seconds
-    caloriesBurned: number;
-    status: 'active' | 'paused' | 'completed' | 'stopped';
+interface Set {
+    id: number;
+    reps: number;
+    weight: number;
+    completed: boolean;
+    restTime?: number;
 }
 
-interface ExerciseProgress {
-    exerciseIndex: number;
-    setsCompleted: number;
-    totalSets: number;
-    isCompleted: boolean;
-    currentSet?: {
-        reps: number;
-        weight: number;
-        duration: number;
-        restTime: number;
-    };
+interface Exercise {
+    id: number;
+    name: string;
+    category: string;
+    targetMuscles: string[];
+    sets: Set[];
+    instructions: string[];
+    difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+    estimatedTime: number; // in minutes
+    caloriesBurn: number;
+    completed: boolean;
 }
 
-interface WorkoutTimer {
-    totalSeconds: number;
-    exerciseSeconds: number;
-    restSeconds: number;
-    isResting: boolean;
+interface WorkoutSessionProps {
+    onEndWorkout: () => void;
 }
 
-// ====================================
-// ⏱️ Timer Hook 
-// ====================================
+const difficultyColors = {
+    Beginner: { bg: '#e8f5e8', color: '#388e3c' },
+    Intermediate: { bg: '#fff3e0', color: '#f57c00' },
+    Advanced: { bg: '#ffebee', color: '#d32f2f' },
+};
 
-function useWorkoutTimer(isActive: boolean, isPaused: boolean) {
-    const [timer, setTimer] = useState<WorkoutTimer>({
-        totalSeconds: 0,
-        exerciseSeconds: 0,
-        restSeconds: 0,
-        isResting: false
+const categoryIcons: Record<string, React.ReactNode> = {
+    'Upper Body': <FitnessCenterIcon color="error" />,
+    'Lower Body': <FitnessCenterIcon color="primary" />,
+    'Core': <BoltIcon color="success" />,
+    'Full Body': <TrendingUpIcon color="secondary" />,
+    'Cardio': <WhatshotIcon color="warning" />,
+};
+
+const WorkoutSession: React.FC<WorkoutSessionProps> = ({ onEndWorkout }) => {
+    const [exercises, setExercises] = useState<Exercise[]>([
+        {
+            id: 1,
+            name: 'Push-ups',
+            category: 'Upper Body',
+            targetMuscles: ['Chest', 'Triceps', 'Shoulders'],
+            sets: [
+                { id: 1, reps: 12, weight: 0, completed: false, restTime: 60 },
+                { id: 2, reps: 10, weight: 0, completed: false, restTime: 60 },
+                { id: 3, reps: 8, weight: 0, completed: false, restTime: 90 },
+            ],
+            instructions: [
+                'Start in plank position with hands shoulder-width apart',
+                'Lower your body until chest nearly touches the floor',
+                'Push back up to starting position',
+                'Keep your core tight throughout the movement',
+            ],
+            difficulty: 'Beginner',
+            estimatedTime: 8,
+            caloriesBurn: 45,
+            completed: false,
+        },
+        {
+            id: 2,
+            name: 'Barbell Squats',
+            category: 'Lower Body',
+            targetMuscles: ['Quadriceps', 'Glutes', 'Hamstrings'],
+            sets: [
+                { id: 1, reps: 15, weight: 60, completed: false, restTime: 90 },
+                { id: 2, reps: 12, weight: 70, completed: false, restTime: 90 },
+                { id: 3, reps: 10, weight: 80, completed: false, restTime: 120 },
+            ],
+            instructions: [
+                'Stand with feet shoulder-width apart',
+                'Lower your body by bending knees and hips',
+                'Keep chest up and knees tracking over toes',
+                'Return to starting position by driving through heels',
+            ],
+            difficulty: 'Intermediate',
+            estimatedTime: 12,
+            caloriesBurn: 85,
+            completed: false,
+        },
+        {
+            id: 3,
+            name: 'Plank Hold',
+            category: 'Core',
+            targetMuscles: ['Core', 'Shoulders', 'Glutes'],
+            sets: [
+                { id: 1, reps: 45, weight: 0, completed: false, restTime: 45 },
+                { id: 2, reps: 60, weight: 0, completed: false, restTime: 45 },
+                { id: 3, reps: 30, weight: 0, completed: false, restTime: 60 },
+            ],
+            instructions: [
+                'Start in push-up position on forearms',
+                'Keep body in straight line from head to heels',
+                'Engage core and avoid sagging hips',
+                'Breathe steadily throughout the hold',
+            ],
+            difficulty: 'Beginner',
+            estimatedTime: 6,
+            caloriesBurn: 25,
+            completed: false,
+        },
+        {
+            id: 4,
+            name: 'Deadlifts',
+            category: 'Full Body',
+            targetMuscles: ['Hamstrings', 'Glutes', 'Lower Back', 'Traps'],
+            sets: [
+                { id: 1, reps: 8, weight: 100, completed: false, restTime: 120 },
+                { id: 2, reps: 6, weight: 110, completed: false, restTime: 120 },
+                { id: 3, reps: 4, weight: 120, completed: false, restTime: 180 },
+            ],
+            instructions: [
+                'Stand with feet hip-width apart, bar over mid-foot',
+                'Bend at hips and knees to grip the bar',
+                'Keep chest up and back straight',
+                'Drive through heels to lift the bar up',
+            ],
+            difficulty: 'Advanced',
+            estimatedTime: 15,
+            caloriesBurn: 120,
+            completed: false,
+        },
+    ]);
+
+    const [isResting, setIsResting] = useState(false);
+    const [restTimer, setRestTimer] = useState(0);
+    const [workoutTimer, setWorkoutTimer] = useState(0);
+    const [isTimerRunning, setIsTimerRunning] = useState(true);
+    const [showInstructions, setShowInstructions] = useState(false);
+    const [soundEnabled, setSoundEnabled] = useState(true);
+    const [achievements, setAchievements] = useState<string[]>([]);
+    const [showAchievement, setShowAchievement] = useState<string | null>(null);
+
+    // Workout stats
+    const [workoutStats, setWorkoutStats] = useState({
+        totalSets: 0,
+        totalReps: 0,
+        totalWeight: 0,
+        caloriesBurned: 0,
+        muscleGroups: new Set<string>(),
     });
 
     useEffect(() => {
         let interval: number;
-
-        if (isActive && !isPaused) {
-            interval = window.setInterval(() => {
-                setTimer(prev => ({
-                    ...prev,
-                    totalSeconds: prev.totalSeconds + 1,
-                    exerciseSeconds: prev.isResting ? prev.exerciseSeconds : prev.exerciseSeconds + 1,
-                    restSeconds: prev.isResting ? prev.restSeconds + 1 : prev.restSeconds
-                }));
+        if (isTimerRunning) {
+            interval = setInterval(() => {
+                setWorkoutTimer((prev) => prev + 1);
             }, 1000);
         }
+        return () => clearInterval(interval);
+    }, [isTimerRunning]);
 
-        return () => window.clearInterval(interval);
-    }, [isActive, isPaused]);
+    useEffect(() => {
+        let interval: number;
+        if (isResting && restTimer > 0) {
+            interval = setInterval(() => {
+                setRestTimer((prev) => {
+                    if (prev <= 1) {
+                        setIsResting(false);
+                        // Optionally play sound
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [isResting, restTimer]);
 
-    const startRest = (duration: number) => {
-        setTimer(prev => ({
-            ...prev,
-            isResting: true,
-            restSeconds: 0
-        }));
-
-        setTimeout(() => {
-            setTimer(prev => ({ ...prev, isResting: false }));
-        }, duration * 1000);
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    return { timer, startRest };
-}
+    const completeSet = (exerciseId: number, setId: number) => {
+        setExercises((prev) =>
+            prev.map((exercise) => {
+                if (exercise.id === exerciseId) {
+                    const updatedSets = exercise.sets.map((set) =>
+                        set.id === setId ? { ...set, completed: true } : set
+                    );
+                    const allSetsCompleted = updatedSets.every((set) => set.completed);
+                    const updatedExercise = { ...exercise, sets: updatedSets, completed: allSetsCompleted };
 
-// ====================================
-// 🎯 Start Workout Action (React 19)
-// ====================================
-
-interface WorkoutSessionState {
-    session: WorkoutSession | null;
-    error: string | null;
-    isLoading: boolean;
-}
-
-type WorkoutSessionAction =
-    | { type: 'START_WORKOUT'; workoutId: string }
-    | { type: 'PAUSE_WORKOUT' }
-    | { type: 'RESUME_WORKOUT' }
-    | { type: 'COMPLETE_SET'; exerciseIndex: number; setIndex: number; data: any }
-    | { type: 'NEXT_EXERCISE' }
-    | { type: 'FINISH_WORKOUT' }
-    | { type: 'STOP_WORKOUT' };
-
-async function workoutSessionReducer(
-    prevState: WorkoutSessionState,
-    action: WorkoutSessionAction
-): Promise<WorkoutSessionState> {
-    try {
-        switch (action.type) {
-            case 'START_WORKOUT':
-                const newSession: WorkoutSession = {
-                    id: crypto.randomUUID(),
-                    workoutId: action.workoutId,
-                    startTime: new Date(),
-                    currentExerciseIndex: 0,
-                    currentSetIndex: 0,
-                    isActive: true,
-                    isPaused: false,
-                    completedSets: [],
-                    totalDuration: 0,
-                    caloriesBurned: 0,
-                    status: 'active'
-                };
-
-                return {
-                    session: newSession,
-                    error: null,
-                    isLoading: false
-                };
-
-            case 'PAUSE_WORKOUT':
-                if (!prevState.session) return prevState;
-                return {
-                    ...prevState,
-                    session: {
-                        ...prevState.session,
-                        isPaused: true,
-                        status: 'paused'
+                    // Update stats
+                    const completedSet = updatedSets.find((set) => set.id === setId);
+                    if (completedSet) {
+                        setWorkoutStats((prevStats) => ({
+                            totalSets: prevStats.totalSets + 1,
+                            totalReps: prevStats.totalReps + completedSet.reps,
+                            totalWeight: prevStats.totalWeight + completedSet.weight * completedSet.reps,
+                            caloriesBurned:
+                                prevStats.caloriesBurned + exercise.caloriesBurn / exercise.sets.length,
+                            muscleGroups: new Set([...prevStats.muscleGroups, ...exercise.targetMuscles]),
+                        }));
                     }
-                };
 
-            case 'RESUME_WORKOUT':
-                if (!prevState.session) return prevState;
-                return {
-                    ...prevState,
-                    session: {
-                        ...prevState.session,
-                        isPaused: false,
-                        status: 'active'
+                    // Check for achievements
+                    if (allSetsCompleted) {
+                        checkAchievements(exercise);
                     }
-                };
 
-            case 'COMPLETE_SET':
-                if (!prevState.session) return prevState;
-
-                const completedSet = {
-                    exerciseIndex: action.exerciseIndex,
-                    setIndex: action.setIndex,
-                    ...action.data,
-                    completedAt: new Date()
-                };
-
-                return {
-                    ...prevState,
-                    session: {
-                        ...prevState.session,
-                        completedSets: [...prevState.session.completedSets, completedSet],
-                        currentSetIndex: prevState.session.currentSetIndex + 1,
-                        caloriesBurned: prevState.session.caloriesBurned + calculateCalories(action.data)
+                    // Start rest timer if not the last set
+                    const currentSetIdx = updatedSets.findIndex((set) => set.id === setId);
+                    if (currentSetIdx < updatedSets.length - 1 && completedSet?.restTime) {
+                        setRestTimer(completedSet.restTime);
+                        setIsResting(true);
                     }
-                };
 
-            case 'NEXT_EXERCISE':
-                if (!prevState.session) return prevState;
-                return {
-                    ...prevState,
-                    session: {
-                        ...prevState.session,
-                        currentExerciseIndex: prevState.session.currentExerciseIndex + 1,
-                        currentSetIndex: 0
-                    }
-                };
+                    return updatedExercise;
+                }
+                return exercise;
+            })
+        );
+    };
 
-            case 'FINISH_WORKOUT':
-                if (!prevState.session) return prevState;
-
-                // Save workout session to backend
-                const sessionData: WorkoutSessionData = {
-                    workoutId: prevState.session.workoutId,
-                    startTime: prevState.session.startTime,
-                    endTime: new Date(),
-                    totalDuration: prevState.session.totalDuration,
-                    completedSets: prevState.session.completedSets,
-                    caloriesBurned: prevState.session.caloriesBurned,
-                    status: 'completed'
-                };
-
-                await saveWorkoutSession(sessionData);
-
-                return {
-                    ...prevState,
-                    session: {
-                        ...prevState.session,
-                        isActive: false,
-                        status: 'completed'
-                    }
-                };
-
-            default:
-                return prevState;
+    const checkAchievements = (exercise: Exercise) => {
+        const newAchievements: string[] = [];
+        if (exercise.difficulty === 'Advanced') {
+            newAchievements.push('Advanced Warrior');
         }
-    } catch (error) {
-        return {
-            ...prevState,
-            error: error instanceof Error ? error.message : 'Unknown error',
-            isLoading: false
-        };
-    }
-}
+        if (exercise.category === 'Full Body') {
+            newAchievements.push('Full Body Champion');
+        }
+        if (newAchievements.length > 0) {
+            setAchievements((prev) => [...prev, ...newAchievements]);
+            setShowAchievement(newAchievements[0]);
+            setTimeout(() => setShowAchievement(null), 3000);
+        }
+    };
 
-// ====================================
-// 🔧 Helper Functions
-// ====================================
+    const updateSetReps = (exerciseId: number, setId: number, newReps: number) => {
+        setExercises((prev) =>
+            prev.map((exercise) =>
+                exercise.id === exerciseId
+                    ? {
+                        ...exercise,
+                        sets: exercise.sets.map((set) =>
+                            set.id === setId ? { ...set, reps: Math.max(0, newReps) } : set
+                        ),
+                    }
+                    : exercise
+            )
+        );
+    };
 
-function calculateCalories(setData: any): number {
-    // Simple calories calculation based on exercise type
-    return Math.round(setData.reps * 0.5 + (setData.duration || 0) * 0.1);
-}
+    const updateSetWeight = (exerciseId: number, setId: number, newWeight: number) => {
+        setExercises((prev) =>
+            prev.map((exercise) =>
+                exercise.id === exerciseId
+                    ? {
+                        ...exercise,
+                        sets: exercise.sets.map((set) =>
+                            set.id === setId ? { ...set, weight: Math.max(0, newWeight) } : set
+                        ),
+                    }
+                    : exercise
+            )
+        );
+    };
 
-function formatTime(seconds: number): string {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-}
-
-// ====================================
-// 🎨 Exercise Card Component
-// ====================================
-
-interface ExerciseCardProps {
-    exercise: WorkoutExercise;
-    isActive: boolean;
-    progress: ExerciseProgress;
-    onCompleteSet: (setIndex: number, data: unknown) => void;
-    onNextSet: () => void;
-}
-
-function ExerciseCard({ exercise, isActive, progress, onCompleteSet }: ExerciseCardProps) {
-    const [expanded, setExpanded] = useState(isActive);
-    const [currentReps] = useState(exercise.reps || 0);
-    const [currentWeight] = useState(exercise.weight || 0);
-
-    const completionPercentage = (progress.setsCompleted / progress.totalSets) * 100;
+    const completedExercises = exercises.filter((e) => e.completed).length;
+    const totalSets = exercises.reduce((acc, ex) => acc + ex.sets.length, 0);
+    const completedSets = exercises.reduce((acc, ex) => acc + ex.sets.filter((s) => s.completed).length, 0);
+    const progressPercentage = totalSets > 0 ? (completedSets / totalSets) * 100 : 0;
 
     return (
-        <Card
+        <Box
             sx={{
-                mb: 2,
-                border: isActive ? 2 : 1,
-                borderColor: isActive ? 'primary.main' : 'grey.300',
-                boxShadow: isActive ? 4 : 1
+                minHeight: '100vh',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+
+                pt: '8rem'
             }}
         >
-            <CardContent>
-                {/* Exercise Header */}
-                <Box display="flex" alignItems="center" justifyContent="space-between">
-                    <Box display="flex" alignItems="center" gap={2}>
-                        <Avatar
-                            sx={{
-                                bgcolor: isActive ? 'primary.main' : 'grey.400',
-                                width: 40,
-                                height: 40
-                            }}
-                        >
-                            <FitnessCenterIcon />
-                        </Avatar>
-                        <Box>
-                            <Typography variant="h6" fontWeight="bold">
-                                {exercise.exerciseInfo?.name || `Exercise ${exercise.order}`}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                {exercise.sets} hiệp x {exercise.reps} lần
-                                {exercise.weight && ` - ${exercise.weight}kg`}
-                            </Typography>
-                        </Box>
-                    </Box>
-
-                    <IconButton onClick={() => setExpanded(!expanded)}>
-                        {expanded ? <CollapseIcon /> : <ExpandIcon />}
-                    </IconButton>
-                </Box>
-
-                {/* Progress Bar */}
-                <Box mt={2}>
-                    <Box display="flex" justifyContent="space-between" mb={1}>
-                        <Typography variant="body2">
-                            Tiến độ: {progress.setsCompleted}/{progress.totalSets} hiệp
-                        </Typography>
-                        <Typography variant="body2" color="primary">
-                            {Math.round(completionPercentage)}%
-                        </Typography>
-                    </Box>
-                    <LinearProgress
-                        variant="determinate"
-                        value={completionPercentage}
-                        sx={{ height: 8, borderRadius: 4 }}
-                    />
-                </Box>
-
-                {/* Expanded Content */}
-                {expanded && (
-                    <Box mt={3}>
-                        <Divider sx={{ mb: 2 }} />
-
-                        {/* Current Set Info */}
-                        <Paper sx={{ p: 2, mb: 2, bgcolor: 'grey.50' }}>
-                            <Typography variant="subtitle2" gutterBottom>
-                                Hiệp {progress.setsCompleted + 1}/{progress.totalSets}
-                            </Typography>
-
-                            <Grid container spacing={2}>
-                                <Grid xs={6}>
-                                    <Typography variant="body2">Số lần:</Typography>
-                                    <Typography variant="h6" color="primary">
-                                        {currentReps}
-                                    </Typography>
-                                </Grid>
-                                {exercise.weight && (
-                                    <Grid xs={6}>
-                                        <Typography variant="body2">Tạ:</Typography>
-                                        <Typography variant="h6" color="primary">
-                                            {currentWeight}kg
-                                        </Typography>
-                                    </Grid>
-                                )}
-                            </Grid>
-
-                            {isActive && !progress.isCompleted && (
-                                <Button
-                                    fullWidth
-                                    variant="contained"
-                                    startIcon={<CompleteIcon />}
-                                    onClick={() => {
-                                        onCompleteSet(progress.setsCompleted, {
-                                            reps: currentReps,
-                                            weight: currentWeight,
-                                            duration: exercise.duration || 0
-                                        });
-                                    }}
-                                    sx={{ mt: 2 }}
-                                >
-                                    Hoàn thành hiệp
-                                </Button>
-                            )}
-                        </Paper>
-
-                        {/* Rest Time */}
-                        {exercise.restTime && (
-                            <Box textAlign="center">
-                                <Typography variant="body2" color="text.secondary">
-                                    Thời gian nghỉ: {exercise.restTime}s
-                                </Typography>
-                            </Box>
-                        )}
-                    </Box>
-                )}
-            </CardContent>
-        </Card>
-    );
-}
-
-// ====================================
-// 🏃 Main Start Workout Component
-// ====================================
-
-export default function StartWorkoutPage() {
-    const { workoutId } = useParams<{ workoutId: string }>();
-    const navigate = useNavigate();
-
-    // ✅ React 19: useActionState cho complex workflow
-    const [sessionState, dispatchSession] = useActionState(
-        workoutSessionReducer,
-        { session: null, error: null, isLoading: true }
-    );
-
-    // ✅ React 19: use() hook cho data fetching
-    const workout = workoutId ? use(getWorkoutById(workoutId)) : null;
-
-    // Timer hook
-    const { timer, startRest } = useWorkoutTimer(
-        sessionState.session?.isActive || false,
-        sessionState.session?.isPaused || false
-    );
-
-    // Exercise progress tracking
-    const [exerciseProgress, setExerciseProgress] = useState<ExerciseProgress[]>([]);
-
-    // Dialog states
-    const [showExitDialog, setShowExitDialog] = useState(false);
-    const [showCompleteDialog, setShowCompleteDialog] = useState(false);
-
-    // Initialize exercise progress
-    useEffect(() => {
-        if (workout) {
-            const progress = workout.exercises.map((exercise, index) => ({
-                exerciseIndex: index,
-                setsCompleted: 0,
-                totalSets: exercise.sets,
-                isCompleted: false
-            }));
-            setExerciseProgress(progress);
-        }
-    }, [workout]);
-
-    // Start workout on mount
-    useEffect(() => {
-        if (workoutId && !sessionState.session) {
-            dispatchSession({ type: 'START_WORKOUT', workoutId });
-        }
-    }, [workoutId, sessionState.session]);
-
-    // ====================================
-    // 🎯 Event Handlers
-    // ====================================
-
-    const handlePauseResume = () => {
-        if (sessionState.session?.isPaused) {
-            dispatchSession({ type: 'RESUME_WORKOUT' });
-        } else {
-            dispatchSession({ type: 'PAUSE_WORKOUT' });
-        }
-    };
-
-    const handleCompleteSet = (exerciseIndex: number, setIndex: number, data: any) => {
-        dispatchSession({
-            type: 'COMPLETE_SET',
-            exerciseIndex,
-            setIndex,
-            data
-        });
-
-        // Update exercise progress
-        setExerciseProgress(prev => prev.map(progress =>
-            progress.exerciseIndex === exerciseIndex
-                ? {
-                    ...progress,
-                    setsCompleted: progress.setsCompleted + 1,
-                    isCompleted: progress.setsCompleted + 1 >= progress.totalSets
-                }
-                : progress
-        ));
-
-        // Start rest timer if there's rest time
-        const exercise = workout?.exercises[exerciseIndex];
-        if (exercise?.restTime) {
-            startRest(exercise.restTime);
-        }
-    };
-
-    const handleFinishWorkout = async () => {
-        setShowCompleteDialog(true);
-    };
-
-    const handleConfirmFinish = async () => {
-        await dispatchSession({ type: 'FINISH_WORKOUT' });
-        navigate('/my-workouts', {
-            state: { message: 'Workout hoàn thành thành công!' }
-        });
-    };
-
-    const handleStopWorkout = () => {
-        setShowExitDialog(true);
-    };
-
-    const handleConfirmStop = () => {
-        dispatchSession({ type: 'STOP_WORKOUT' });
-        navigate('/my-workouts');
-    };
-
-    // ====================================
-    // 🎨 Render
-    // ====================================
-
-    if (!workout) {
-        return (
-            <Container maxWidth="md" sx={{ py: 4 }}>
-                <Alert severity="error">
-                    Không tìm thấy workout!
-                </Alert>
-            </Container>
-        );
-    }
-
-    const currentExercise = sessionState.session ?
-        workout.exercises[sessionState.session.currentExerciseIndex] :
-        workout.exercises[0];
-
-    const currentProgress = exerciseProgress[sessionState.session?.currentExerciseIndex || 0];
-    const overallProgress = exerciseProgress.reduce((acc, progress) =>
-        acc + (progress.setsCompleted / progress.totalSets), 0
-    ) / exerciseProgress.length * 100;
-
-    return (
-        <Container maxWidth="md" sx={{ py: 2, pb: 10 }}>
-            {/* Header */}
-            <Paper sx={{ p: 3, mb: 3, background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)', color: 'white' }}>
-                <Box display="flex" alignItems="center" justifyContent="space-between">
-                    <Box>
-                        <Typography variant="h4" fontWeight="bold" gutterBottom>
-                            {workout.name}
-                        </Typography>
-                        <Typography variant="body1" sx={{ opacity: 0.9 }}>
-                            {workout.exercises.length} bài tập • {workout.estimatedDuration} phút
-                        </Typography>
-                    </Box>
-                    <IconButton
-                        onClick={handleStopWorkout}
-                        sx={{ color: 'white' }}
+            {/* Achievement Popup */}
+            <Fade in={!!showAchievement} timeout={300}>
+                <Box
+                    sx={{
+                        position: 'fixed',
+                        inset: 0,
+                        display: showAchievement ? 'flex' : 'none',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1300,
+                        bgcolor: 'rgba(0,0,0,0.5)',
+                        backdropFilter: 'blur(4px)',
+                    }}
+                >
+                    <Paper
+                        elevation={24}
+                        sx={{ p: 6, borderRadius: 4, textAlign: 'center', minWidth: 320 }}
                     >
-                        <CloseIcon />
-                    </IconButton>
+                        <EmojiEventsIcon sx={{ fontSize: 64, color: '#ffb300', mb: 2 }} />
+                        <Typography variant="h4" fontWeight="bold" gutterBottom>
+                            Achievement Unlocked!
+                        </Typography>
+                        <Typography variant="h6" color="text.secondary">
+                            {showAchievement}
+                        </Typography>
+                    </Paper>
                 </Box>
+            </Fade>
+
+            {/* Header */}
+            <Paper
+                elevation={0}
+                sx={{
+                    background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    borderBottom: '1px solid rgba(255,255,255,0.2)',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 100,
+                }}
+            >
+                <Container maxWidth="lg" sx={{ py: 2 }}>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between">
+                        <IconButton onClick={onEndWorkout} color="inherit" aria-label="Quay lại">
+                            <ArrowBackIcon />
+                        </IconButton>
+                        <Typography variant="h5" fontWeight={700}>
+                            Bắt đầu buổi tập
+                        </Typography>
+                        <Box />
+                    </Stack>
+                </Container>
             </Paper>
 
-            {/* Timer & Progress */}
-            <Card sx={{ mb: 3 }}>
-                <CardContent>
-                    <Grid container spacing={3}>
-                        <Grid xs={12} md={6}>
-                            <Box textAlign="center">
-                                <TimerIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-                                <Typography variant="h3" fontWeight="bold" color="primary">
-                                    {formatTime(timer.totalSeconds)}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Tổng thời gian
-                                </Typography>
-                            </Box>
-                        </Grid>
-                        <Grid xs={12} md={6}>
-                            <Box>
-                                <Typography variant="h6" gutterBottom>
-                                    Tiến độ tổng thể
-                                </Typography>
-                                <LinearProgress
-                                    variant="determinate"
-                                    value={overallProgress}
-                                    sx={{ height: 10, borderRadius: 5, mb: 1 }}
-                                />
-                                <Typography variant="body2" color="text.secondary">
-                                    {Math.round(overallProgress)}% hoàn thành
-                                </Typography>
-                            </Box>
-                        </Grid>
-                    </Grid>
-                </CardContent>
-            </Card>
+            <Container maxWidth="lg" sx={{ py: 4 }}>
+                {/* Workout Stats Dashboard */}
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: '1fr 1fr 1fr 1fr' }, gap: 3, mb: 4 }}>
+                    <Paper elevation={0} sx={{ p: 3, textAlign: 'center', borderRadius: 3, background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)' }}>
+                        <FitnessCenterIcon sx={{ fontSize: 32, color: '#1976d2', mb: 1 }} />
+                        <Typography variant="body2" color="text.secondary">
+                            Tổng số set
+                        </Typography>
+                        <Typography variant="h5" fontWeight={700}>{workoutStats.totalSets}</Typography>
+                    </Paper>
+                    <Paper elevation={0} sx={{ p: 3, textAlign: 'center', borderRadius: 3, background: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)' }}>
+                        <WhatshotIcon sx={{ fontSize: 32, color: '#ff9800', mb: 1 }} />
+                        <Typography variant="body2" color="text.secondary">
+                            Calories
+                        </Typography>
+                        <Typography variant="h5" fontWeight={700}>{Math.round(workoutStats.caloriesBurned)}</Typography>
+                    </Paper>
+                    <Paper elevation={0} sx={{ p: 3, textAlign: 'center', borderRadius: 3, background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)' }}>
+                        <BoltIcon sx={{ fontSize: 32, color: '#f44336', mb: 1 }} />
+                        <Typography variant="body2" color="text.secondary">
+                            Tổng số reps
+                        </Typography>
+                        <Typography variant="h5" fontWeight={700}>{workoutStats.totalReps}</Typography>
+                    </Paper>
+                    <Paper elevation={0} sx={{ p: 3, textAlign: 'center', borderRadius: 3, background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)' }}>
+                        <TrendingUpIcon sx={{ fontSize: 32, color: '#4caf50', mb: 1 }} />
+                        <Typography variant="body2" color="text.secondary">
+                            Tổng khối lượng
+                        </Typography>
+                        <Typography variant="h5" fontWeight={700}>{workoutStats.totalWeight}</Typography>
+                    </Paper>
+                </Box>
 
-            {/* Current Exercise */}
-            {currentExercise && currentProgress && (
-                <ExerciseCard
-                    exercise={currentExercise}
-                    isActive={true}
-                    progress={currentProgress}
-                    onCompleteSet={(setIndex, data) => handleCompleteSet(sessionState.session?.currentExerciseIndex || 0, setIndex, data)}
-                    onNextSet={() => { }}
-                />
-            )}
+                {/* Rest Timer */}
+                {isResting && (
+                    <Fade in={isResting} timeout={300}>
+                        <Paper elevation={6} sx={{ p: 4, mb: 4, textAlign: 'center', borderRadius: 4, background: 'linear-gradient(90deg, #42a5f5 0%, #ff9800 100%)', color: 'white' }}>
+                            <TimerIcon sx={{ fontSize: 48, mb: 2 }} />
+                            <Typography variant="h5" fontWeight={700} gutterBottom>
+                                Nghỉ giữa set
+                            </Typography>
+                            <Typography variant="h2" fontWeight="bold" sx={{ letterSpacing: 2 }}>
+                                {formatTime(restTimer)}
+                            </Typography>
+                            <Typography variant="body2" sx={{ mt: 2 }}>
+                                Chuẩn bị cho set tiếp theo!
+                            </Typography>
+                        </Paper>
+                    </Fade>
+                )}
 
-            {/* All Exercises List */}
-            <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-                Tất cả bài tập
-            </Typography>
-            {workout.exercises.map((exercise, index) => {
-                const progress = exerciseProgress[index];
-                if (!progress) return null;
-
-                return (
-                    <ExerciseCard
-                        key={index}
-                        exercise={exercise}
-                        isActive={index === (sessionState.session?.currentExerciseIndex || 0)}
-                        progress={progress}
-                        onCompleteSet={(setIndex, data) => handleCompleteSet(index, setIndex, data)}
-                        onNextSet={() => { }}
+                {/* Progress Bar */}
+                <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 4, background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)' }}>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
+                        <Typography variant="h6" fontWeight={700}>
+                            Tiến độ buổi tập
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            {completedSets}/{totalSets} sets hoàn thành
+                        </Typography>
+                    </Stack>
+                    <LinearProgress
+                        variant="determinate"
+                        value={progressPercentage}
+                        sx={{
+                            height: 12, borderRadius: 6, background: 'rgba(0,0,0,0.06)', mb: 2,
+                            '& .MuiLinearProgress-bar': {
+                                borderRadius: 6,
+                                background: 'linear-gradient(90deg, #42a5f5 0%, #ff9800 100%)',
+                            },
+                        }}
                     />
-                );
-            })}
+                    <Stack direction="row" spacing={2} mt={2}>
+                        <Chip icon={<TimerIcon />} label={`Thời gian: ${formatTime(workoutTimer)}`} color="primary" />
+                        <Chip icon={<TrendingUpIcon />} label={`Nhóm cơ: ${Array.from(workoutStats.muscleGroups).length}`} color="success" />
+                    </Stack>
+                </Paper>
 
-            {/* Control Buttons */}
-            <Box
-                position="fixed"
-                bottom={16}
-                left="50%"
-                sx={{ transform: 'translateX(-50%)', zIndex: 1000 }}
-            >
-                <Stack direction="row" spacing={2}>
-                    <Fab
-                        color="primary"
-                        onClick={handlePauseResume}
-                        disabled={sessionState.session?.status === 'completed'}
-                    >
-                        {sessionState.session?.isPaused ? <PlayIcon /> : <PauseIcon />}
-                    </Fab>
+                {/* Exercise List */}
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
+                    {exercises.map((exercise) => (
+                        <Card key={exercise.id} elevation={3} sx={{ borderRadius: 3, background: difficultyColors[exercise.difficulty].bg, mb: 2, transition: 'all 0.3s ease', '&:hover': { boxShadow: 8, transform: 'translateY(-4px)' } }}>
+                            <CardContent>
+                                <Stack direction="row" alignItems="center" spacing={2} mb={2}>
+                                    <Avatar sx={{ bgcolor: difficultyColors[exercise.difficulty].color, width: 48, height: 48 }}>
+                                        {categoryIcons[exercise.category] || <InfoIcon />}
+                                    </Avatar>
+                                    <Box>
+                                        <Typography variant="h6" fontWeight={700} color={difficultyColors[exercise.difficulty].color}>
+                                            {exercise.name}
+                                        </Typography>
+                                        <Chip label={exercise.difficulty} sx={{ bgcolor: difficultyColors[exercise.difficulty].bg, color: difficultyColors[exercise.difficulty].color, fontWeight: 600, ml: 1 }} />
+                                    </Box>
+                                </Stack>
+                                <Typography variant="body2" color="text.secondary" mb={1}>
+                                    {exercise.category} | {exercise.targetMuscles.join(', ')}
+                                </Typography>
+                                <Divider sx={{ my: 2 }} />
+                                <Stack spacing={2}>
+                                    {exercise.sets.map((set) => (
+                                        <Paper key={set.id} elevation={0} sx={{ p: 2, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: set.completed ? 'linear-gradient(90deg, #e8f5e8 0%, #c8e6c9 100%)' : 'white' }}>
+                                            <Stack direction="row" alignItems="center" spacing={2}>
+                                                <Chip label={`Set ${set.id}`} color={set.completed ? 'success' : 'default'} />
+                                                <Typography variant="body2">Reps: {set.reps}</Typography>
+                                                <Typography variant="body2">Weight: {set.weight}kg</Typography>
+                                                <Typography variant="body2">Rest: {set.restTime}s</Typography>
+                                            </Stack>
+                                            <Box>
+                                                {set.completed ? (
+                                                    <CheckCircleIcon color="success" />
+                                                ) : (
+                                                    <Button
+                                                        variant="contained"
+                                                        color="primary"
+                                                        size="small"
+                                                        sx={{ borderRadius: 2, fontWeight: 600, px: 2, py: 1, ml: 2 }}
+                                                        onClick={() => completeSet(exercise.id, set.id)}
+                                                    >
+                                                        Hoàn thành
+                                                    </Button>
+                                                )}
+                                            </Box>
+                                        </Paper>
+                                    ))}
+                                </Stack>
+                                <Divider sx={{ my: 2 }} />
+                                <Box>
+                                    <Button
+                                        variant="outlined"
+                                        startIcon={<InfoIcon />}
+                                        onClick={() => setShowInstructions((prev) => !prev)}
+                                        sx={{ borderRadius: 2, fontWeight: 600 }}
+                                    >
+                                        {showInstructions ? 'Ẩn hướng dẫn' : 'Xem hướng dẫn'}
+                                    </Button>
+                                    <Fade in={showInstructions} timeout={300}>
+                                        <Box sx={{ mt: 2 }}>
+                                            {exercise.instructions.map((step, idx) => (
+                                                <Typography key={idx} variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                                    {idx + 1}. {step}
+                                                </Typography>
+                                            ))}
+                                        </Box>
+                                    </Fade>
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </Box>
 
-                    <Fab
-                        color="success"
-                        onClick={handleFinishWorkout}
-                        disabled={sessionState.session?.status === 'completed'}
-                    >
-                        <CompleteIcon />
-                    </Fab>
-                </Stack>
-            </Box>
-
-            {/* Exit Confirmation Dialog */}
-            <Dialog open={showExitDialog} onClose={() => setShowExitDialog(false)}>
-                <DialogTitle>Dừng tập luyện?</DialogTitle>
-                <DialogContent>
-                    <Typography>
-                        Bạn có chắc muốn dừng tập luyện? Tiến độ sẽ không được lưu.
-                    </Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setShowExitDialog(false)}>
-                        Tiếp tục tập
-                    </Button>
-                    <Button onClick={handleConfirmStop} color="error">
-                        Dừng lại
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Complete Confirmation Dialog */}
-            <Dialog open={showCompleteDialog} onClose={() => setShowCompleteDialog(false)}>
-                <DialogTitle>Hoàn thành workout!</DialogTitle>
-                <DialogContent>
-                    <Typography gutterBottom>
-                        Chúc mừng! Bạn đã hoàn thành workout.
-                    </Typography>
-                    <Box mt={2}>
-                        <Typography variant="body2">
-                            • Thời gian: {formatTime(timer.totalSeconds)}
-                        </Typography>
-                        <Typography variant="body2">
-                            • Calories đốt cháy: ~{sessionState.session?.caloriesBurned} cal
-                        </Typography>
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setShowCompleteDialog(false)}>
-                        Tiếp tục tập
-                    </Button>
-                    <Button onClick={handleConfirmFinish} variant="contained">
-                        Hoàn thành
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </Container>
+                {/* Completion Message */}
+                {completedExercises === exercises.length && (
+                    <Fade in timeout={300}>
+                        <Alert severity="success" sx={{ mt: 6, fontSize: '1.25rem', fontWeight: 700, borderRadius: 3 }}>
+                            <CheckCircleIcon color="success" sx={{ mr: 2 }} />
+                            Chúc mừng! Bạn đã hoàn thành toàn bộ buổi tập.
+                        </Alert>
+                    </Fade>
+                )}
+            </Container>
+        </Box>
     );
-}
+};
+
+export default WorkoutSession;

@@ -68,6 +68,10 @@ const WorkoutDetailPage: React.FC = () => {
         );
     }
 
+    const handleStartWorkout = () => {
+        navigate(`/workouts/${id}/start`);
+    }
+
     // --- UI inspired by WorkoutDetailExample.tsx ---
     return (
         <Box sx={{ minHeight: '100vh', mt: '6rem' }}>
@@ -138,7 +142,7 @@ const WorkoutDetailPage: React.FC = () => {
                         {/* Start Workout */}
                         <Box sx={{ border: '1px solid #e0e0e0', borderRadius: 2, bgcolor: '#fff', p: 3 }}>
                             <Box sx={{ fontWeight: 700, fontSize: '1.1rem', mb: 2 }}>Ready to Start?</Box>
-                            <Button variant="contained" color="primary" size="large" sx={{ width: '100%', mb: 2, fontWeight: 700 }}>
+                            <Button onClick={handleStartWorkout} variant="contained" color="primary" size="large" sx={{ width: '100%', mb: 2, fontWeight: 700 }}>
                                 ▶ Start Workout
                             </Button>
                             <Stack spacing={1} sx={{ color: '#666', fontSize: '1rem' }}>

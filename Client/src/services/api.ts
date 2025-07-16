@@ -12,7 +12,7 @@ import { TokenService } from './tokenService';
  * Base API configuration
  */
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1';
-const API_TIMEOUT = 10000; // 10 seconds
+const API_TIMEOUT = 50000; // 10 seconds
 
 /**
  * Tạo axios instance với cấu hình mặc định

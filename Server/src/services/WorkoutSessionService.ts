@@ -59,8 +59,8 @@ export class WorkoutSessionService {
                 throw new Error('You already have an active workout session. Please complete or stop it first.');
             }
 
-            // Create new session
-            const sessionData = {
+            // Create new session với đúng type từ Repository
+            const sessionData: import('../repositories/WorkoutSessionRepository').CreateSessionData = {
                 userId: new mongoose.Types.ObjectId(userId),
                 workoutId: new mongoose.Types.ObjectId(workoutId),
                 startTime: new Date(),
@@ -75,9 +75,14 @@ export class WorkoutSessionService {
             };
 
             const session = await WorkoutSessionRepository.create(sessionData);
-            await session.populate('workoutId', 'name description category difficulty estimatedDuration');
 
-            return session;
+            // Populate workout information
+            const populatedSession = await WorkoutSessionRepository.findByIdWithPopulation(
+                session._id.toString(),
+                ['workoutId']
+            );
+
+            return populatedSession || session;
 
         } catch (error) {
             console.error('Error starting workout session:', error);
@@ -104,9 +109,17 @@ export class WorkoutSessionService {
     static async getSessionById(sessionId: string, userId?: string): Promise<IWorkoutSession | null> {
         try {
             if (userId) {
-                return await WorkoutSessionRepository.findByIdAndUserId(sessionId, userId);
+                const session = await WorkoutSessionRepository.findByIdAndUserId(sessionId, userId);
+                if (session) {
+                    // Populate workout information
+                    return await WorkoutSessionRepository.findByIdWithPopulation(
+                        sessionId,
+                        ['workoutId']
+                    );
+                }
+                return null;
             } else {
-                return await WorkoutSessionRepository.findByIdWithPopulation(sessionId, ['workout', 'exercises']);
+                return await WorkoutSessionRepository.findByIdWithPopulation(sessionId, ['workoutId']);
             }
         } catch (error) {
             console.error('Error getting session by ID:', error);
@@ -232,35 +245,7 @@ export class WorkoutSessionService {
         }
     }
 
-    /**
-     * Pause/Resume session
-     */
-    static async togglePause(sessionId: string, userId: string): Promise<IWorkoutSession> {
-        try {
-            const session = await WorkoutSessionRepository.findByIdAndUserId(sessionId, userId);
 
-            if (!session || !['active', 'paused'].includes(session.status)) {
-                throw new Error('Active session not found');
-            }
-
-            const newStatus = session.status === 'active' ? 'paused' : 'active';
-
-            const updatedSession = await WorkoutSessionRepository.updateByIdAndUserId(
-                sessionId,
-                userId,
-                { status: newStatus }
-            );
-
-            if (!updatedSession) {
-                throw new Error('Failed to toggle pause status');
-            }
-
-            return updatedSession;
-        } catch (error) {
-            console.error('Error toggling pause:', error);
-            throw new Error(`Failed to toggle pause: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        }
-    }
 
     /**
      * Stop session
@@ -356,15 +341,216 @@ export class WorkoutSessionService {
         }
     }
 
+
+
+    /**
+     * Complete workout session
+     */
+    static async completeSession(
+        sessionId: string,
+        userId: string,
+        completionData: { rating?: number; notes?: string; mood?: string }
+    ): Promise<IWorkoutSession> {
+        try {
+            const session = await WorkoutSessionRepository.findByIdAndUserId(sessionId, userId);
+
+            if (!session || !['active', 'paused'].includes(session.status)) {
+                throw new Error('Active session not found');
+            }
+
+            const endTime = new Date();
+            const totalDuration = Math.round(
+                (endTime.getTime() - session.startTime.getTime()) / 1000
+            ) - (session.pausedDuration || 0);
+
+            const updateData: any = {
+                status: 'completed',
+                endTime,
+                totalDuration,
+                completionPercentage: 100,
+                ...completionData
+            };
+
+            const updatedSession = await WorkoutSessionRepository.updateByIdAndUserId(
+                sessionId,
+                userId,
+                updateData
+            );
+
+            if (!updatedSession) {
+                throw new Error('Failed to complete session');
+            }
+
+            return updatedSession;
+        } catch (error) {
+            console.error('Error completing session:', error);
+            throw new Error(`Failed to complete session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * Pause workout session
+     */
+    static async pauseSession(sessionId: string, userId: string): Promise<IWorkoutSession> {
+        try {
+            const session = await WorkoutSessionRepository.findByIdAndUserId(sessionId, userId);
+
+            if (!session || session.status !== 'active') {
+                throw new Error('Active session not found');
+            }
+
+            const updatedSession = await WorkoutSessionRepository.updateByIdAndUserId(
+                sessionId,
+                userId,
+                { status: 'paused' }
+            );
+
+            if (!updatedSession) {
+                throw new Error('Failed to pause session');
+            }
+
+            return updatedSession;
+        } catch (error) {
+            console.error('Error pausing session:', error);
+            throw new Error(`Failed to pause session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * Resume workout session
+     */
+    static async resumeSession(sessionId: string, userId: string): Promise<IWorkoutSession> {
+        try {
+            const session = await WorkoutSessionRepository.findByIdAndUserId(sessionId, userId);
+
+            if (!session || session.status !== 'paused') {
+                throw new Error('Paused session not found');
+            }
+
+            const updatedSession = await WorkoutSessionRepository.updateByIdAndUserId(
+                sessionId,
+                userId,
+                { status: 'active' }
+            );
+
+            if (!updatedSession) {
+                throw new Error('Failed to resume session');
+            }
+
+            return updatedSession;
+        } catch (error) {
+            console.error('Error resuming session:', error);
+            throw new Error(`Failed to resume session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * Update exercise progress
+     */
+    static async updateExerciseProgress(
+        sessionId: string,
+        userId: string,
+        exerciseIndex: number,
+        progressData: any
+    ): Promise<IWorkoutSession> {
+        try {
+            const session = await WorkoutSessionRepository.findByIdAndUserId(sessionId, userId);
+
+            if (!session || !['active', 'paused'].includes(session.status)) {
+                throw new Error('Active session not found');
+            }
+
+            // Update current exercise index
+            const updateData: any = {
+                currentExerciseIndex: exerciseIndex,
+                completionPercentage: Math.round((exerciseIndex / session.totalExercises) * 100)
+            };
+
+            const updatedSession = await WorkoutSessionRepository.updateByIdAndUserId(
+                sessionId,
+                userId,
+                updateData
+            );
+
+            if (!updatedSession) {
+                throw new Error('Failed to update exercise progress');
+            }
+
+            return updatedSession;
+        } catch (error) {
+            console.error('Error updating exercise progress:', error);
+            throw new Error(`Failed to update exercise progress: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * Toggle pause/resume session
+     */
+    static async togglePause(sessionId: string, userId: string): Promise<IWorkoutSession> {
+        try {
+            const session = await WorkoutSessionRepository.findByIdAndUserId(sessionId, userId);
+
+            if (!session || !['active', 'paused'].includes(session.status)) {
+                throw new Error('Active or paused session not found');
+            }
+
+            const newStatus = session.status === 'active' ? 'paused' : 'active';
+
+            const updatedSession = await WorkoutSessionRepository.updateByIdAndUserId(
+                sessionId,
+                userId,
+                { status: newStatus }
+            );
+
+            if (!updatedSession) {
+                throw new Error('Failed to toggle session pause');
+            }
+
+            return updatedSession;
+        } catch (error) {
+            console.error('Error toggling session pause:', error);
+            throw new Error(`Failed to toggle session pause: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
     /**
      * Delete session
      */
     static async deleteSession(sessionId: string, userId: string): Promise<boolean> {
         try {
-            return await WorkoutSessionRepository.deleteByIdAndUserId(sessionId, userId);
+            const session = await WorkoutSessionRepository.findByIdAndUserId(sessionId, userId);
+
+            if (!session) {
+                return false;
+            }
+
+            await WorkoutSessionRepository.deleteByIdAndUserId(sessionId, userId);
+            return true;
         } catch (error) {
             console.error('Error deleting session:', error);
             throw new Error(`Failed to delete session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * Get session history (alias for getUserSessions)
+     */
+    static async getSessionHistory(
+        filters: any,
+        page: number = 1,
+        limit: number = 10
+    ): Promise<{
+        sessions: IWorkoutSession[];
+        total: number;
+        page: number;
+        totalPages: number;
+    }> {
+        try {
+            const userId = filters.userId;
+            return await this.getUserSessions(userId, { page, limit, status: filters.status });
+        } catch (error) {
+            console.error('Error getting session history:', error);
+            throw new Error(`Failed to get session history: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
 }

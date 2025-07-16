@@ -9,9 +9,12 @@
  * - Output: { reply, conversation_id?, timestamp }
  */
 
-import axios, { AxiosInstance, AxiosError } from 'axios';
-import { ChatRequest, ChatResponse, ChatErrorResponse, ChatHealthResponse } from '../types/chatbot.types';
-import { ChatBotRepository, ChatMessage, ChatLog } from '../repositories/ChatBotRepository';
+import { AccountRepository } from '../repositories/AccountRepository';
+import { ExerciseRepository } from '../repositories/ExerciseRepository';
+import axios, { AxiosError, AxiosInstance } from 'axios';
+import { ChatBotRepository, ChatLog } from '../repositories/ChatBotRepository';
+import { ChatErrorResponse, ChatHealthResponse, ChatRequest, ChatResponse } from '../types/chatbot.types';
+import { log } from 'console';
 
 export class ChatBotService {
     private static readonly API_URL = process.env.CHATBOT_API_URL || 'http://localhost:8000';
@@ -70,12 +73,23 @@ export class ChatBotService {
             const keywords = ChatBotRepository.extractFitnessKeywords(sanitizedMessage);
             console.log(`🏋️ Fitness keywords detected: ${keywords.join(', ')}`);
 
+            // Lấy dữ liệu user
+            if (!request.user_id)
+                throw new Error('User ID is required for ChatBot requests');
+
+            const user_data = await AccountRepository.findById(request.user_id);
+
+            const exercises = await ExerciseRepository.findAll()
+
             // Gửi request đến external Python API theo đúng format
             const response = await this.apiClient.post<ChatResponse>('http://0.0.0.0:8000/api/chat', {
                 message: sanitizedMessage,
                 user_id: request.user_id,
-                conversation_id: conversationId
+                conversation_id: conversationId,
+                user_data,
+                exercises
             });
+            console.log("Check response", response);
 
             console.log(`✅ ChatBot API response received`);
             console.log(`💬 Reply length: ${response.data.reply.length} chars`);

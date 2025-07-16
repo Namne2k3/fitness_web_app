@@ -97,12 +97,12 @@ export const DEFAULT_QUICK_ACTIONS: QuickAction[] = [
         prompt: 'Giúp tôi lập kế hoạch tập luyện phù hợp với mục tiêu của tôi',
         category: 'workout'
     },
-    {
-        id: 'nutrition-advice',
-        label: '🥗 Tư vấn dinh dưỡng',
-        prompt: 'Tư vấn chế độ dinh dưỡng phù hợp cho việc tập luyện',
-        category: 'nutrition'
-    },
+    // {
+    //     id: 'nutrition-advice',
+    //     label: '🥗 Tư vấn dinh dưỡng',
+    //     prompt: 'Tư vấn chế độ dinh dưỡng phù hợp cho việc tập luyện',
+    //     category: 'nutrition'
+    // },
     {
         id: 'exercise-form',
         label: '🏃‍♂️ Hướng dẫn động tác',
@@ -115,17 +115,23 @@ export const DEFAULT_QUICK_ACTIONS: QuickAction[] = [
         prompt: 'Cho tôi một số lời khuyên để duy trì động lực tập luyện',
         category: 'motivation'
     },
+    // {
+    //     id: 'injury-prevention',
+    //     label: '🛡️ Phòng chống chấn thương',
+    //     prompt: 'Làm thế nào để tránh chấn thương khi tập luyện?',
+    //     category: 'workout'
+    // },
+    // {
+    //     id: 'weight-loss',
+    //     label: '⚖️ Giảm cân hiệu quả',
+    //     prompt: 'Tư vấn cách giảm cân an toàn và hiệu quả',
+    //     category: 'nutrition'
+    // }
     {
-        id: 'injury-prevention',
-        label: '🛡️ Phòng chống chấn thương',
-        prompt: 'Làm thế nào để tránh chấn thương khi tập luyện?',
+        id: 'advice-some-exercise',
+        label: '🏋️‍♂️ Gợi ý bài tập',
+        prompt: 'Gợi ý cho tôi một số bài tập phù hợp với mục tiêu của tôi',
         category: 'workout'
-    },
-    {
-        id: 'weight-loss',
-        label: '⚖️ Giảm cân hiệu quả',
-        prompt: 'Tư vấn cách giảm cân an toàn và hiệu quả',
-        category: 'nutrition'
     }
 ];
 

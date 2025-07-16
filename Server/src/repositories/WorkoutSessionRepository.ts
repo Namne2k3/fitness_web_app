@@ -61,12 +61,8 @@ export class WorkoutSessionRepository {
         let query = WorkoutSessionModel.findById(sessionId);
 
         // Add population based on options
-        if (populateOptions.includes('workout')) {
+        if (populateOptions.includes('workoutId')) {
             query = query.populate('workoutId', 'name description category difficulty estimatedDuration exercises');
-        }
-
-        if (populateOptions.includes('exercises')) {
-            query = query.populate('workoutId.exercises.exerciseId', 'name category muscleGroups equipment');
         }
 
         return await query.exec();
@@ -90,8 +86,7 @@ export class WorkoutSessionRepository {
             userId: new mongoose.Types.ObjectId(userId),
             status: { $in: ['active', 'paused'] }
         })
-            .populate('workoutId', 'name description category difficulty estimatedDuration exercises')
-            .populate('workoutId.exercises.exerciseId', 'name category muscleGroups equipment');
+            .populate('workoutId', 'name description category difficulty estimatedDuration exercises');
     }
 
     /**
